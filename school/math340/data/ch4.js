@@ -147,6 +147,21 @@
       front: R`The lecture's summary table gives the Geometric mean as \(\frac{1}{p}\) and the Negative Binomial mean as \(\frac{r}{p}\); Table C gives \(\frac{q}{p}\) and \(\frac{rq}{p}\). Which is right?`,
       back: R`Both. They count different things. \(\frac{1}{p}\) and \(\frac{r}{p}\) count <b>trials</b>, up to and including the first (or \(r\)th) success. \(\frac{q}{p}\) and \(\frac{rq}{p}\) count <b>failures</b> before it. Trials \(=\) failures \(+\, r\), so the means differ by \(r\) (by 1 for the Geometric). The variances are the same: \(\frac{q}{p^2}\) and \(\frac{rq}{p^2}\), because a shift does not change variance. Read the question for which count it wants.`,
     },
+    {
+      id: "c4-dunif-moments", tag: "Assignment 4 · Discrete Uniform",
+      front: R`Derive \(E(X)\) and \(\text{Var}(X)\) for \(X\) Discrete Uniform on \(1, 2, \dots, n\).`,
+      back: R`\(E(X) = \frac{1}{n}\sum_{k=1}^n k = \frac{1}{n}\cdot\frac{n(n+1)}{2} = \frac{n+1}{2}\).<br>\(E(X^2) = \frac{1}{n}\sum_{k=1}^n k^2 = \frac{(n+1)(2n+1)}{6}\) (LOTUS).<br>$$\text{Var}(X) = \frac{(n+1)(2n+1)}{6} - \frac{(n+1)^2}{4} = \frac{n^2 - 1}{12}.$$ On \(a, \dots, b\) the variance is the same with \(n = b - a + 1\), since a shift does not change variance.`,
+    },
+    {
+      id: "c4-sampling-unit", tag: "Assignment 4 · birth rank",
+      front: R`A town has families with 1, 2 or 3 children. Why does "pick a random family, then a random child in it" give a different birth-rank PMF from "pick a random child in town"?`,
+      back: R`The <b>unit that is sampled with equal probability</b> differs. Family first: each family is equally likely, and \(P(R = r) = \sum_{s \ge r} P(\text{size } s)\cdot\frac{1}{s}\). Child first: each child is equally likely, and \(P(R = r) = \frac{\#\text{children of rank } r}{\#\text{children}} = \frac{\#\text{families with} \ge r \text{ children}}{\#\text{children}}\). Picking a child over-weights big families, which hold the rank-2 and rank-3 children.`,
+    },
+    {
+      id: "c4-size-bias", tag: "Size bias",
+      front: R`Is the expected size of a <em>random family</em> the same as the expected size of the family a <em>random child</em> belongs to?`,
+      back: R`<b>No.</b> With \(n_s\) families of size \(s\): $$E(\text{size, random family}) = \frac{\sum s\,n_s}{\sum n_s}, \qquad E(\text{size, random child's family}) = \frac{\sum s^2 n_s}{\sum s\,n_s}.$$ The second is always at least as big: a family of 3 is three times as likely to be "hit" by a random child. The same effect makes the average class a student sits in larger than the average class.`,
+    },
   ];
 
   /* ---------------- small helpers ---------------- */
@@ -187,6 +202,20 @@
     const head = a === 1 ? v : a === -1 ? `-${v}` : `${a}${v}`;
     return b === 0 ? head : `${head} ${b < 0 ? "-" : "+"} ${Math.abs(b)}`;
   }
+
+  /* Assignment 4 towns: n_s families with s children, s = 1..S. */
+  function town() {
+    const S = U.pick([3, 3, 4]);
+    let counts;
+    do { counts = Array.from({ length: S }, () => U.randInt(1, 10) * 5); } while (sum(counts) > 150);
+    const N = sum(counts), C = sum(counts.map((n, i) => (i + 1) * n));
+    const desc = R`A small town has ${N} families: ${counts.map((n, i) => `${n} with ${i + 1} ${U.plural(i + 1, "child", "children")}`).join(", ")}.`;
+    return { S, counts, N, C, desc };
+  }
+  const ranks = T => Array.from({ length: T.S }, (_, i) => i + 1);
+  const withAtLeast = (T, r) => sum(T.counts.slice(r - 1));
+  const famP = (T, r) => sum(T.counts.map((n, i) => (i + 1 >= r ? n / T.N / (i + 1) : 0)));
+  const famTerms = (T, r) => T.counts.map((n, i) => (i + 1 >= r ? R`\frac{${n}}{${T.N}}\cdot\frac{1}{${i + 1}}` : null)).filter(Boolean).join(" + ");
 
   const generators = [
     /* ========== 1. The definition of E(X) ========== */
@@ -998,6 +1027,116 @@
         },
       ],
     }),
+
+    /* ========== 7. Who is sampled? (Assignment 4, birth rank) ========== */
+    MATH340.makeGenerator({
+      id: "c4-gen-unit",
+      name: "Who is sampled? Family vs. child",
+      blurb: "Assignment 4: the birth-rank PMF, mean and variance depend on whether a family or a child is chosen at random.",
+      variants: [
+        {
+          name: "Random family, then a random child: P(R = r)",
+          make() {
+            const T = town(), r = U.randInt(1, T.S);
+            const ans = famP(T, r);
+            return {
+              q: R`${T.desc} A family is chosen at random (all families equally likely), and then a child is chosen at random within that family. Let \(R\) be the child's birth rank (1 = firstborn, 2 = secondborn, …). Find \(P(R = ${r})\).`,
+              answer: ans, kind: "prob",
+              sol: R`<div class="sol-step">Condition on the size of the chosen family (LOTP). A family of size \(s\) has probability \(\frac{n_s}{${T.N}}\), and within it each rank \(1, \dots, s\) has probability \(\frac{1}{s}\).</div>
+                   <div class="sol-step">Rank ${r} needs a family of at least ${r} ${U.plural(r, "child", "children")}: $$P(R = ${r}) = ${famTerms(T, r)}$$</div>
+                   <div class="sol-step">$$P(R = ${r}) \approx ${f4(ans)}$$</div>`,
+            };
+          },
+        },
+        {
+          name: "Random child in town: P(R = r)",
+          make() {
+            const T = town(), r = U.randInt(1, T.S);
+            const k = withAtLeast(T, r);
+            const ans = k / T.C;
+            return {
+              q: R`${T.desc} A child is chosen at random from all the children in the town (all children equally likely). Let \(R\) be the child's birth rank. Find \(P(R = ${r})\).`,
+              answer: ans, kind: "prob",
+              sol: R`<div class="sol-step">Now every <b>child</b> is equally likely, so this is the naive definition over the ${T.C} children: count the children of rank ${r}.</div>
+                   <div class="sol-step">There are ${T.C} children in all (\(${T.counts.map((n, i) => `${i + 1}\\cdot${n}`).join(" + ")}\)). Each family with at least ${r} ${U.plural(r, "child", "children")} has exactly one child of rank ${r}, so there are ${k} of them.</div>
+                   <div class="sol-step">$$P(R = ${r}) = \frac{${k}}{${T.C}} \approx ${f4(ans)}$$</div>`,
+            };
+          },
+        },
+        {
+          name: "Random family, then a random child: E(R)",
+          make() {
+            const T = town();
+            const ps = ranks(T).map(r => famP(T, r));
+            const ans = sum(ps.map((p, i) => (i + 1) * p));
+            return {
+              q: R`${T.desc} A family is chosen at random, then a child at random within it. Find the expected birth rank \(E(R)\).`,
+              answer: ans, kind: "num",
+              sol: R`<div class="sol-step">First the PMF, conditioning on family size: \(P(R = r) = \sum_{s \ge r} \frac{n_s}{${T.N}}\cdot\frac{1}{s}\).</div>
+                   <div class="sol-step">${ps.map((p, i) => R`\(P(R = ${i + 1}) \approx ${f4(p)}\)`).join(", ")}.</div>
+                   <div class="sol-step">$$E(R) = ${ps.map((p, i) => `${i + 1}(${f4(p)})`).join(" + ")} \approx ${f4(ans)}$$ A shortcut: given size \(s\), \(R\) is uniform on \(1, \dots, s\) with mean \(\frac{s+1}{2}\), so \(E(R) = E\!\left(\frac{S+1}{2}\right)\).</div>`,
+            };
+          },
+        },
+        {
+          name: "Random child in town: E(R)",
+          make() {
+            const T = town();
+            const ks = ranks(T).map(r => withAtLeast(T, r));
+            const ans = sum(ks.map((k, i) => (i + 1) * k)) / T.C;
+            return {
+              q: R`${T.desc} A child is chosen at random from all the children in the town. Find the expected birth rank \(E(R)\).`,
+              answer: ans, kind: "num",
+              sol: R`<div class="sol-step">Each of the ${T.C} children is equally likely, and the number of rank-\(r\) children is the number of families with at least \(r\) children.</div>
+                   <div class="sol-step">${ks.map((k, i) => R`\(P(R = ${i + 1}) = \frac{${k}}{${T.C}}\)`).join(", ")}.</div>
+                   <div class="sol-step">$$E(R) = \frac{${ks.map((k, i) => `${i + 1}\\cdot${k}`).join(" + ")}}{${T.C}} \approx ${f4(ans)}$$ It is larger than with the family-first scheme, because big families (where the high ranks live) are over-represented when you sample children.</div>`,
+            };
+          },
+        },
+        {
+          name: "Variance of the birth rank",
+          make() {
+            const T = town();
+            const childFirst = Math.random() < 0.5;
+            const ps = ranks(T).map(r => (childFirst ? withAtLeast(T, r) / T.C : famP(T, r)));
+            const m = sum(ps.map((p, i) => (i + 1) * p));
+            const m2 = sum(ps.map((p, i) => (i + 1) * (i + 1) * p));
+            const ans = m2 - m * m;
+            return {
+              q: R`${T.desc} ${childFirst ? "A child is chosen at random from all the children in the town." : "A family is chosen at random, then a child at random within it."} Find \(\text{Var}(R)\), the variance of the child's birth rank.`,
+              answer: ans, kind: "num",
+              sol: R`<div class="sol-step">Get the PMF for <b>this</b> sampling scheme first (${childFirst ? "every child equally likely" : "every family equally likely, then every child within it"}), then use \(\text{Var}(R) = E(R^2) - [E(R)]^2\).</div>
+                   <div class="sol-step">PMF: ${ps.map((p, i) => R`\(P(R = ${i + 1}) \approx ${f4(p)}\)`).join(", ")}. So \(E(R) \approx ${f4(m)}\) and \(E(R^2) = ${ps.map((p, i) => `${(i + 1) * (i + 1)}(${f4(p)})`).join(" + ")} \approx ${f4(m2)}\).</div>
+                   <div class="sol-step">$$\text{Var}(R) \approx ${f4(m2)} - (${f4(m)})^2 \approx ${f4(ans)}$$</div>`,
+            };
+          },
+        },
+        {
+          name: "Size bias: whose family is it?",
+          make() {
+            const T = town();
+            const childView = Math.random() < 0.5;
+            const fam = sum(T.counts.map((n, i) => (i + 1) * n)) / T.N;
+            const sq = sum(T.counts.map((n, i) => (i + 1) * (i + 1) * n));
+            const kid = sq / T.C;
+            const ans = childView ? kid : fam;
+            return {
+              q: childView
+                ? R`${T.desc} A child is chosen at random from all the children in town and asked how many children are in their family (including themselves). Find the expected answer.`
+                : R`${T.desc} A family is chosen at random. Find the expected number of children in it.`,
+              answer: ans, kind: "num",
+              sol: childView
+                ? R`<div class="sol-step">A family of size \(s\) contains \(s\) of the ${T.C} children, so it is reported with probability \(\frac{s\,n_s}{${T.C}}\), not \(\frac{n_s}{${T.N}}\). Big families are over-sampled (size bias).</div>
+                   <div class="sol-step">$$E = \sum_s s\cdot\frac{s\,n_s}{${T.C}} = \frac{${T.counts.map((n, i) => `${(i + 1) * (i + 1)}\\cdot${n}`).join(" + ")}}{${T.C}} \approx ${f4(kid)}$$</div>
+                   <div class="sol-step">Compare the average over families, \(\frac{${T.C}}{${T.N}} \approx ${f4(fam)}\). The child's-eye view is always at least as large.</div>`
+                : R`<div class="sol-step">Every family is equally likely: \(P(S = s) = \frac{n_s}{${T.N}}\).</div>
+                   <div class="sol-step">$$E(S) = \frac{${T.counts.map((n, i) => `${i + 1}\\cdot${n}`).join(" + ")}}{${T.N}} = \frac{${T.C}}{${T.N}} \approx ${f4(fam)}$$</div>
+                   <div class="sol-step">Asking a random <em>child</em> instead would give \(\frac{\sum s^2 n_s}{\sum s\,n_s} \approx ${f4(kid)}\): big families get over-sampled.</div>`,
+            };
+          },
+        },
+      ],
+    }),
   ];
 
   /* When the question says X, reach for Y — the Chapter 4 decision table. */
@@ -1051,6 +1190,11 @@
       when: R`a named distribution (Bin, HGeom, Geom, NBin, Pois) and "expected", "variance"`,
       use: R`The summary table: Bin \(np, npq\); HGeom \(n\frac{K}{N}\), with \(\frac{N - n}{N - 1}\); Pois \(\lambda, \lambda\)`,
       why: R`Recognise the story first. For Geometric/NBin check whether it counts <b>trials</b> (\(\frac{1}{p}\), \(\frac{r}{p}\)) or <b>failures</b> (\(\frac{q}{p}\), \(\frac{rq}{p}\)). The variance is the same either way.`,
+    },
+    {
+      when: R`"a random family, then a random child", "a random child in town", "the family a random person belongs to"`,
+      use: R`Identify which unit is equally likely, then build the PMF for that scheme`,
+      why: R`Family first: LOTP over family size, \(\sum_{s \ge r}\frac{n_s}{N}\cdot\frac{1}{s}\). Child first: count children, \(\frac{\#\{\text{rank } r\}}{\#\text{children}}\). Sampling individuals over-weights big groups (size bias): \(\frac{\sum s^2 n_s}{\sum s\,n_s}\), not \(\frac{\sum s\,n_s}{\sum n_s}\).`,
     },
   ];
 
