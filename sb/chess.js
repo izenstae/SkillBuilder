@@ -291,19 +291,22 @@ function chSan(s, m) {
   chUnmake(s);
   return str + (mate ? "#" : check ? "+" : "");
 }
+/* SAN in, the one legal move it names out, or null. Over-specified origins (Nbd2, Nb1d2) and a promotion without "=" are accepted;
+   a capture must say x, a promotion must name its piece, and anything that fits two legal moves (Nd2 with two knights, xd5 with two pawns) is rejected */
 function chParseSan(s, san) {
-  var want = san.replace(/[+#!?]/g, "").replace(/0/g, "O");
-  var ms = chLegal(s);
-  for (var i = 0; i < ms.length; i++) {
-    var got = chSan(s, ms[i]).replace(/[+#]/g, "");
-    if (got === want) return ms[i];
+  var want = san.replace(/[+#!?\s]/g, "").replace(/0/g, "O"), ms = chLegal(s);
+  if (want === "O-O" || want === "O-O-O") {
+    var cs = ms.filter(function (m) { return m.flag === "castle" && (want === "O-O") === (m.to > m.from); });
+    return cs.length === 1 ? cs[0] : null;
   }
-  /* lenient: pawn capture without the file, promotion without "=" */
-  for (i = 0; i < ms.length; i++) {
-    got = chSan(s, ms[i]).replace(/[+#]/g, "").replace("=", "");
-    if (got === want.replace("=", "") || got.replace(/^[a-h]x/, "x") === want) return ms[i];
-  }
-  return null;
+  var p = /^([NBRQK]?)([a-h]?)([1-8]?)(x?)([a-h][1-8])(?:=?([NBRQ]))?$/.exec(want);
+  if (!p) return null;
+  var kind = p[1] ? CH_LETTER.indexOf(p[1]) : CH_P, to = chIdx(p[5]), promo = p[6] ? CH_LETTER.indexOf(p[6]) : 0;
+  var hits = ms.filter(function (m) {
+    return m.flag !== "castle" && Math.abs(m.piece) === kind && m.to === to && Math.abs(m.promo) === promo && !!m.cap === !!p[4] &&
+      (!p[2] || CH_FILES[chFile(m.from)] === p[2]) && (!p[3] || String(chRank(m.from) + 1) === p[3]);
+  });
+  return hits.length === 1 ? hits[0] : null;
 }
 function chMoveName(m) { return chName(m.from) + chName(m.to) + (m.promo ? CH_LETTER[Math.abs(m.promo)].toLowerCase() : ""); }
 function chFindMove(s, from, to, promo) {
@@ -392,7 +395,7 @@ function chEval(s) {
     var v = CH_VAL[kind] + CH_PST[kind === CH_K && endgame ? 7 : kind][chPstIdx(i, side)];
     score += side * v;
   }
-  /* a small bonus for mobility keeps the pieces active */
+  /* no mobility term: activity comes only from the piece-square tables above */
   return s.side > 0 ? score : -score;
 }
 

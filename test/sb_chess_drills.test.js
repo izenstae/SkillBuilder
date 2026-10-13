@@ -31,6 +31,10 @@ ctx.CH_MATE2.forEach(function (c) {
 ctx.COURSES.chess.lessonList.forEach(function (L) {
   (L.blocks || []).forEach(function (b) { if (b.t !== "board") return; var s = ctx.chFromFen(b.fen); ok(!ctx.chInCheck(s, -s.side), "diagram legal in " + L.id + ": " + b.fen); });
 });
+/* the course describes the draw rules the engine applies: fifty moves and threefold repetition end the game automatically */
+var drawNote = ctx.COURSES.chess.lessonById.ch_check.blocks.filter(function (b) { return b.t === "rule"; })[0].note;
+ok(/fifty/.test(drawNote) && /automatically/.test(drawNote) && /seventy-five/.test(drawNote), "ch_check says the fifty-move rule is automatic here and a claim over the board");
+ok(ctx.chStatus(ctx.chFromFen("4k3/8/8/8/8/8/8/R3K3 w - - 100 80")) === "fifty", "the engine draws at fifty moves, as the course says");
 /* the diagrams say what the engine says */
 var dFork = ctx.chFromFen("r3k3/8/8/3N4/8/8/8/4K3 w - - 0 1"), rFork = ctx.chSearch(dFork, 3);
 ok(ctx.chSan(dFork, rFork.move) === "Nc7+" && rFork.score > 150, "ch_fork diagram: Nc7+ is the move and wins material (" + rFork.score + ")");
