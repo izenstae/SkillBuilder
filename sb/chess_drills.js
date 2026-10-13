@@ -43,9 +43,9 @@ var CH_MATE1 = [
 /* [fen, the model first move, note]; every first move that forces mate in two is accepted (chdMate2Firsts), and the tests verify each position */
 var CH_MATE2 = [
   ["5r1k/6pp/8/4N3/8/1Q6/B7/7K w - - 0 1", "Qg8+", "Philidor's legacy, shortened: Qg8+ Rxg8, Nf7#."],
-  ["5k2/8/4K3/8/8/8/8/7R w - - 0 1", "Rg1", "The rook takes the g-file, the king is driven to the edge, and the check on the eighth is mate: a waiting move wins."],
+  ["5k2/8/4K3/8/8/8/8/7R w - - 0 1", "Rg1", "The rook takes the g-file, the king is forced to e8 in front of White's king, and the check on the eighth is mate: a quiet move wins."],
   ["2k5/8/3K4/8/8/8/8/R7 w - - 0 1", "Rb1", "The mirror image: Rb1 takes the b-file, Kd8 is forced, and Rb8 is mate."],
-  ["k7/8/8/8/8/8/6R1/5R2 w - - 0 1", "Rf7", "Two rooks: one takes the seventh rank, the king must step to b8, and the other rook mates on the eighth."],
+  ["k7/8/8/8/8/8/6R1/5R1K w - - 0 1", "Rf7", "Two rooks: one takes the seventh rank, the king must step to b8, and the other rook mates on the eighth."],
   ["7k/8/5K2/8/8/8/8/3Q4 w - - 0 1", "Qd7", "King and queen: a quiet move leaves the king one square, Kg8, and Qg7 is mate next to the king."],
   ["1k6/8/1K6/8/8/8/8/2Q5 w - - 0 1", "Qc7+", "Qc7+ drives the king into the corner and Qa7 mates; several quiet queen moves also force mate in two."],
   ["k7/8/2K5/8/8/8/8/7Q w - - 0 1", "Qb1", "The queen takes the b-file from a distance; the king has only a7, and Qb7 is mate."],
@@ -194,7 +194,7 @@ CH_DRILLS.chfork = { name: "Forks", target: 12, gen: function (ctx) {
   if (!best.forks.length) return CH_DRILLS.chbest.gen(ctx);
   var S = best.s, F = best.forks, sans = F.map(function (f) { return chSan(S, f.m); });
   var f0 = F[0];
-  return { kind: "move", question: chdSide(S) + " to move. Find the <b>knight fork</b>: one move that attacks two valuable pieces at once.", answer: sans[0], accept: sans, target: 12, board: chdPos(S),
+  return { kind: "move", question: chdSide(S) + " to move. Find the <b>knight fork</b>: one move that attacks two valuable pieces at once.", answer: sans[0], accept: sans, target: 12, board: chdPos(S), elo: 1100,
     explain: ["<b>" + sans[0] + "</b> attacks " + f0.hit.map(function (p) { return "the " + CH_NAMES[Math.abs(p)]; }).join(" and ") + " at once" + (sans.length > 1 ? " (also: " + sans.slice(1).join(", ") + ")" : "") + ".", "A fork works because one piece can only move once: whatever is saved, the other is lost. Knights fork best because their attack cannot be blocked and they attack squares of the colour they do not stand on."] };
 } };
 
@@ -293,7 +293,7 @@ CH_DRILLS.chopp = { name: "The opposition", target: 12, gen: function (ctx) {
     var moves = chLegal(s), opp = moves.filter(function (m) { return (chFile(m.to) === chFile(bk) && Math.abs(chRank(m.to) - chRank(bk)) === 2) || (chRank(m.to) === chRank(bk) && Math.abs(chFile(m.to) - chFile(bk)) === 2); });
     if (opp.length !== 1) continue;
     var all = moves.map(function (m) { return chName(m.to); });
-    return { kind: "square", question: "Kings only, <b>White to move</b>. Click the square that takes the <b>opposition</b>.", answer: chName(opp[0].to), accept: [chName(opp[0].to)], target: 12, board: { fen: chToFen(s), flip: false },
+    return { kind: "square", question: "Kings only, <b>White to move</b>. Click the square that takes the <b>opposition</b> (kings facing, one square between).", answer: chName(opp[0].to), accept: [chName(opp[0].to)], target: 12, board: { fen: chToFen(s), flip: false },
       explain: ["<b>" + chName(opp[0].to) + "</b>: the kings face each other with one square between and Black must move, so Black must give way.", "Opposition = same file or rank, one square apart, the other side to move. In king-and-pawn endings it decides whether the king gets through. Legal king moves here: " + all.join(", ") + "."] };
   }
   return CH_DRILLS.chsquare.gen(ctx);
@@ -331,7 +331,8 @@ var CH_LEVELS_ENGINE = [
   { n: 6, name: "Master", about: "Six plies within a budget. Hard.", depth: 6, noise: 0, elo: 2000 }
 ];
 function chPlayNew(level, color, rnd) {
-  return { s: chStart(), level: level, color: color, keys: [], moves: [], over: "", result: null, rnd: rnd || Math.random, grades: { Best: 0, Good: 0, Inaccuracy: 0, Mistake: 0, Blunder: 0 }, loss: 0, n: 0 };
+  var s = chStart();
+  return { s: s, level: level, color: color, keys: [chKey(s)], moves: [], over: "", result: null, rnd: rnd || Math.random, grades: { Best: 0, Good: 0, Inaccuracy: 0, Mistake: 0, Blunder: 0 }, loss: 0, n: 0 };
 }
 function chPlayStatus(g) {
   var st = chStatus(g.s, g.keys);
