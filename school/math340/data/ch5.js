@@ -113,8 +113,8 @@
     },
     {
       id: "c5-disc-vs-cont", tag: "Discrete ↔ continuous",
-      front: R`Translate the discrete toolkit to continuous r.v.s: PMF, \(\sum\), \(P(X = x)\), CDF jumps.`,
-      back: R`PMF \(\to\) PDF; \(\sum_x\) \(\to\) \(\int dx\); \(P(X = x) > 0\) \(\to\) \(P(X = x) = 0\); jumps in \(F\) \(\to\) a continuous \(F\) with \(F' = f\). The definitions of \(E(X)\) and \(V(X)\), LOTUS, linearity, and the variance rules carry over unchanged.`,
+      front: R`Translate the discrete toolkit to continuous r.v.s: the PMF, sums over \(x\), point probabilities \(P(X = x)\) and the jumps in the CDF.`,
+      back: R`PMF \(p(x)\) \(\to\) PDF \(f(x)\) (a density, not a probability: \(f(x) > 1\) is allowed); \(\sum_x\) \(\to\) \(\int dx\); \(P(X = x) > 0\) at the support points \(\to\) \(P(X = x) = 0\) for every \(x\); jumps in \(F\) \(\to\) a continuous \(F\) with \(F'(x) = f(x)\) wherever \(f\) is continuous. \(E(X)\), \(E[g(X)]\) (LOTUS) and \(V(X)\) keep the same form with \(\sum \to \int\) and \(p \to f\): \(E(X) = \int x f(x)\,dx\). Linearity, \(V(X) = E(X^2) - \mu^2\) and \(V(aX + b) = a^2 V(X)\) carry over unchanged.`,
     },
   ];
 
@@ -192,6 +192,7 @@
     return x;
   }
   const dec = x => U.fmt(qv(x), 4);                       // 3/4 -> "0.75"
+  const rate = lam => (lam === 1 ? "" : lam);             // e^{-x}, not e^{-1x}
 
   const EXP_CTX = [
     { what: "the time headway (in seconds) between consecutive cars on a busy freeway", unit: "seconds" },
@@ -223,7 +224,7 @@
               q: R`A continuous random variable \(X\) has density \(f(x) = k\,${d.tex}\) for \(0 \le x \le ${d.b}\), and \(f(x) = 0\) otherwise. Find the value of \(k\) that makes \(f\) a valid PDF.`,
               answer: qv(d.k), kind: "num",
               sol: R`<div class="sol-step">A PDF must have total area 1. Integrate over the support and set the result equal to 1.</div>
-                   <div class="sol-step">$$\int_0^{${d.b}} ${polyTex(d.p)}\,dx = \Big[${antiTex(d.p)}\Big]_0^{${d.b}} = ${qt(d.area)}$$</div>
+                   <div class="sol-step">$$\int_0^{${d.b}} \left(${polyTex(d.p)}\right)dx = \Big[${antiTex(d.p)}\Big]_0^{${d.b}} = ${qt(d.area)}$$</div>
                    <div class="sol-step">$$k \cdot ${qt(d.area)} = 1 \implies k = ${d.kTex} \approx ${f4(qv(d.k))}$$ Also check \(f \ge 0\) on \([0, ${d.b}]\), which it is.</div>`,
             };
           },
@@ -253,7 +254,7 @@
               answer: e.lam, kind: "num",
               sol: R`<div class="sol-step">Set the total area to 1. The integral runs from \(${e.a}\) to \(\infty\).</div>
                    <div class="sol-step">$$\int_{${e.a}}^{\infty} k\,e^{-${e.lam}${e.ex}}\,dx = k\Big[-\tfrac{1}{${e.lam}}e^{-${e.lam}${e.ex}}\Big]_{${e.a}}^{\infty} = k\cdot\frac{1}{${e.lam}}$$</div>
-                   <div class="sol-step">$$\frac{k}{${e.lam}} = 1 \implies k = ${e.lam}$$ The coefficient in front of the exponential equals the rate. That is why the headway density is valid as stated.</div>`,
+                   <div class="sol-step">$$\frac{k}{${e.lam}} = 1 \implies k = ${e.lam}$$ The coefficient in front of the exponential equals the rate. That is why \(\lambda e^{-\lambda x}\) is a valid density for every rate \(\lambda > 0\).</div>`,
             };
           },
         },
@@ -474,7 +475,7 @@
               const lam = U.pick([0.5, 1, 2, 0.25]);
               Fv = x => (x <= 0 ? 0 : 1 - Math.exp(-lam * x));
               lo = U.pick([0.5, 1, 2]); hi = lo + U.pick([1, 2, 3]);
-              Ftex = R`F(x) = \begin{cases} 0, & x &lt; 0, \\ 1 - e^{-${lam}x}, & x \ge 0. \end{cases}`;
+              Ftex = R`F(x) = \begin{cases} 0, & x &lt; 0, \\ 1 - e^{-${rate(lam)}x}, & x \ge 0. \end{cases}`;
             } else {
               Fv = x => (x <= 0 ? 0 : x >= 2 ? 1 : (3 * x * x - x * x * x) / 4);
               lo = U.randInt(1, 4) / 4; hi = lo + U.randInt(1, 3) / 4;
@@ -510,11 +511,11 @@
             const x0 = U.pick([0.5, 1, 1.5, 2]);
             const ans = lam * Math.exp(-lam * x0);
             return {
-              q: R`\(X\) has CDF \(F(x) = 1 - e^{-${lam}x}\) for \(x \ge 0\) (and \(0\) for \(x &lt; 0\)). Find the density value \(f(${x0})\).`,
+              q: R`\(X\) has CDF \(F(x) = 1 - e^{-${rate(lam)}x}\) for \(x \ge 0\) (and \(0\) for \(x &lt; 0\)). Find the density value \(f(${x0})\).`,
               answer: ans, kind: "num",
               sol: R`<div class="sol-step">Differentiate the CDF: \(f(x) = F'(x)\).</div>
-                   <div class="sol-step">$$f(x) = \frac{d}{dx}\left(1 - e^{-${lam}x}\right) = ${lam}e^{-${lam}x}, \quad x \ge 0$$</div>
-                   <div class="sol-step">$$f(${x0}) = ${lam}e^{-${U.fmt(lam * x0)}} \approx ${f4(ans)}$$</div>`,
+                   <div class="sol-step">$$f(x) = \frac{d}{dx}\left(1 - e^{-${rate(lam)}x}\right) = ${rate(lam)}e^{-${rate(lam)}x}, \quad x \ge 0$$</div>
+                   <div class="sol-step">$$f(${x0}) = ${rate(lam)}e^{-${U.fmt(lam * x0)}} \approx ${f4(ans)}$$</div>`,
             };
           },
         },
@@ -527,20 +528,20 @@
               const n = U.randInt(1, 3), b = U.randInt(1, 4);
               const ans = b * Math.pow(p, 1 / n);
               return {
-                q: R`\(X\) has CDF \(F(x) = \left(\frac{x}{${b}}\right)^{${n}}\) for \(0 \le x \le ${b}\). Find the ${name} of \(X\).`,
+                q: R`\(X\) has CDF \(F(x) = \left(\frac{x}{${b}}\right)${n === 1 ? "" : `^{${n}}`}\) for \(0 \le x \le ${b}\). Find the ${name} of \(X\).`,
                 answer: ans, kind: "num",
                 sol: R`<div class="sol-step">The ${name} is the \(x\) with \(F(x) = ${p}\): ${p === 0.5 ? "half the area lies to its left" : `${Math.round(p * 100)}% of the area lies to its left`}.</div>
-                     <div class="sol-step">$$\left(\frac{x}{${b}}\right)^{${n}} = ${p} \implies x = ${b}\cdot(${p})^{${n === 1 ? 1 : `1/${n}`}}$$</div>
+                     <div class="sol-step">$$\left(\frac{x}{${b}}\right)${n === 1 ? "" : `^{${n}}`} = ${p} \implies x = ${b}\cdot${n === 1 ? p : `(${p})^{1/${n}}`}$$</div>
                      <div class="sol-step">$$x \approx ${f4(ans)}$$</div>`,
               };
             }
             const lam = U.pick([0.1, 0.2, 0.5, 1, 2]);
             const ans = -Math.log(1 - p) / lam;
             return {
-              q: R`\(X\) has CDF \(F(x) = 1 - e^{-${lam}x}\) for \(x \ge 0\). Find the ${name} of \(X\).`,
+              q: R`\(X\) has CDF \(F(x) = 1 - e^{-${rate(lam)}x}\) for \(x \ge 0\). Find the ${name} of \(X\).`,
               answer: ans, kind: "num",
               sol: R`<div class="sol-step">Solve \(F(x) = ${p}\) for \(x\).</div>
-                   <div class="sol-step">$$1 - e^{-${lam}x} = ${p} \implies e^{-${lam}x} = ${U.fmt(1 - p, 2)} \implies x = \frac{-\ln(${U.fmt(1 - p, 2)})}{${lam}}$$</div>
+                   <div class="sol-step">$$1 - e^{-${rate(lam)}x} = ${p} \implies e^{-${rate(lam)}x} = ${U.fmt(1 - p, 2)} \implies x = \frac{-\ln(${U.fmt(1 - p, 2)})}{${lam}}$$</div>
                    <div class="sol-step">$$x \approx ${f4(ans)}$$${p === 0.5 ? R` The mean is \(\frac{1}{${lam}} = ${f4(1 / lam)}\), larger than the median: the long right tail pulls the mean up.` : ""}</div>`,
             };
           },
@@ -617,7 +618,7 @@
                 q: R`\(X\) has density \(f(x) = \frac{1}{${w}}\) for \(${a} \le x \le ${a + w}\), and \(0\) otherwise. Find \(E(X)\).`,
                 answer: a + w / 2, kind: "num",
                 sol: R`<div class="sol-step">The density is flat, so it is symmetric about the midpoint of its interval, and the balance point is that midpoint.</div>
-                     <div class="sol-step">$$E(X) = \frac{${a} + ${a + w}}{2} = ${U.fmt(a + w / 2)}$$ (Integrating \(\int x\cdot\frac{1}{${w}}\,dx\) gives the same.)</div>`,
+                     <div class="sol-step">$$E(X) = \frac{${a} + ${a + w < 0 ? `(${a + w})` : a + w}}{2} = ${U.fmt(a + w / 2)}$$ (Integrating \(\int x\cdot\frac{1}{${w}}\,dx\) gives the same.)</div>`,
               };
             }
             const d = density(SHAPES[1]);
@@ -638,15 +639,15 @@
             const ctx = U.pick([
               R`A bus arrives at a uniformly random time between ${a} and ${b} minutes after the hour. Let \(X\) be the arrival time (minutes after the hour).`,
               R`\(X \sim \text{Unif}(${a}, ${b})\).`,
-            ]);
+            ].slice(a < 0 ? 1 : 0));   // "-3 minutes after the hour" is not a time
             const ans = askVar ? w * w / 12 : (a + b) / 2;
             return {
               q: R`${ctx} Find \(${askVar ? "V(X)" : "E(X)"}\).`,
               answer: ans, kind: "num",
               sol: R`<div class="sol-step">The density is \(\frac{1}{${w}}\) on \([${a}, ${b}]\).</div>
                    <div class="sol-step">${askVar
-                     ? R`\(E(X^2) = \int_{${a}}^{${b}} \frac{x^2}{${w}}\,dx\) and \(E(X) = \frac{${a} + ${b}}{2}\). The shortcut simplifies to $$V(X) = \frac{(b - a)^2}{12} = \frac{${w}^2}{12} = ${U.fracTex(w * w, 12)} \approx ${f4(ans)}$$`
-                     : R`$$E(X) = \int_{${a}}^{${b}} \frac{x}{${w}}\,dx = \frac{${b}^2 - (${a})^2}{2\cdot${w}} = \frac{${a} + ${b}}{2} = ${U.fmt(ans)}$$`}</div>`,
+                     ? R`\(E(X^2) = \int_{${a}}^{${b}} \frac{x^2}{${w}}\,dx\) and \(E(X) = \frac{${a} + ${b < 0 ? `(${b})` : b}}{2}\). The shortcut simplifies to $$V(X) = \frac{(b - a)^2}{12} = \frac{${w}^2}{12} = ${U.fracTex(w * w, 12)} \approx ${f4(ans)}$$`
+                     : R`$$E(X) = \int_{${a}}^{${b}} \frac{x}{${w}}\,dx = \frac{(${b})^2 - (${a})^2}{2\cdot${w}} = \frac{${a} + ${b < 0 ? `(${b})` : b}}{2} = ${U.fmt(ans)}$$`}</div>`,
             };
           },
         },
