@@ -308,6 +308,7 @@ tr.current-week { background: var(--accent-soft); }
 .empty-state .big { font-size: 40px; margin-bottom: 10px; }
 .week-badge { font-weight: 600; color: var(--accent); }
 .katex { font-size: 1.06em; }
+.katex-glue { white-space: nowrap; }
 .katex-display { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
 
 .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 18px; }
