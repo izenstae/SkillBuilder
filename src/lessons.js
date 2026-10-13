@@ -94,7 +94,7 @@ var LESSONS_1 = [
   gist: "Two numbers, one comparison. This is the whole of Stage 1.",
   blocks: [
     { t:"p", x:"You have a price from lesson one and an equity from lesson two. The decision is just putting them next to each other." },
-    { t:"rule", x:"equity > price   ->   call\nequity < price   ->   fold", note:"There is no third option and no judgement involved. If you are ahead of the price you call, even with a hand you dislike, even when you will lose most of the time." },
+    { t:"rule", x:"equity > price   ->   call\nequity &lt; price   ->   fold", note:"There is no third option and no judgement involved. If you are ahead of the price you call, even with a hand you dislike, even when you will lose most of the time." },
     { t:"p", x:"That last part is what people cannot swallow. A correct call can lose two times out of three. It is still correct, because you were not paying for a win, you were paying for a share, and you got the share cheap. The losses are already in the price." },
     { t:"ex", title:"Worked example",
       cards:{ hero:["9h","8h"], villain:["As","Kd"], board:["Ah","7h","2c"] },
@@ -228,7 +228,7 @@ var LESSONS_1 = [
     { t:"how", drill:"Preflop equity", ask:"All in preflop. What is your equity?",
       steps:[
         "You see two hands and no board. First name the shape: pair over pair, pair versus two overcards, pair versus one over, dominated, or two overs versus two unders.",
-        "Read off the anchor for that shape: 80/20 pair over pair, 55/45 pair versus two overs, 70/30 pair versus one over, 74/26 dominated, ~63/37 two overs versus two unders, 93/7 for a pair against a hand it dominates like AA vs AK.",
+        "Read off the anchor for that shape: 80/20 pair over pair, 55/45 pair versus two overs, 70/30 pair versus one over, ~70/30 dominated (shared card, better kicker), ~63/37 two overs versus two unders, 93/7 for a pair against a hand it dominates like AA vs AK.",
         "Nudge it: +3 points for suited, +2 for connected. Then enter your side. You are graded within 4 points."
       ],
       tip:"Decide who is the favourite before you attach any number. Getting the direction right, that the pair or the dominating hand is ahead, is most of the score. The exact decimal never matters." }

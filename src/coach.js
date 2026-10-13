@@ -160,6 +160,9 @@ function coachBet(g, A, to, rng) {
   /* with no responders (everyone else all in) the bet is just a call-like investment */
   var base = allInOpps.map(function (q) { return g.ranges[q.i]; });
   var heroAllIn = hero.stack - add <= 0.001;
+  /* chips no one can match come back: cap the called amount at the deepest opponent's final bet */
+  var heroTo = c.players[g.hero].bet, allInTop = allInOpps.reduce(function (a, q) { return Math.max(a, q.bet); }, 0);
+  function uncalled(oppTop) { return Math.max(0, heroTo - Math.max(oppTop, allInTop)); }
   var pOne = 0;                                  /* P(exactly one continues); the re-raise parts are inside it */
   resp.forEach(function (r, k) {
     var pOnly = (1 - r.pFold) * resp.reduce(function (a, o, j) { return j === k ? a : a * o.pFold; }, 1);
@@ -169,8 +172,9 @@ function coachBet(g, A, to, rng) {
     var canRe = r.pRaise > 0.02 && !heroAllIn && r.reTo > toNow + 0.001;
     var eq = equityVs(hero.cards, h.board, base.concat([canRe ? r.callW : r.cont]), 600, rng);
     var R = coachR(h.street, A.ip, heroAllIn || r.callAmt >= t.players[r.seat].stack - 0.001);
-    var final = potAfter + r.callAmt;
-    var v = R * eq * final - add;
+    var ex = uncalled(r.oppBet + r.callAmt);
+    var final = potAfter + r.callAmt - ex;
+    var v = R * eq * final - (add - ex);
     if (canRe) {
       /* they re-raise: you fold (losing what you put in) or call the rest, whichever is better */
       var extra = Math.min(r.reTo - toNow, heroLeft);
@@ -190,14 +194,16 @@ function coachBet(g, A, to, rng) {
   var pMulti = Math.max(0, 1 - pAll - pOne);
   if (pMulti > 1e-3) {
     var eqm = equityVs(hero.cards, h.board, base.concat(resp.map(function (r) { return r.cont; })), 600, rng);
-    var finalM = potAfter + resp.reduce(function (a, r) { return a + r.callAmt; }, 0);
-    var vm = coachR(h.street, A.ip, heroAllIn) * eqm * finalM - add;
+    var exM = uncalled(resp.reduce(function (a, r) { return Math.max(a, r.oppBet + r.callAmt); }, 0));
+    var finalM = potAfter + resp.reduce(function (a, r) { return a + r.callAmt; }, 0) - exM;
+    var vm = coachR(h.street, A.ip, heroAllIn) * eqm * finalM - (add - exM);
     ev += pMulti * vm;
     parts.push({ what: "two or more continue", p: pMulti, eq: eqm, value: vm });
   }
   if (!resp.length) {
     var eq0 = equityVs(hero.cards, h.board, base, 600, rng);
-    ev = eq0 * (potAfter) - add; parts = [{ what: "showdown", p: 1, eq: eq0, value: ev }];
+    var ex0 = uncalled(0);
+    ev = eq0 * (potAfter - ex0) - (add - ex0); parts = [{ what: "showdown", p: 1, eq: eq0, value: ev }];
   }
   return { ev: ev, add: add, pAllFold: resp.length ? pAll : 0, responders: resp.map(function (r) { return { seat: r.seat, name: r.name, style: r.style, pFold: r.pFold, eqCalled: r.eqCalled, reraise: r.reraise || null }; }), parts: parts };
 }

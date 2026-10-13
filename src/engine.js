@@ -194,7 +194,7 @@ function classifyPreflop(h, v) {
 
   if (hr[0] === vr[0] && hr[1] === vr[1]) return "The same two ranks: close to 50/50, and the pot is often split." + (hs !== vs ? " The suited one is worth a couple of points more." : "");
   var shared = (hr[0] === vr[0] || hr[0] === vr[1] || hr[1] === vr[0] || hr[1] === vr[1]);
-  if (shared) return "Domination: sharing a card with the worse kicker is about 26/74." + suitNote;
+  if (shared) return "Domination: sharing a card, the better kicker wins roughly 70/30, usually 65 to 77% (closer when the kickers are next to each other)." + suitNote;
   if (hr[1] > vr[0] || vr[1] > hr[0]) return "Two overcards against two undercards: about 63/37 for the higher hand." + suitNote;
   return "Interlocked unpaired hands: usually 55/45 to 60/40 toward the stronger top card." + suitNote;
 }
