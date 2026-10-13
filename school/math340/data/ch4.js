@@ -20,7 +20,7 @@
     {
       id: "c4-ev-def", tag: "Definition",
       front: R`Define the <em>expected value</em> \(E(X)\) of a discrete random variable \(X\).`,
-      back: R`If the distinct possible values of \(X\) are \(x_1, x_2, \dots\), $$E(X) = \sum_{j} x_j\,P(X = x_j) = \sum_x \underbrace{x}_{\text{value}}\ \underbrace{P(X = x)}_{\text{PMF at } x}.$$ Multiply each value by its probability and add. With a finite support the sum is finite. Also called the <b>expectation</b> or <b>mean</b>.`,
+      back: R`If the distinct possible values of \(X\) are \(x_1, x_2, \dots\), $$E(X) = \sum_{j} x_j\,P(X = x_j) = \sum_x \underbrace{x}_{\text{value}}\ \underbrace{P(X = x)}_{\text{PMF at } x}.$$ Multiply each value by its probability and add. With a finite support the sum is finite. With infinitely many values, \(E(X)\) exists only if the series converges absolutely. Also called the <b>expectation</b> or <b>mean</b>.`,
     },
     {
       id: "c4-ev-weighted", tag: "Interpretation",
@@ -129,7 +129,7 @@
     },
     {
       id: "c4-sum-vs-scale", tag: "Common pitfall",
-      front: R`\(X_1, \dots, X_n\) are i.i.d. with variance \(\sigma^2\). Compare \(\text{Var}(X_1 + \dots + X_n)\) with \(\text{Var}(nX_1)\).`,
+      front: R`\(X_1, \dots, X_n\) are i.i.d. with mean \(\mu\) and variance \(\sigma^2\). Compare \(\text{Var}(X_1 + \dots + X_n)\) with \(\text{Var}(nX_1)\).`,
       back: R`$$\text{Var}(X_1 + \dots + X_n) = n\sigma^2, \qquad \text{Var}(nX_1) = n^2\sigma^2.$$ Both have mean \(n\mu\), but \(n\) independent copies partly cancel each other's deviations. One copy scaled by \(n\) moves all at once.`,
     },
     {
@@ -405,9 +405,10 @@
             const ctx = U.pick([
               { X: "the number of heads", Y: "the number of tails", note: R`\(X + Y\) is fixed, so they are as dependent as two variables can be` },
               { X: "a student's score on the midterm", Y: "the same student's score on the final", note: R`students who do well on one tend to do well on the other` },
-              { X: "the day's high temperature", Y: "the day's low temperature", note: R`a hot day tends to have a warm night` },
+              { X: "the day's high temperature", Y: "the day's low temperature", note: R`a hot day tends to have a warm night`, ordered: true },
             ]);
-            const m1 = U.randInt(2, 80), m2 = U.randInt(2, 80);
+            let m1 = U.randInt(2, 80), m2 = U.randInt(2, 80);
+            if (ctx.ordered && m1 < m2) [m1, m2] = [m2, m1];   // the high is never below the low
             const a = U.pick([1, 2, 3, -1]), b = U.pick([1, 2, -1, -2, -3]), c = U.randInt(-10, 10);
             const ans = a * m1 + b * m2 + c;
             const expr = `${lin("X", a, 0)} ${b < 0 ? "-" : "+"} ${Math.abs(b) === 1 ? "" : Math.abs(b)}Y${c === 0 ? "" : ` ${c < 0 ? "-" : "+"} ${Math.abs(c)}`}`;
@@ -450,7 +451,7 @@
                 q: R`${n} guests check their coats, and the attendant hands the coats back in a completely random order. Let \(X\) be the number of guests who get their own coat. Find \(E(X)\).`,
                 answer: 1, kind: "num",
                 sol: R`<div class="sol-step">Let \(I_j\) indicate that guest \(j\) gets their own coat. By symmetry each guest is equally likely to get any of the ${n} coats, so \(E(I_j) = \frac{1}{${n}}\).</div>
-                     <div class="sol-step">The \(I_j\) are dependent (if 29 people match, so does the 30th), but linearity does not care: $$E(X) = ${n} \cdot \frac{1}{${n}} = 1.$$</div>
+                     <div class="sol-step">The \(I_j\) are dependent (if all but one guest match, so does the last), but linearity does not care: $$E(X) = ${n} \cdot \frac{1}{${n}} = 1.$$</div>
                      <div class="sol-step">The answer does not depend on how many guests there are.</div>`,
               };
             }
@@ -506,7 +507,7 @@
             const v = a + b * m;
             const expr = a === 0 ? `${b}X` : `${a} ${b < 0 ? "-" : "+"} ${Math.abs(b)}X`;
             return {
-              q: R`A random variable satisfies \(E(${expr}) = ${v}\). Find \(E(X)\).`,
+              q: R`A random variable \(X\) satisfies \(E(${expr}) = ${v}\). Find \(E(X)\).`,
               answer: m, kind: "num",
               sol: R`<div class="sol-step">Linearity turns the given equation into one about the number \(E(X)\): \(${a === 0 ? "" : `${a} + `}(${b})\,E(X) = ${v}\).</div>
                    <div class="sol-step">$$E(X) = \frac{${v} - (${a})}{${b}} = ${m}$$</div>`,
@@ -817,7 +818,7 @@
             return {
               q: R`\(X\) and \(Y\) are independent with \(\text{Var}(X) = ${vx}\) and \(\text{Var}(Y) = ${vy}\). Find \(\text{Var}(${expr})\).`,
               answer: ans, kind: "num",
-              sol: R`<div class="sol-step">Write \(${expr} = ${a === 1 ? "" : a}X + (-${b === 1 ? "" : b})Y\). The coefficient \(-${b}\) is squared, so the variances still <b>add</b>.</div>
+              sol: R`<div class="sol-step">Write \(${expr} = ${a === 1 ? "" : a}X + (-${b})Y\). The coefficient \(-${b}\) is squared, so the variances still <b>add</b>.</div>
                    <div class="sol-step">$$\text{Var}(${expr}) = ${a * a}(${vx}) + ${b * b}(${vy}) = ${ans}$$</div>
                    <div class="sol-step">Subtracting gives \(${a * a * vx - b * b * vy}\), which is wrong and could even be negative. A difference of two independent random quantities is <em>more</em> uncertain than either one.</div>`,
             };
