@@ -37,7 +37,7 @@ var ES_VOCAB = {
     ["también", "also / too", "adv", "tampoco = neither", "Yo también.", "Me too."],
     ["perdón", "sorry / excuse me", "phrase", "disculpe (formal), lo siento = I'm sorry", "Perdón, ¿dónde está la estación?", "Excuse me, where is the station?"],
     ["un poco", "a little", "adv", "", "Hablo un poco de español.", "I speak a little Spanish."],
-    ["mucho", "much / a lot / very", "adv", "mucha, muchos, muchas as an adjective", "Muchas gracias.", "Thanks a lot."],
+    ["mucho", "much / a lot", "adv", "mucha, muchos, muchas as an adjective", "Muchas gracias.", "Thanks a lot."],
     ["de", "of / from", "prep", "del = de + el", "Soy de Canadá.", "I'm from Canada."]
   ],
   es_v2: [
@@ -218,7 +218,7 @@ var ES_VOCAB = {
     ["autobús", "bus", "n", "el autobús; el camión (Mexico), el colectivo (Argentina)", "El autobús viene ya.", "The bus is coming now."],
     ["avión", "plane", "n", "el avión; el vuelo = flight", "Mi vuelo sale a las diez.", "My flight leaves at ten."],
     ["billete", "ticket", "n", "el billete (Spain); el boleto (Lat. Am.)", "Un billete a Sevilla.", "A ticket to Seville."],
-    ["derecha", "right", "n", "a la derecha", "Gira a la derecha.", "Turn right."],
+    ["derecha", "right (side)", "n", "a la derecha", "Gira a la derecha.", "Turn right."],
     ["izquierda", "left", "n", "a la izquierda", "Está a la izquierda.", "It's on the left."],
     ["recto", "straight ahead", "adv", "todo recto; derecho (Lat. Am.)", "Sigue todo recto.", "Go straight ahead."],
     ["cerca", "near", "adv", "cerca de", "Está cerca.", "It's close."],
@@ -329,7 +329,7 @@ var ES_VOCAB = {
     ["claro", "of course / clear", "adv", "¡Claro que sí!", "¡Claro!", "Of course!"],
     ["más o menos", "more or less / approximately", "adv", "", "Más o menos diez minutos.", "About ten minutes."],
     ["sobre todo", "especially / above all", "adv", "", "Sobre todo en invierno.", "Especially in winter."],
-    ["querer decir", "to mean", "verb", "¿qué quieres decir?", "¿Qué quieres decir?", "What do you mean?"],
+    ["querer decir", "to mean (what a person means)", "verb", "¿qué quieres decir?", "¿Qué quieres decir?", "What do you mean?"],
     ["opinión", "opinion", "n", "la opinión; en mi opinión", "¿Cuál es tu opinión?", "What's your opinion?"],
     ["parecer", "to seem", "verb", "me parece que… = it seems to me", "Me parece bien.", "That seems fine to me."]
   ],
@@ -394,7 +394,7 @@ var ES_VOCAB = {
     ["desarrollo", "development", "n", "el desarrollo", "Un desarrollo rápido.", "A rapid development."],
     ["decidir", "to decide", "verb", "regular -ir", "Tú decides.", "You decide."],
     ["pasar", "to happen; to pass; to spend (time)", "verb", "¿qué pasó? = what happened?", "¿Qué pasó?", "What happened?"],
-    ["significar", "to mean", "verb", "regular -ar", "¿Qué significa la palabra?", "What does the word mean?"],
+    ["significar", "to mean (what a word means)", "verb", "regular -ar", "¿Qué significa la palabra?", "What does the word mean?"],
     ["palabra", "word", "n", "la palabra", "Una palabra nueva.", "A new word."]
   ],
   es_v13: [
@@ -416,7 +416,7 @@ var ES_VOCAB = {
     ["a menudo", "often", "adv", "muchas veces", "Entreno a menudo.", "I train often."],
     ["rara vez", "rarely", "adv", "casi nunca", "Rara vez llega tarde.", "He rarely arrives late."],
     ["siempre", "always", "adv", "", "Siempre tengo hambre.", "I'm always hungry."],
-    ["nunca", "never", "adv", "no … nunca (double negative is required)", "Nunca me rindo.", "I never give up."],
+    ["nunca", "never", "adv", "after the verb it needs no: no … nunca (double negative)", "Nunca me rindo.", "I never give up."],
     ["a veces", "sometimes", "adv", "", "A veces llueve.", "Sometimes it rains."],
     ["solo", "only / just; alone", "adv", "solamente", "Solo una vez.", "Only once."],
     ["bastante", "quite / enough", "adv", "", "Es bastante bueno.", "It's quite good."],
@@ -448,9 +448,9 @@ var ES_VOCAB = {
     ["poder permitirse", "to afford", "phrase", "", "No me lo puedo permitir.", "I can't afford it."],
     ["me da igual", "I don't care / it's all the same to me", "phrase", "", "Me da igual.", "I don't care."],
     ["rendirse", "to give up", "verb", "me rindo", "¡No te rindas!", "Don't give up!"],
-    ["tener ilusión por", "to look forward to", "phrase", "", "Tengo muchas ganas de ver el partido.", "I'm really looking forward to the game."],
+    ["tener ilusión por", "to look forward to", "phrase", "", "Tengo mucha ilusión por ver el partido.", "I'm really looking forward to the game."],
     ["averiguar", "to find out", "verb", "regular -ar", "Averigua cuándo sale el tren.", "Find out when the train leaves."],
-    ["dar pena", "to feel sorry for", "phrase", "me da pena", "Me da pena él.", "I feel sorry for him."],
+    ["dar pena", "to feel sorry for", "phrase", "me da pena", "Él me da pena.", "I feel sorry for him."],
     ["visitar", "to visit", "verb", "regular -ar", "Visitamos a la abuela.", "We're visiting grandma."],
     ["no importa", "it doesn't matter", "phrase", "", "No importa quién gane.", "It doesn't matter who wins."],
     ["de todas formas", "anyway / in any case", "phrase", "de todos modos", "De todas formas, nos vemos mañana.", "Anyway, see you tomorrow."],
@@ -467,7 +467,7 @@ var ES_VOCAB = {
 var ES_GENDER = {
   name: "El or la", cols: ["noun", "article", "meaning"], ask: [1], given: 0, gloss: 2, choice: true, target: 5,
   q: "Is it <b>el</b> or <b>la</b> {w} ({g})?",
-  rule: { 1: "-o is usually masculine, -a usually feminine. Famous exceptions: el día, el mapa, el problema, el idioma, el clima (Greek -ma words are masculine); la mano, la foto, la moto. Nouns in -ción, -sión, -dad, -tad, -tud are feminine; -or, -aje are masculine." },
+  rule: { 1: "-o is usually masculine, -a usually feminine. Famous exceptions: el día, el mapa, el problema, el idioma, el clima (Greek -ma words are masculine); la mano, la foto, la moto. Nouns in -ción, -sión, -dad, -tad, -tud are feminine; -or, -aje are masculine (but la flor)." },
   rows: [["libro", "el", "book"], ["casa", "la", "house"], ["día", "el", "day"], ["mano", "la", "hand"], ["problema", "el", "problem"], ["ciudad", "la", "city"], ["coche", "el", "car"], ["noche", "la", "night"],
     ["mapa", "el", "map"], ["foto", "la", "photo"], ["idioma", "el", "language"], ["universidad", "la", "university"], ["reloj", "el", "watch"], ["canción", "la", "song"], ["viaje", "el", "trip"], ["calle", "la", "street"],
     ["agua", "el", "water (f., but el in the singular)"], ["clima", "el", "climate"], ["flor", "la", "flower"], ["color", "el", "colour"], ["leche", "la", "milk"], ["pie", "el", "foot"], ["sal", "la", "salt"], ["pan", "el", "bread"],
@@ -476,7 +476,7 @@ var ES_GENDER = {
 var ES_PLURAL = {
   name: "Plurals", cols: ["singular", "plural", "meaning"], ask: [1], given: 0, gloss: 2, target: 7,
   q: "{w} ({g}): give the <b>plural</b>.",
-  rule: { 1: "Vowel + -s; consonant + -es; -z → -ces; words ending in -s with an unstressed last syllable do not change (el lunes, los lunes). A written accent on the last syllable disappears in the plural (canción → canciones)." },
+  rule: { 1: "Vowel + -s; consonant + -es; -z → -ces; words ending in -s with an unstressed last syllable do not change (el lunes, los lunes). A written accent on a final -n or -s syllable disappears in the plural (canción → canciones, autobús → autobuses), except where it splits a diphthong (país → países); examen gains one (exámenes)." },
   rows: [["libro", "libros", "book"], ["ciudad", "ciudades", "city"], ["lápiz", "lápices", "pencil"], ["lunes", "lunes", "Monday"], ["canción", "canciones", "song"], ["examen", "exámenes", "exam"], ["mes", "meses", "month"], ["jugador", "jugadores", "player"],
     ["pez", "peces", "fish"], ["luz", "luces", "light"], ["joven", "jóvenes", "young person"], ["país", "países", "country"], ["autobús", "autobuses", "bus"], ["hotel", "hoteles", "hotel"], ["mujer", "mujeres", "woman"], ["crisis", "crisis", "crisis"]]
 };
@@ -557,11 +557,11 @@ var ES_PRON = {
   rows: [["yo", "me", "me", "mí", "mi / mis", "I"], ["tú", "te", "te", "ti", "tu / tus", "you"], ["él", "lo", "le", "él", "su / sus", "he"], ["ella", "la", "le", "ella", "su / sus", "she"],
     ["usted", "lo / la", "le", "usted", "su / sus", "you (formal)"], ["nosotros", "nos", "nos", "nosotros", "nuestro / nuestra / nuestros / nuestras", "we"], ["ellos", "los", "les", "ellos", "su / sus", "they"], ["ellas", "las", "les", "ellas", "su / sus", "they (f.)"]]
 };
-/* gustar-type sentences: [English, Spanish, gloss note] */
+/* gustar-type sentences: [English, Spanish, gloss note, other accepted answers] */
 var ES_GUSTAR = [
-  ["I like coffee.", "Me gusta el café.", "singular thing → gusta"], ["I like apples.", "Me gustan las manzanas.", "plural thing → gustan"], ["Do you like hockey?", "¿Te gusta el hockey?", ""], ["She likes to read.", "Le gusta leer.", "an infinitive → gusta"],
-  ["We like the city.", "Nos gusta la ciudad.", ""], ["They like the games.", "Les gustan los partidos.", ""], ["I don't like winter.", "No me gusta el invierno.", ""], ["My knee hurts.", "Me duele la rodilla.", "doler works the same way"],
-  ["My feet hurt.", "Me duelen los pies.", ""], ["He is interested in history.", "Le interesa la historia.", "interesar too"], ["I love tacos.", "Me encantan los tacos.", "encantar = love"], ["It seems good to me.", "Me parece bien.", "parecer"]
+  ["I like coffee.", "Me gusta el café.", "singular thing → gusta", ["A mí me gusta el café."]], ["I like apples.", "Me gustan las manzanas.", "plural thing → gustan", ["A mí me gustan las manzanas."]], ["Do you like hockey?", "¿Te gusta el hockey?", "", ["¿A ti te gusta el hockey?", "¿Le gusta el hockey?"]], ["She likes to read.", "Le gusta leer.", "an infinitive → gusta", ["A ella le gusta leer."]],
+  ["We like the city.", "Nos gusta la ciudad.", "", ["A nosotros nos gusta la ciudad."]], ["They like the games.", "Les gustan los partidos.", "", ["A ellos les gustan los partidos."]], ["I don't like winter.", "No me gusta el invierno.", "", ["A mí no me gusta el invierno."]], ["My knee hurts.", "Me duele la rodilla.", "doler works the same way"],
+  ["My feet hurt.", "Me duelen los pies.", ""], ["He is interested in history.", "Le interesa la historia.", "interesar too", ["A él le interesa la historia."]], ["I love tacos.", "Me encantan los tacos.", "encantar = love", ["A mí me encantan los tacos."]], ["It seems good to me.", "Me parece bien.", "parecer"]
 ];
 /* tense choice: preterite vs imperfect: [sentence with blank, answer, gloss] */
 var ES_PASTCHOICE = {
@@ -577,9 +577,9 @@ var ES_PASTCHOICE = {
 var ES_SOUND_RULES = ["hard c / g (k, g)", "soft c (s / th)", "soft g (like Spanish j)", "silent h", "ll / y (y sound)", "ñ (ny)", "rr (rolled)", "j (throaty h)", "qu / gu (silent u)"];
 var ES_SOUNDS = [
   ["casa", "hard c / g (k, g)", "house"], ["cine", "soft c (s / th)", "cinema"], ["gente", "soft g (like Spanish j)", "people"], ["gato", "hard c / g (k, g)", "cat"], ["hola", "silent h", "hello"], ["llave", "ll / y (y sound)", "key"],
-  ["año", "ñ (ny)", "year"], ["perro", "rr (rolled)", "dog"], ["jugar", "j (throaty h)", "to play"], ["queso", "qu / gu (silent u)", "cheese"], ["guitarra", "qu / gu (silent u)", "guitar"], ["ciudad", "soft c (s / th)", "city"],
-  ["gimnasio", "soft g (like Spanish j)", "gym"], ["hielo", "silent h", "ice"], ["calle", "ll / y (y sound)", "street"], ["niño", "ñ (ny)", "child"], ["carro", "rr (rolled)", "car"], ["hijo", "j (throaty h)", "son"],
-  ["cuánto", "hard c / g (k, g)", "how much"], ["gracias", "soft c (s / th)", "thanks"], ["general", "soft g (like Spanish j)", "general"], ["hora", "silent h", "hour"], ["ella", "ll / y (y sound)", "she"], ["mañana", "ñ (ny)", "tomorrow"]
+  ["año", "ñ (ny)", "year"], ["perro", "rr (rolled)", "dog"], ["ojo", "j (throaty h)", "eye"], ["queso", "qu / gu (silent u)", "cheese"], ["seguir", "qu / gu (silent u)", "to follow"], ["ciudad", "soft c (s / th)", "city"],
+  ["gimnasio", "soft g (like Spanish j)", "gym"], ["hielo", "silent h", "ice"], ["lluvia", "ll / y (y sound)", "rain"], ["niño", "ñ (ny)", "child"], ["tierra", "rr (rolled)", "earth"], ["joven", "j (throaty h)", "young"],
+  ["cuánto", "hard c / g (k, g)", "how much"], ["cena", "soft c (s / th)", "dinner"], ["general", "soft g (like Spanish j)", "general"], ["hora", "silent h", "hour"], ["ella", "ll / y (y sound)", "she"], ["mañana", "ñ (ny)", "tomorrow"]
 ];
 /* stress: [word, stressed syllable number (1-based), syllables, rule] */
 var ES_STRESS = [
@@ -588,13 +588,13 @@ var ES_STRESS = [
   ["universidad", 5, "u-ni-ver-si-DAD", "ends in a consonant: last"], ["teléfono", 2, "te-LÉ-fo-no", "accent mark"], ["mañana", 2, "ma-ÑA-na", "ends in a vowel: second-to-last"], ["examen", 2, "e-XA-men", "ends in n: second-to-last"]
 ];
 /* minimal pairs by accent: [a, b, meanings] */
-var ES_PAIRS = [["hablo", "habló", "I speak / he spoke"], ["papa", "papá", "potato / dad"], ["esta", "está", "this / is"], ["si", "sí", "if / yes"], ["el", "él", "the / he"], ["tu", "tú", "your / you"], ["como", "comió", "I eat / he ate"], ["pero", "perro", "but / dog"], ["caro", "carro", "expensive / car"], ["pera", "perra", "pear / female dog"]];
+var ES_PAIRS = [["hablo", "habló", "I speak / he spoke"], ["papa", "papá", "potato / dad"], ["esta", "está", "this / is"], ["seria", "sería", "serious / would be"], ["hacia", "hacía", "towards / was doing"], ["tomo", "tomó", "I take / he took"], ["sabana", "sábana", "savanna / bed sheet"], ["pero", "perro", "but / dog"], ["caro", "carro", "expensive / car"], ["pera", "perra", "pear / female dog"]];
 
 /* ---- dialogues ---- */
 var ES_DIALOGUES = [
   { id: "es_d1", title: "Hello, who are you?", setting: "A new teammate at the rink. Introduce yourself.", level: "A1",
     turns: [
-      { bot: "¡Hola! Me llamo Lucía. ¿Cómo te llamas?", botg: "Hi! My name is Lucía. What's your name?", expect: ["me llamo", "mi nombre", "^soy "], model: "¡Hola! Me llamo Erik.", modelg: "Hi! My name is Erik.", hint: "Me llamo ... (My name is ...)" },
+      { bot: "¡Hola! Me llamo Lucía. ¿Cómo te llamas?", botg: "Hi! My name is Lucía. What's your name?", expect: ["me llamo", "mi nombre", "^(yo )?soy "], model: "¡Hola! Me llamo Erik.", modelg: "Hi! My name is Erik.", hint: "Me llamo ... (My name is ...)" },
       { bot: "¡Mucho gusto! ¿De dónde eres?", botg: "Nice to meet you! Where are you from?", expect: ["soy de", "de canad[aá]", "canadiense", "vengo de"], model: "Soy de Canadá.", modelg: "I'm from Canada.", hint: "Soy de ... " },
       { bot: "¡Qué bien! ¿Vives aquí ahora?", botg: "Great! Do you live here now?", expect: ["^s[ií]", "^no", "vivo"], model: "Sí, vivo aquí ahora.", modelg: "Yes, I live here now.", hint: "Sí / No, vivo ..." },
       { bot: "¿Juegas al hockey?", botg: "Do you play hockey?", expect: ["s[ií]", "juego"], reject: ["no"], model: "Sí, juego al hockey.", modelg: "Yes, I play hockey.", hint: "Sí, juego al ..." },
@@ -685,10 +685,10 @@ var ES_DICTATION = [
   ["Aunque el equipo jugó bien, perdió por un gol.", "B2"], ["Lo más importante es parar y hablar con la gente.", "B2"], ["El gobierno propone bajar los impuestos el año que viene.", "B2"], ["Nunca pensé que el invierno fuera tan largo.", "B2"]
 ];
 var ES_WRITING = [
-  ["I am tired.", ["Estoy cansado.", "Estoy cansada."], "A1"], ["Where do you live?", ["¿Dónde vives?", "Dónde vives"], "A1"], ["I don't understand.", ["No entiendo.", "No comprendo."], "A1"], ["We have a dog.", ["Tenemos un perro."], "A1"],
-  ["Today I'm playing hockey.", ["Hoy juego al hockey.", "Hoy juego hockey.", "Juego al hockey hoy."], "A2"], ["The book is on the table.", ["El libro está en la mesa.", "El libro está sobre la mesa."], "A2"], ["Can you help me?", ["¿Puedes ayudarme?", "¿Me puedes ayudar?", "Puedes ayudarme"], "A2"], ["She bought a new car.", ["Compró un coche nuevo.", "Ella compró un coche nuevo.", "Compró un carro nuevo."], "A2"],
-  ["I know that he isn't coming.", ["Sé que no viene.", "Sé que él no viene.", "Sé que no va a venir."], "B1"], ["We have lived here for three years.", ["Vivimos aquí desde hace tres años.", "Hace tres años que vivimos aquí.", "Llevamos tres años viviendo aquí."], "B1"], ["If it rains, we'll stay at home.", ["Si llueve, nos quedamos en casa.", "Si llueve nos quedamos en casa.", "Si llueve, nos quedaremos en casa."], "B1"], ["Yesterday I was at the rink all day.", ["Ayer estuve en la pista todo el día.", "Ayer estuve en la pista de hielo todo el día."], "B1"],
-  ["Spanish is spoken in Spain.", ["En España se habla español.", "Se habla español en España."], "B2"], ["Although we lost, I was proud of the team.", ["Aunque perdimos, estaba orgulloso del equipo.", "Aunque perdimos, estuve orgulloso del equipo.", "Aunque perdimos, estaba orgullosa del equipo."], "B2"], ["I would rather train in the morning.", ["Preferiría entrenar por la mañana.", "Prefiero entrenar por la mañana."], "B2"], ["The game was cancelled because of the weather.", ["El partido se canceló por el tiempo.", "Cancelaron el partido por el tiempo.", "El partido fue cancelado por el mal tiempo."], "B2"]
+  ["I am tired.", ["Estoy cansado.", "Estoy cansada."], "A1"], ["Where do you live?", ["¿Dónde vives?", "¿Dónde vive usted?", "¿Dónde vive?"], "A1"], ["I don't understand.", ["No entiendo.", "No comprendo."], "A1"], ["We have a dog.", ["Tenemos un perro."], "A1"],
+  ["Today I'm playing hockey.", ["Hoy juego al hockey.", "Hoy juego hockey.", "Juego al hockey hoy."], "A2"], ["The book is on the table.", ["El libro está en la mesa.", "El libro está sobre la mesa."], "A2"], ["Can you help me?", ["¿Puedes ayudarme?", "¿Me puedes ayudar?", "Puedes ayudarme"], "A2"], ["She bought a new car.", ["Compró un coche nuevo.", "Ella compró un coche nuevo.", "Compró un carro nuevo.", "Ella compró un carro nuevo."], "A2"],
+  ["I know that he isn't coming.", ["Sé que no viene.", "Sé que él no viene.", "Sé que no va a venir."], "B1"], ["We have lived here for three years.", ["Vivimos aquí desde hace tres años.", "Hace tres años que vivimos aquí.", "Llevamos tres años viviendo aquí.", "Hemos vivido aquí tres años."], "B1"], ["If it rains, we'll stay at home.", ["Si llueve, nos quedamos en casa.", "Si llueve nos quedamos en casa.", "Si llueve, nos quedaremos en casa."], "B1"], ["Yesterday I was at the rink all day.", ["Ayer estuve en la pista todo el día.", "Ayer estuve en la pista de hielo todo el día.", "Ayer estuve todo el día en la pista."], "B1"],
+  ["Spanish is spoken in Spain.", ["En España se habla español.", "Se habla español en España."], "B2"], ["Although we lost, I was proud of the team.", ["Aunque perdimos, estaba orgulloso del equipo.", "Aunque perdimos, estuve orgulloso del equipo.", "Aunque perdimos, estaba orgullosa del equipo.", "Aunque perdimos, estuve orgullosa del equipo."], "B2"], ["I would rather train in the morning.", ["Preferiría entrenar por la mañana.", "Prefiero entrenar por la mañana."], "B2"], ["The game was cancelled because of the weather.", ["El partido se canceló por el tiempo.", "Cancelaron el partido por el tiempo.", "El partido fue cancelado por el mal tiempo.", "El partido fue cancelado por el tiempo.", "El partido se canceló por el mal tiempo."], "B2"]
 ];
 
 if (typeof module !== "undefined") module.exports = {

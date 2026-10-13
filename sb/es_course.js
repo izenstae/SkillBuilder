@@ -66,14 +66,14 @@
   add({ id: "es_gender", mode: "esgender", pass: 8, of: 10, title: "El or la", sub: "Gender and the article", gist: "-o masculine, -a feminine, and a short list of exceptions that everyone meets in the first week.",
     blocks: [
       { t: "p", x: "Gender is grammatical, not biological: la mesa, el libro. The ending is a strong clue, the article is the fact. Agreement spreads from the noun to everything around it: el coche rojo, la casa roja, los coches rojos." },
-      { t: "tbl", head: ["Clue", "Gender", "Examples and exceptions"], rows: [["-o", "masculine", "el libro, el coche; but la mano, la foto, la moto, la radio"], ["-a", "feminine", "la casa, la mesa; but el día, el mapa, el planeta, and the Greek -ma words: el problema, el idioma, el clima, el sistema"], ["-ción, -sión, -dad, -tad, -tud, -umbre", "feminine", "la canción, la ciudad, la libertad"], ["-or, -aje, -an", "masculine", "el color, el viaje, el pan"], ["-e", "either", "el coche, la noche, el café, la leche: learn each"], ["stressed a-", "el in the singular, feminine", "el agua fría, las aguas; el águila"]] },
+      { t: "tbl", head: ["Clue", "Gender", "Examples and exceptions"], rows: [["-o", "masculine", "el libro, el coche; but la mano, la foto, la moto, la radio"], ["-a", "feminine", "la casa, la mesa; but el día, el mapa, el planeta, and the Greek -ma words: el problema, el idioma, el clima, el sistema"], ["-ción, -sión, -dad, -tad, -tud, -umbre", "feminine", "la canción, la ciudad, la libertad"], ["-or, -aje, -an", "masculine", "el color, el viaje, el pan; but la flor"], ["-e", "either", "el coche, la noche, el café, la leche: learn each"], ["stressed a-", "el in the singular, feminine", "el agua fría, las aguas; el águila"]] },
       { t: "rule", x: "el / la · los / las · un / una · unos / unas\nde + el = del · a + el = al", note: "Two contractions, and only two: voy al cine, el libro del profesor." },
       { t: "key", x: "-o el, -a la, -ción/-dad la, -ma el. The article is part of the word. del and al." },
       { t: "how", drill: "El or la", ask: "Is it el or la?", steps: ["Look at the ending.", "Check the exception list.", "Say the noun with its article."], tip: "Say the plural too: el libro, los libros." }
     ] });
   add({ id: "es_plural", mode: "esplural", pass: 7, of: 10, title: "Plurals and adjectives", sub: "-s, -es, and agreement", gist: "Vowel + s, consonant + es, z to c. Adjectives follow the noun and agree with it in gender and number.",
     blocks: [
-      { t: "p", x: "The plural adds -s after a vowel and -es after a consonant; a final z becomes c (lápiz, lápices); a written accent on the last syllable drops (canción, canciones). Adjectives agree: -o/-a/-os/-as for most, -e and consonant adjectives have one form for both genders (grande, fácil) and add -s or -es." },
+      { t: "p", x: "The plural adds -s after a vowel and -es after a consonant; a final z becomes c (lápiz, lápices); a written accent on a final -n or -s syllable drops (canción, canciones), except where it splits a diphthong (país, países). Adjectives agree: -o/-a/-os/-as for most, -e and consonant adjectives have one form for both genders (grande, fácil) and add -s or -es." },
       { t: "tbl", head: ["m. sg.", "f. sg.", "m. pl.", "f. pl.", "meaning"], rows: ES_ADJ.rows },
       { t: "rule", x: "un coche rojo · una casa roja · coches rojos · casas rojas\nun buen día · un gran equipo (bueno, malo, grande shorten before a singular noun)", note: "Adjectives follow the noun. A few go in front with a change of meaning: un hombre grande (big) / un gran hombre (great); un amigo viejo (old in years) / un viejo amigo (long-standing)." },
       { t: "key", x: "Plural -s / -es, z → c. Adjective after the noun, agreeing in gender and number. Bueno, malo, grande shorten before the noun." },
@@ -106,7 +106,7 @@
   add({ id: "es_gustar", mode: "esgustar", pass: 7, of: 10, title: "Gustar and friends", sub: "Me gusta, me gustan, me duele", gist: "Spanish does not say 'I like coffee'; it says 'coffee is pleasing to me'. The verb agrees with the thing, and the person is an indirect object.",
     blocks: [
       { t: "p", x: "Gustar means 'to please'. The thing liked is the subject, so the verb is gusta (singular or an infinitive) or gustan (plural), and the person who likes it is the indirect object: me, te, le, nos, os, les. A whole family works this way: encantar (love), interesar, importar, doler (hurt), parecer (seem), faltar (lack), quedar (have left)." },
-      { t: "tbl", head: ["English", "Spanish", "Note"], rows: ES_GUSTAR },
+      { t: "tbl", head: ["English", "Spanish", "Note"], rows: ES_GUSTAR.map(function (r) { return r.slice(0, 3); }) },
       { t: "rule", x: "(a mí) me gusta + singular / infinitive · me gustan + plural\nme duele la rodilla · me duelen los pies", note: "To stress or clarify the person: a mí me gusta, a Juan le gusta. The 'a' phrase is optional; the pronoun is not." },
       { t: "key", x: "Indirect pronoun + gusta/gustan agreeing with the thing. Doler, encantar, interesar, parecer the same." },
       { t: "how", drill: "Gustar", ask: "Translate the sentence.", steps: ["Who likes it? That is the pronoun.", "What is liked? Singular → gusta, plural → gustan.", "Article before the noun: me gusta el café."], tip: "Me gusta, te gusta, le gusta: say ten things you like in a row every morning." }
@@ -129,7 +129,7 @@
     blocks: [
       { t: "p", x: "The preterite narrates: what happened, in order, and finished. Regular -ar: -é -aste -ó -amos -asteis -aron; -er/-ir: -í -iste -ió -imos -isteis -ieron. The accents on yo and él are not decoration: hablo is present, habló is past. The irregulars have their own stems and unaccented endings: tuve, hice, dije, puse, pude, vine, quise, supe, estuve; ser and ir share fui." },
       { t: "tbl", head: ["", "yo", "tú", "él", "nosotros", "ellos", ""], rows: ES_PRETERITE.rows.slice(0, 9).map(function (r) { return [r[0], r[1], r[2], r[3], r[4], r[5], r[6]]; }) },
-      { t: "rule", x: "irregular stems: tuv- hic- dij- pus- pud- vin- quis- sup- estuv- + -e -iste -o -imos -ieron\nfui fuiste fue fuimos fueron (ser and ir)", note: "Spelling changes keep the sound: jugué, busqué, empecé; leyó, oyó." },
+      { t: "rule", x: "irregular stems: tuv- hic- dij- pus- pud- vin- quis- sup- estuv- + -e -iste -o -imos -ieron\nfui fuiste fue fuimos fueron (ser and ir)", note: "Spelling changes keep the sound: jugué, busqué, empecé; leyó, oyó. After j the ellos ending loses its i: dijeron, trajeron." },
       { t: "key", x: "Completed events: -é -ó / -í -ió. The irregular stems as a chant: tuve, hice, dije, puse, pude, vine, quise, supe, estuve, fui." },
       { t: "how", drill: "Preterite", ask: "Give the preterite for the person.", steps: ["Regular? apply the endings, mind the accents.", "Irregular stem? unaccented endings."], tip: "Narrate yesterday in Spanish every night: me levanté, comí, entrené, volví." }
     ] });
@@ -230,7 +230,7 @@
     espron: { name: "Pronouns", target: 6, gen: function (ctx) { return lgFormQ(ES_PRON, "es", ctx.rnd, ctx.caps); } },
     esgustar: { name: "Gustar", target: 12, gen: function (ctx) {
       var r = pick(ES_GUSTAR, ctx.rnd);
-      return { kind: "text", question: "Translate: <b>" + r[0] + "</b>", answer: r[1], accept: [r[1]], target: 12, explain: ["<b>" + r[1] + "</b>" + (r[2] ? " — " + r[2] : "")], speakAfter: tts(r[1], ctx.caps) };
+      return { kind: "text", question: "Translate: <b>" + r[0] + "</b>", answer: r[1], accept: [r[1]].concat(r[3] || []), target: 12, explain: ["<b>" + r[1] + "</b>" + (r[2] ? " — " + r[2] : "")], speakAfter: tts(r[1], ctx.caps) };
     } },
     espret: { name: "Preterite", target: 10, gen: function (ctx) { return lgFormQ(ES_PRETERITE, "es", ctx.rnd, ctx.caps); } },
     esimp: { name: "Preterite or imperfect", target: 9, gen: function (ctx) { return ctx.rnd() < 0.5 ? lgFormQ(ES_IMPERFECT, "es", ctx.rnd, ctx.caps) : lgFormQ(ES_PASTCHOICE, "es", ctx.rnd, ctx.caps); } },
