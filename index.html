@@ -174,7 +174,8 @@ kbd{font:11px var(--mono); color:var(--ink3); border:1px solid var(--rule2); bor
 details.help{margin-top:18px; border-top:1px solid var(--rule); padding-top:12px}
 details.help summary{font:600 11px var(--mono); letter-spacing:.14em; text-transform:uppercase; color:var(--ink2); cursor:pointer; list-style:none} details.help summary::-webkit-details-marker{display:none} details.help summary:before{content:"+ "; color:var(--accent)} details.help[open] summary:before{content:"− "}
 details.help ol,details.help ul{margin:12px 0 0 18px; font-size:14px; color:var(--ink2); line-height:1.6} details.help li{margin-bottom:6px} details.help b{color:var(--ink)}
-.tbl-scroll{overflow-x:auto; max-width:100%} /* a wide paradigm table scrolls inside its card instead of widening the page on a phone */
+.tbl-scroll{overflow-x:auto; max-width:100%}
+table.tbl .tgl{display:block; direction:ltr; unicode-bidi:isolate; text-align:right; font-size:12.5px; font-weight:400; color:var(--ink2)} /* an English meaning under a Hebrew row label */ /* a wide paradigm table scrolls inside its card instead of widening the page on a phone */
 table.tbl{width:100%; border-collapse:collapse; font-size:14px}
 table.tbl th{text-align:left; font:600 10px var(--mono); letter-spacing:.14em; text-transform:uppercase; color:var(--ink2); padding:0 10px 8px; border-bottom:1px solid var(--ink)}
 table.tbl td{padding:8px 10px; border-bottom:1px solid var(--rule); vertical-align:top; font-variant-numeric:tabular-nums} table.tbl tr:last-child td{border-bottom:0}
@@ -325,7 +326,7 @@ label.f{display:block; font:11px var(--mono); letter-spacing:.08em; text-transfo
 .entry{display:flex; align-items:center; background:transparent; border:0; border-bottom:2px solid var(--ink); padding:0 4px; flex:1 1 280px; max-width:520px} .entry:focus-within{border-color:var(--accent)}
 .entry input{background:none; border:0; color:var(--ink); font-family:var(--serif); font-size:26px; width:100%; padding:8px 0; outline:none; box-shadow:none} .entry input:focus{box-shadow:none; border:0} .entry input.rtl{direction:rtl; text-align:right; font-size:28px; font-family:var(--sans)} .entry .u{color:var(--ink2); font-size:18px; padding-left:4px}
 .opts{display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:8px; width:100%; max-width:720px; min-width:0} .opts .act{justify-content:flex-start; text-align:left; background:var(--paper); color:var(--ink); border:1px solid var(--rule2); font-weight:500; font-size:15px; min-height:48px; padding:10px 14px}
-.opts .act:hover{border-color:var(--ink); background:var(--card)} .opts .act kbd{margin-left:auto; color:var(--ink3); border-color:var(--rule2); opacity:1} .opts.rtl .act{direction:rtl; text-align:right; font-size:17px}
+.opts .act:hover{border-color:var(--ink); background:var(--card)} .opts .act kbd{margin-left:auto; color:var(--ink3); border-color:var(--rule2); opacity:1} .opts.rtl .act{text-align:start; font-size:17px} /* dir=auto on each option: an English gloss among Hebrew drills reads left to right */
 .speakbtn{background:var(--card); border:1px solid var(--rule2); border-radius:50%; width:44px; height:44px; display:inline-grid; place-items:center; cursor:pointer; color:var(--accent); font-size:18px; flex:none} .speakbtn:hover{border-color:var(--ink)} .speakbtn.lit{background:var(--accent); color:var(--on-accent); border-color:var(--accent)}
 .kbd{display:flex; flex-wrap:wrap; gap:4px; margin-top:10px; max-width:560px} .kbd button{background:var(--card); border:1px solid var(--rule2); border-radius:4px; min-width:34px; height:36px; font-size:16px; cursor:pointer; color:var(--ink); padding:0 6px} .kbd button:hover{border-color:var(--ink)} .kbd button.wide{min-width:70px; font:11px var(--mono); letter-spacing:.06em; color:var(--ink2)}
 .recall{margin-top:12px; padding:14px 16px; border:1px dashed var(--accent); border-radius:4px; font-family:var(--serif); font-size:17px; line-height:1.55; color:var(--ink); background:var(--tint-accent)}
@@ -379,6 +380,8 @@ label.f{display:block; font:11px var(--mono); letter-spacing:.08em; text-transfo
 
 /* ---- conversation ---- */
 .conv{display:flex; flex-direction:column; gap:10px; max-width:720px} .bub{max-width:88%; padding:11px 15px; border-radius:4px; font-size:15.5px; line-height:1.5} .bub.bot{background:var(--paper2); border:1px solid var(--rule); align-self:flex-start} .bub.me{background:var(--tint-green); border:1px solid var(--green); align-self:flex-end} .bub.me.bad{background:var(--tint-red); border-color:var(--red)}
+/* in a Hebrew drill, lesson or dialogue each line takes its direction from its own text, so English questions, glosses and table cells keep their punctuation where it belongs */
+.ask.rtl, .expl.rtl p, .bub.rtl, .bub.rtl small, table.tbl.rtl th, table.tbl.rtl td{unicode-bidi:plaintext; text-align:start}
 .bub small{display:block; color:var(--ink2); font-size:12.5px; margin-top:4px} .bub.rtl{direction:rtl; text-align:right; font-size:17px} .bub .model{margin-top:6px; padding-top:6px; border-top:1px dashed var(--rule2); font-size:14px; color:var(--ink)}
 .convin{display:flex; gap:8px; align-items:center; margin-top:12px; flex-wrap:wrap} .convin .entry{flex:1 1 240px}
 .scen{display:grid; grid-template-columns:repeat(auto-fill, minmax(240px,1fr)); gap:10px} .scen > a{text-decoration:none; color:inherit; border:1px solid var(--rule); border-radius:4px; padding:14px 16px; background:var(--card); box-shadow:var(--shadow)} .scen > a:hover{border-color:var(--ink)} .scen b{display:block; font-family:var(--serif); font-size:17px; font-weight:500} .scen span{display:block; font-size:13px; color:var(--ink2); margin-top:3px} .scen .sc{color:var(--accent); font:12px var(--mono); margin-top:8px}
@@ -1191,7 +1194,7 @@ function syncWrite(token, id, st, keepalive) {
 }
 
 /* ============================================================
-   LANGUAGE ENGINE: shared by Swedish and Hebrew
+   LANGUAGE ENGINE: shared by Swedish, Hebrew and Spanish
    The unit of learning is the word (or phrase), each on its own
    spaced-repetition schedule. The form of the question hardens
    as the word climbs the boxes, which is the "desirable
@@ -1215,6 +1218,7 @@ function lgStrip(s) { return String(s || "").replace(LG_MAQAF, " ").replace(LG_N
 function lgNorm(s, lang) {
   s = String(s == null ? "" : s).normalize("NFC").trim().toLowerCase();
   s = s.replace(/\(.*?\)/g, "");                               /* "(to) run" -> "run" */
+  s = s.replace(/[‘’]/g, "'");                                /* phone keyboards type curly apostrophes */
   if (lang === "he") { s = lgStrip(s).replace(/[ךםןףץ]/g, function (c) { return LG_FINALS[c]; }); s = s.replace(/[׳״'"]/g, ""); }
   s = s.replace(/[.,!?¿¡;:"“”„«»…–—]/g, " ").replace(/\s+/g, " ").trim();
   return s;
@@ -1335,7 +1339,7 @@ function lgWordQ(item, box, pool, caps, rnd) {
   }
   if (kind === "listen") {
     var useEx = item.ex && rnd() < 0.5;
-    return Object.assign(base, { kind: "text", question: "Listen, then type what you heard" + (useEx ? " (the whole sentence)." : "."), answer: useEx ? item.ex : item.w, accept: [useEx ? item.ex : item.w], target: useEx ? 20 : 10, type: "listen", speak: { text: useEx ? item.ex : item.w, lang: L.code }, hideText: true, keyboard: item.lang });
+    return Object.assign(base, { kind: "text", question: "Listen, then type what you heard" + (useEx ? " (the whole sentence)." : "."), answer: useEx ? item.ex : item.w, accept: useEx ? [item.ex] : [item.w].concat(item.alt || []), target: useEx ? 20 : 10, type: "listen", speak: { text: useEx ? item.ex : item.w, lang: L.code }, hideText: true, keyboard: item.lang });
   }
   /* speak: say the word; the device listens, or you grade yourself */
   return Object.assign(base, { kind: "speak", question: "Say the " + L.name + " for <b>" + item.g + "</b> out loud.", answer: item.w, accept: [item.w].concat(item.alt || []), target: 8, type: "speak", listen: { lang: L.code }, speak: null, speakAfter: caps.tts ? { text: item.w, lang: L.code } : null });
@@ -1449,9 +1453,11 @@ function lgNumberWords(lang, n) {
   if (n < 20) return hTeens[n - 10];
   if (n < 100) return hTens[(n / 10) | 0] + (n % 10 ? " ו" + hOnes[n % 10] : "");
   if (n === 100) return "מאה";
-  if (n < 200) return "מאה ו" + lgNumberWords("he", n % 100);
-  if (n < 300) return "מאתיים" + (n % 100 ? " ו" + lgNumberWords("he", n % 100) : "");
-  if (n < 1000) return hOnes[(n / 100) | 0].replace("שלוש", "שלוש").replace("ארבע", "ארבע") + " מאות" + (n % 100 ? " ו" + lgNumberWords("he", n % 100) : "");
+  /* ו joins only the last part: 125 is מאה עשרים וחמש, but 120 is מאה ועשרים and 115 מאה וחמש עשרה */
+  var rest = function (r) { return r ? (r > 20 && r % 10 ? " " : " ו") + lgNumberWords("he", r) : ""; };
+  if (n < 200) return "מאה" + rest(n % 100);
+  if (n < 300) return "מאתיים" + rest(n % 100);
+  if (n < 1000) return hOnes[(n / 100) | 0] + " מאות" + rest(n % 100);
   return "אלף" + (n % 1000 ? " ו" + lgNumberWords("he", n % 1000) : "");
 }
 
@@ -1594,7 +1600,7 @@ function cpQuestion(c, L, ctx, asked) {
 /* grade an answer against a question */
 function gradeAnswer(q, raw, lang) {
   if (q.kind === "choice" || q.kind === "recall") return { ok: raw === q.answer, said: raw };
-  if (q.kind === "num") { var v = parseFloat(String(raw).replace(/[^0-9.\-]/g, "")); if (!isFinite(v)) return null; return { ok: Math.abs(v - q.answer) <= (q.tol || 0), said: v }; }
+  if (q.kind === "num") { var v = parseFloat(String(raw).replace(/[−–]/g, "-").replace(/[^0-9.\-]/g, "")); if (!isFinite(v)) return null; return { ok: Math.abs(v - q.answer) <= (q.tol || 0), said: v }; }
   if (q.kind === "text" || q.kind === "speak") {
     var ok = lgMatch(raw, q.accept || [q.answer], lang);
     var near = !ok && lgDistance(lgNorm(raw, lang), lgNorm(q.answer, lang)) === 1;
@@ -2405,7 +2411,7 @@ function schDemand(course, R, now) {
    ============================================================ */
 var METHOD = [
   { id: "spacing", title: "Spaced retrieval", one: "Reviews on the due day, with gaps that grow: 1, 3, 7, 16, 35, 80, 180 days.",
-    body: "Ebbinghaus measured forgetting in 1885; Cepeda, Pashler and colleagues (2006, 2008) showed in a meta-analysis of hundreds of studies that spreading study over time beats massing it, and that the best gap scales with how long you need to remember. Retrieving a memory just as it is fading strengthens it most. Every skill, word and rule in this hub sits in a Leitner box with a growing interval; it climbs only on a day it is due, after clean answers in a row. Practising early keeps a skill warm but never promotes it, because only the gap proves it is stored.",
+    body: "Ebbinghaus measured forgetting in 1885; Cepeda, Pashler and colleagues showed in a review of over 300 experiments (2006) that spreading study over time beats massing it, and in a study of more than 1,300 learners (2008) that the best gap scales with how long you need to remember. Retrieving a memory just as it is fading strengthens it most. Every skill, word and rule in this hub sits in a Leitner box with a growing interval; it climbs only on a day it is due, after clean answers in a row. Practising early keeps a skill warm but never promotes it, because only the gap proves it is stored.",
     src: "Cepeda et al., Psychological Bulletin 2006; Cepeda et al., Psychological Science 2008; Leitner 1972." },
   { id: "retrieval", title: "Retrieval practice", one: "Answer before you see the answer. Every drill is a test, and tests are the study.",
     body: "Roediger and Karpicke (2006) had students either reread a passage or take a test on it; a week later the tested group remembered far more, though they had felt less confident. The testing effect is one of the most replicated findings in cognitive psychology. Nothing here is a passive review: recall cards make you say the rule before revealing it, vocabulary graduates from recognition to production to dictation to speech, and checkpoints are tests, not summaries.",
@@ -2766,7 +2772,7 @@ function qtSequence(T, rnd) {
   var kind = qtPick(rnd, T.kinds), s = [], n = 5, i, expl, next, cur;
   if (kind === "geo") { var r = qtPick(rnd, [3, -2, 4, -3, 5]), g1 = qtInt(rnd, 1, 7); for (i = 0; i <= n; i++) s.push(g1 * Math.pow(r, i)); expl = "ratio " + r; }
   else if (kind === "squares") { var k0 = qtInt(rnd, 3, 14), cube = rnd() < 0.4; if (cube) k0 = qtInt(rnd, 2, 7); for (i = 0; i <= n; i++) s.push(cube ? Math.pow(k0 + i, 3) : (k0 + i) * (k0 + i)); expl = cube ? "consecutive cubes" : "consecutive squares"; }
-  else if (kind === "diff2") { var d1 = qtInt(rnd, -4, 9), dd = qtInt(rnd, 2, 7); cur = qtInt(rnd, -10, 30); var step = d1; for (i = 0; i <= n; i++) { s.push(cur); cur += step; step += dd; } expl = "the differences grow by " + dd + " each time"; }
+  else if (kind === "diff2") { var d1 = qtInt(rnd, -4, 9) || 1, dd = qtInt(rnd, 2, 7); cur = qtInt(rnd, -10, 30); var step = d1; for (i = 0; i <= n; i++) { s.push(cur); cur += step; step += dd; } expl = "the differences grow by " + dd + " each time"; }
   else if (kind === "alt") { var m = qtPick(rnd, [2, 3, -2]), p = qtInt(rnd, -9, 11) || 4; cur = qtInt(rnd, 2, 12); for (i = 0; i <= n; i++) { s.push(cur); cur = i % 2 === 0 ? cur * m : cur + p; } expl = "alternate: × " + m + ", then " + (p < 0 ? "− " + (-p) : "+ " + p); }
   else if (kind === "fib") { var f1 = qtInt(rnd, 1, 9), f2 = qtInt(rnd, 1, 12), tri = rnd() < 0.35; s = [f1, f2]; if (tri) s.push(qtInt(rnd, 1, 9)); for (i = s.length; i <= n; i++) s.push(s[i - 1] + s[i - 2] + (tri ? s[i - 3] : 0)); expl = tri ? "each term is the sum of the three before" : "each term is the sum of the two before"; }
   else if (kind === "primes") { var st = qtInt(rnd, 0, 18), sq = rnd() < 0.3; s = QT_PRIMES.slice(st, st + n + 1); if (sq) { st = qtInt(rnd, 0, 5); s = QT_PRIMES.slice(st, st + n + 1).map(function (x) { return x * x; }); } expl = sq ? "squares of consecutive primes" : "consecutive primes"; }
@@ -2783,7 +2789,7 @@ function qtEstimate(T, rnd) {
   else if (kind === "div") { var u = qtInt(rnd, 1000, 99999), v = qtInt(rnd, 7, 97); q = u + " ÷ " + v + " ≈ ?"; a = u / v; expl = "≈ " + a.toFixed(1); }
   else if (kind === "pow") { var bs = qtInt(rnd, 2, 9), ex = qtInt(rnd, 3, 7); if (bs >= 6 && ex > 5) ex = 5; q = bs + "^" + ex + " ≈ ?"; a = Math.pow(bs, ex); expl = "exact " + a; }
   else {
-    var F = qtPick(rnd, [["seconds in a day", 86400], ["hours in a year", 8760], ["minutes in a week", 10080], ["seconds in a week", 604800], ["days in 10 years", 3652], ["heartbeats in a day at 70/min", 100800], ["km in 100 miles", 161], ["cm in a mile", 160934], ["mm in 2.5 km", 2500000], ["steps in 10 km at 0.75 m", 13333], ["words in a 300-page novel at 280/page", 84000], ["weeks in 15 years", 782]]);
+    var F = qtPick(rnd, [["seconds in a day", 86400], ["hours in a year", 8760], ["minutes in a week", 10080], ["seconds in a week", 604800], ["days in 10 years", 3652], ["heartbeats in a day at 70/min", 100800], ["km in 100 miles", 161], ["cm in a mile", 160934], ["mm in 2.5 km", 2500000], ["steps in 10 km at 0.75 m", 13333], ["words in a 300-page novel at 280/page", 84000], ["weeks in 15 years", 783]]);
     q = "How many " + F[0] + "?"; a = F[1]; expl = "about " + F[1].toLocaleString();
   }
   return { q: q, a: a, tol: T.tol, kind: kind, expl: expl };
@@ -2795,7 +2801,7 @@ function qtPercent(T, rnd) {
   else if (kind === "reverse") { var orig = qtPick(rnd, [40, 50, 60, 80, 120, 150, 200, 240, 300]), pc = qtPick(rnd, [10, 20, 25, 40, 50]), after = orig * (100 - pc) / 100; q = "After a " + pc + "% discount the price is " + after + ". Original price?"; a = orig; expl = after + " is " + (100 - pc) + "% of the original: " + after + " / " + ((100 - pc) / 100) + " = " + orig; }
   else if (kind === "compound") { var base = qtPick(rnd, [100, 200, 400, 500, 1000]), p1 = qtPick(rnd, [10, 20, 25, 50]), p2 = qtPick(rnd, [10, 20, 25, 50]), up = rnd() < 0.5; var r1 = base * (1 + p1 / 100), r2 = up ? r1 * (1 + p2 / 100) : r1 * (1 - p2 / 100); q = base + " rises " + p1 + "% then " + (up ? "rises " : "falls ") + p2 + "%. Result?"; a = Math.round(r2 * 100) / 100; expl = base + " × " + (1 + p1 / 100) + " × " + (up ? (1 + p2 / 100) : (1 - p2 / 100)) + " = " + a + (!up && p1 === p2 ? ". Up then down the same percent never gets you back." : ""); }
   else { var total = qtPick(rnd, [60, 90, 120, 150, 180, 240, 300, 360]), ra = qtInt(rnd, 1, 5), rb = qtInt(rnd, 1, 5); q = total + " split in the ratio " + ra + ":" + rb + ". The larger share?"; a = Math.round(total * Math.max(ra, rb) / (ra + rb) * 100) / 100; expl = total + " × " + Math.max(ra, rb) + "/" + (ra + rb) + " = " + a; }
-  return { q: q, a: a, tol: 0.011, kind: kind, expl: expl, rel: kind === "change" ? 0 : null };
+  return { q: q, a: a, tol: 0.5, abs: true, kind: kind, expl: expl };
 }
 function qtOdds(T, rnd) {
   var kind = qtPick(rnd, T.kinds), q, a, expl;
@@ -2834,9 +2840,10 @@ function qtOptiver(rnd) {
     alts = [ans * 10, ans / 10, ans + 0.1, ans - 0.1, ans + 1, ans - 1];
   }
   else { x = qtPick(rnd, [12.5, 15, 35, 45, 65, 85, 7.5, 2.5, 17.5]); y = qtPick(rnd, [240, 360, 480, 640, 720, 880, 1200, 160]); q = qtNum(x) + "% of " + y; ans = x * y / 100; alts = [ans * 10, ans / 10, ans + 10, ans - 5, ans + 1, ans * 2]; }
-  var key = function (v) { return frac ? qtFrStr(v) : qtNum(v); }, seen = {}, opts = [ans];
+  var key = function (v) { return frac ? qtFrStr(v) : qtNum(v); }, seen = {}, opts = [ans], pos = (frac ? ans.n / ans.d : ans) > 0;
   seen[key(ans)] = 1;
-  alts.forEach(function (v) { if (opts.length >= 4) return; var k = key(v), val = frac ? v.n / v.d : v; if (seen[k] || !(val > 0)) return; seen[k] = 1; opts.push(v); });
+  /* distractors stay positive when the answer is, so a sign never gives the answer away */
+  alts.forEach(function (v) { if (opts.length >= 4) return; var k = key(v), val = frac ? v.n / v.d : v; if (seen[k] || (pos && !(val > 0))) return; seen[k] = 1; opts.push(v); });
   for (var g = 2; opts.length < 4; g++) { var w = frac ? qtFr(ans.n + g, ans.d) : ans + g; if (!seen[key(w)]) { seen[key(w)] = 1; opts.push(w); } }
   for (var i = opts.length - 1; i > 0; i--) { var j = (rnd() * (i + 1)) | 0, t = opts[i]; opts[i] = opts[j]; opts[j] = t; }
   var labels = opts.map(key), ci = labels.indexOf(key(ans));
@@ -2848,13 +2855,13 @@ function qtQuestion(gameId, ctx) {
   q.game = gameId;
   return q;
 }
-/* grade: a choice index for multiple choice; exact for integers; within tol (relative) for estimates; within abs for percents of odds */
+/* grade: a choice index for multiple choice; exact for integers; within tol (relative) for estimates; within tol (absolute) for percentages and odds */
 function qtCheck(q, raw) {
   if (q.choices) return String(raw) === String(q.ci);
-  var v = parseFloat(String(raw).replace(/[^0-9.\-]/g, ""));
+  var v = parseFloat(String(raw).replace(/[−–]/g, "-").replace(/[^0-9.\-]/g, ""));
   if (!isFinite(v)) return false;
   if (q.abs) return Math.abs(v - q.a) <= (q.tol || 0.6);
-  if (q.tol) return Math.abs(v - q.a) <= Math.max(0.5, Math.abs(q.a) * q.tol) || Math.abs(v - q.a) <= 0.011;
+  if (q.tol) return Math.abs(v - q.a) <= Math.abs(q.a) * q.tol;
   return Math.abs(v - q.a) < 1e-9;
 }
 
@@ -3483,9 +3490,9 @@ var CH_MATE1 = [
 /* [fen, the model first move, note]; every first move that forces mate in two is accepted (chdMate2Firsts), and the tests verify each position */
 var CH_MATE2 = [
   ["5r1k/6pp/8/4N3/8/1Q6/B7/7K w - - 0 1", "Qg8+", "Philidor's legacy, shortened: Qg8+ Rxg8, Nf7#."],
-  ["5k2/8/4K3/8/8/8/8/7R w - - 0 1", "Rg1", "The rook takes the g-file, the king is driven to the edge, and the check on the eighth is mate: a waiting move wins."],
+  ["5k2/8/4K3/8/8/8/8/7R w - - 0 1", "Rg1", "The rook takes the g-file, the king is forced to e8 in front of White's king, and the check on the eighth is mate: a quiet move wins."],
   ["2k5/8/3K4/8/8/8/8/R7 w - - 0 1", "Rb1", "The mirror image: Rb1 takes the b-file, Kd8 is forced, and Rb8 is mate."],
-  ["k7/8/8/8/8/8/6R1/5R2 w - - 0 1", "Rf7", "Two rooks: one takes the seventh rank, the king must step to b8, and the other rook mates on the eighth."],
+  ["k7/8/8/8/8/8/6R1/5R1K w - - 0 1", "Rf7", "Two rooks: one takes the seventh rank, the king must step to b8, and the other rook mates on the eighth."],
   ["7k/8/5K2/8/8/8/8/3Q4 w - - 0 1", "Qd7", "King and queen: a quiet move leaves the king one square, Kg8, and Qg7 is mate next to the king."],
   ["1k6/8/1K6/8/8/8/8/2Q5 w - - 0 1", "Qc7+", "Qc7+ drives the king into the corner and Qa7 mates; several quiet queen moves also force mate in two."],
   ["k7/8/2K5/8/8/8/8/7Q w - - 0 1", "Qb1", "The queen takes the b-file from a distance; the king has only a7, and Qb7 is mate."],
@@ -3634,7 +3641,7 @@ CH_DRILLS.chfork = { name: "Forks", target: 12, gen: function (ctx) {
   if (!best.forks.length) return CH_DRILLS.chbest.gen(ctx);
   var S = best.s, F = best.forks, sans = F.map(function (f) { return chSan(S, f.m); });
   var f0 = F[0];
-  return { kind: "move", question: chdSide(S) + " to move. Find the <b>knight fork</b>: one move that attacks two valuable pieces at once.", answer: sans[0], accept: sans, target: 12, board: chdPos(S),
+  return { kind: "move", question: chdSide(S) + " to move. Find the <b>knight fork</b>: one move that attacks two valuable pieces at once.", answer: sans[0], accept: sans, target: 12, board: chdPos(S), elo: 1100,
     explain: ["<b>" + sans[0] + "</b> attacks " + f0.hit.map(function (p) { return "the " + CH_NAMES[Math.abs(p)]; }).join(" and ") + " at once" + (sans.length > 1 ? " (also: " + sans.slice(1).join(", ") + ")" : "") + ".", "A fork works because one piece can only move once: whatever is saved, the other is lost. Knights fork best because their attack cannot be blocked and they attack squares of the colour they do not stand on."] };
 } };
 
@@ -3733,7 +3740,7 @@ CH_DRILLS.chopp = { name: "The opposition", target: 12, gen: function (ctx) {
     var moves = chLegal(s), opp = moves.filter(function (m) { return (chFile(m.to) === chFile(bk) && Math.abs(chRank(m.to) - chRank(bk)) === 2) || (chRank(m.to) === chRank(bk) && Math.abs(chFile(m.to) - chFile(bk)) === 2); });
     if (opp.length !== 1) continue;
     var all = moves.map(function (m) { return chName(m.to); });
-    return { kind: "square", question: "Kings only, <b>White to move</b>. Click the square that takes the <b>opposition</b>.", answer: chName(opp[0].to), accept: [chName(opp[0].to)], target: 12, board: { fen: chToFen(s), flip: false },
+    return { kind: "square", question: "Kings only, <b>White to move</b>. Click the square that takes the <b>opposition</b> (kings facing, one square between).", answer: chName(opp[0].to), accept: [chName(opp[0].to)], target: 12, board: { fen: chToFen(s), flip: false },
       explain: ["<b>" + chName(opp[0].to) + "</b>: the kings face each other with one square between and Black must move, so Black must give way.", "Opposition = same file or rank, one square apart, the other side to move. In king-and-pawn endings it decides whether the king gets through. Legal king moves here: " + all.join(", ") + "."] };
   }
   return CH_DRILLS.chsquare.gen(ctx);
@@ -3771,7 +3778,8 @@ var CH_LEVELS_ENGINE = [
   { n: 6, name: "Master", about: "Six plies within a budget. Hard.", depth: 6, noise: 0, elo: 2000 }
 ];
 function chPlayNew(level, color, rnd) {
-  return { s: chStart(), level: level, color: color, keys: [], moves: [], over: "", result: null, rnd: rnd || Math.random, grades: { Best: 0, Good: 0, Inaccuracy: 0, Mistake: 0, Blunder: 0 }, loss: 0, n: 0 };
+  var s = chStart();
+  return { s: s, level: level, color: color, keys: [chKey(s)], moves: [], over: "", result: null, rnd: rnd || Math.random, grades: { Best: 0, Good: 0, Inaccuracy: 0, Mistake: 0, Blunder: 0 }, loss: 0, n: 0 };
 }
 function chPlayStatus(g) {
   var st = chStatus(g.s, g.keys);
@@ -3904,8 +3912,8 @@ function chlPuzzle(L, elo, ok) {
   /* ---------------- stage 1: material ---------------- */
   add({ id: "ch_value", mode: "chvalue", pass: 8, of: 10, title: "What the pieces are worth", sub: "1, 3, 3, 5, 9", gist: "Pawn 1, knight 3, bishop 3, rook 5, queen 9. The scale decides most trades, and the exceptions are where chess understanding starts.",
     blocks: [
-      { t: "p", x: "The point values are an average over many positions, first stated in the eighteenth century and confirmed by every engine since (Stockfish's internal values are close to 1 / 3.1 / 3.3 / 5 / 9.5 in the middlegame). They answer the beginner's question in most positions: is this trade good? Give up fewer points than you take and it usually is." },
-      { t: "tbl", head: ["Trade", "Points", "Verdict"], rows: [["knight for rook", "3 for 5", "winning the exchange: good"], ["rook for two minors", "5 for 6", "slightly bad in the middlegame, often fine in the endgame"], ["queen for two rooks", "9 for 10", "roughly even; the rooks prefer open files and a safe king"], ["queen for three minors", "9 for 9", "even on paper; three pieces usually beat a queen when coordinated"], ["bishop for knight", "3 for 3", "even; the bishop pair is worth about half a pawn extra"], ["two pawns for a minor piece", "2 for 3", "bad, unless the pawns are passed and advanced"]] },
+      { t: "p", x: "The point values are an average over many positions, worked out by players from the seventeenth and eighteenth centuries on and broadly confirmed since (Larry Kaufman's statistical study of master games puts them at about 1 / 3.25 / 3.25 / 5 / 9.75). They answer the beginner's question in most positions: is this trade good? Give up fewer points than you take and it usually is." },
+      { t: "tbl", head: ["Trade", "Points", "Verdict"], rows: [["knight for rook", "3 for 5", "winning the exchange: good"], ["rook for two minors", "5 for 6", "usually good in the middlegame; in the endgame the rook catches up"], ["queen for two rooks", "9 for 10", "roughly even; the rooks prefer open files and a safe king"], ["queen for three minors", "9 for 9", "even on paper; three pieces usually beat a queen when coordinated"], ["bishop for knight", "3 for 3", "even; the bishop pair is worth about half a pawn extra"], ["minor piece for two pawns", "3 for 2", "bad, unless the pawns are passed and advanced"]] },
       { t: "rule", x: "P 1 · N 3 · B 3 · R 5 · Q 9\nthe bishop pair ≈ +0.5 · a passed pawn on the 6th ≈ a minor piece", note: "Values shift with the position: knights love closed positions and outposts, bishops love open diagonals, rooks love open files and the seventh rank." },
       { t: "key", x: "1, 3, 3, 5, 9. Count before every trade. Bishop pair, passed pawns and activity adjust the count, never replace it." },
       { t: "how", drill: "Trades", ask: "Good, bad or even?", steps: ["Add the points you give.", "Add the points you get.", "Compare."], tip: "Say the numbers out loud: 'three for five, good'. In a month you will not need to." }
@@ -3923,7 +3931,7 @@ function chlPuzzle(L, elo, ok) {
     blocks: [
       { t: "p", x: "Tactics are forcing sequences that win material or mate, and the fork is the first and most common. The attacker moves to a square from which it attacks two targets; the defender moves one, the other falls. The best targets are the king (the check forces the reply) and an undefended, or loose, piece." },
       board("r3k3/8/8/3N4/8/8/8/4K3 w - - 0 1", "Nc7+ forks the king on e8 and the rook on a8. Black must answer the check, and the knight takes the rook.", { mark: ["c7"] }),
-      { t: "rule", x: "fork = one move attacking two targets\nbest: check + loose piece · knight fork: targets on the other colour from the knight", note: "A knight on a light square only attacks dark squares. If the king and queen sit on the same colour, no knight can fork them on the next move." },
+      { t: "rule", x: "fork = one move attacking two targets\nbest: check + loose piece · knight fork: targets on the other colour from the knight", note: "A knight on a light square only attacks dark squares. If the king and queen sit on different colours, no knight can ever fork them." },
       { t: "p", x: "Pawn forks are the cheapest: a pawn worth one attacks two pieces worth three or more, and whatever the defender does, a pawn trades for a piece. Queen forks of king and rook decide thousands of games a day online. Look for them every time a piece is loose." },
       { t: "key", x: "Loose pieces drop off (Nunn). Before every move, list your opponent's undefended pieces and ask which square attacks two of them." },
       { t: "how", drill: "Forks", ask: "Find the knight fork.", steps: ["List the enemy pieces worth more than a knight, and the king.", "Find the squares that attack two of them.", "Check the forking square is not attacked, then play it."], tip: "Knight forks come from the squares a knight's move away from both targets. Picture the two L-shapes and look for where they cross." }
@@ -3931,7 +3939,7 @@ function chlPuzzle(L, elo, ok) {
   add({ id: "ch_pin", mode: "mixed", pass: 7, of: 10, title: "Pins, skewers, discovered attacks", sub: "The line tactics", gist: "A pin fixes a piece in front of a more valuable one; a skewer is a pin in reverse; a discovered attack unmasks a line by moving a piece off it. All three come from the sliding pieces.",
     blocks: [
       { t: "p", x: "A pin: a bishop, rook or queen attacks a piece that cannot move without exposing something worth more behind it. Against the king the pin is absolute (the pinned piece may not legally move at all). A pinned piece is a target: attack it again, it cannot run. A skewer is the same geometry the other way round: the valuable piece is in front, and when it moves the piece behind is taken." },
-      board("4k3/8/8/8/8/8/4n3/4R1K1 w - - 0 1", "The black knight on e2 is pinned to the king by the rook: it cannot move. White attacks it again and it falls.", { mark: ["e2"] }),
+      board("4k3/8/3p4/4n3/8/8/5P2/4R1K1 w - - 0 1", "The black knight on e5 is pinned to the king by the rook: it cannot move. White attacks it again with f4 and it falls.", { mark: ["e5"] }),
       { t: "p", x: "A discovered attack: a piece moves off a line and the piece behind it attacks. The moving piece can do its own damage at the same time, and if the uncovered attack is on the king it is a discovered check, which lets the moving piece take almost anything. A double check, both pieces checking, can only be met by a king move." },
       { t: "rule", x: "pin: attacker — pinned piece — bigger piece behind\nskewer: attacker — bigger piece — smaller piece behind\ndiscovery: move the front piece, the back piece attacks", note: "All three need a line. Rooks on files, bishops on diagonals, queens on both: look for two enemy pieces on one line, and the line tactic is usually there." },
       { t: "warn", x: "A pinned piece does not defend. If your knight is pinned to your king, the square it 'guards' is not guarded, and the opponent can walk in. Count pinned pieces out of your defence." },
@@ -3941,7 +3949,7 @@ function chlPuzzle(L, elo, ok) {
   add({ id: "ch_mate1", mode: "chmate1", pass: 7, of: 10, title: "Mate in one", sub: "The patterns", gist: "Back rank, smothered, queen-and-king, bishop-and-queen on h7: a dozen patterns cover most mates you will ever play or allow. Learn them so you see them without looking.",
     blocks: [
       { t: "tbl", head: ["Pattern", "Shape", "Typical mate"], rows: [["Back rank", "king on the last rank behind its own pawns", "Ra8# / Qd8#"], ["Smothered", "king boxed in by its own pieces", "Nf7#"], ["Scholar's", "queen and bishop on f7/f2 early", "Qxf7#"], ["Queen next to the king", "queen adjacent, protected", "Qg7# with a bishop or king behind"], ["Anastasia's", "knight on e7, rook on the h-file", "Rh3# after Qxh7+ Kxh7"], ["Arabian", "rook and knight in the corner", "Rh7# with Nf6"], ["Boden's", "two bishops on crossing diagonals", "Qxc3+ bxc3 Ba3# against a queenside-castled king"], ["Damiano's", "pawn on g6, queen on the h-file", "Qh7#"]] },
-      board("6rk/6pp/8/4N3/8/8/8/6QK w - - 0 1", "Smothered mate geometry: if the queen reaches g8 with check and is taken by the rook, Nf7 is mate because the king's own pieces fill every square. Philidor's legacy.", { mark: ["f7"] }),
+      board("6rk/6pp/8/4N3/8/8/8/6QK w - - 0 1", "Smothered mate: Nf7 is mate because the king's own rook and pawns fill every square. In games the rook is usually dragged to g8 first by a queen sacrifice, Qg8+ Rxg8 Nf7#: Philidor's legacy.", { mark: ["f7"] }),
       { t: "rule", x: "every mate in one is a check\nlist the checks, for each ask: king move? capture? block?", note: "Three questions per check. If all three are no, it is mate. This is how the drill verifies its answers, and it is how you should too." },
       { t: "key", x: "Mate in one: checks only, three questions each. Back rank, smothered, Qh7 with support, Scholar's: see the shape, not the moves." },
       { t: "how", drill: "Mate in one", ask: "Play the mating move.", steps: ["List every check.", "For each: can the king move, can the checker be taken, can it be blocked?", "Play the one with three no's."], tip: "The drill generates positions and verifies the mate with the engine; the curated ones are the classical patterns. Both count." }
@@ -4028,7 +4036,7 @@ function chlPuzzle(L, elo, ok) {
     ],
     blocks: [
       { t: "p", x: "Rook endings are half of all endings. Two positions carry most of the theory. Lucena: the attacker's king is in front of its pawn on the seventh rank and the defender's king is cut off; the win is to 'build a bridge' with the rook on the fourth rank so the king can step out of the checks. Philidor: the defender's king sits in front of the pawn and the rook stays on the third rank, preventing the enemy king from crossing; when the pawn advances to the sixth, the rook drops to the first rank and checks from behind. Draw." },
-      board("1K1k4/1P6/8/8/8/8/r7/2R5 w - - 0 1", "Lucena: White's king is stuck in front of its pawn and the black king is cut off by the rook on the c-file. Rc4! first (the bridge), then Ka7; the checks come from behind, Ra2+ Kb6, Rb2+ Ka6, Ra2+ Kb5, Rb2+, and now Rb4 blocks the last check. The pawn queens."),
+      board("1K1k4/1P6/8/8/8/8/r7/2R5 w - - 0 1", "Lucena: White's king is stuck in front of its pawn, the black rook guards the a-file and the black king is cut off by the rook on the c-file. Rd1+! drives the king a file further (Ke7), then Rd4 (the bridge) and Kc7; the checks come from behind, Rc2+ Kb6, Rb2+ Kc6, Rc2+ Kb5, Rb2+, and now Rb4 blocks the last check. The pawn queens."),
       board("4k3/8/r7/4PK2/8/8/8/1R6 b - - 0 1", "Philidor: Black's rook on a6, the third rank counted from Black's side, keeps the white king off the sixth. If e6, then Ra1 and checks from behind: the white king has no shelter. A draw."),
       { t: "rule", x: "Lucena: rook to the 4th, king out, bridge → win\nPhilidor: rook on the 3rd until the pawn hits the 6th, then checks from behind → draw\nTarrasch: rooks behind passed pawns", note: "Learn these two cold; then Dvoretsky's Endgame Manual for the rest. Rook activity beats a pawn." },
       { t: "key", x: "Lucena wins, Philidor draws, rooks behind passed pawns, active rook over material." }
@@ -4274,7 +4282,7 @@ function chlPuzzle(L, elo, ok) {
     { id: "ch_upd", name: "Rating update", topic: "Rating", lesson: "ch_elo", f: "R' = R + K · (S − E)", vars: [["K", "10 to 40"], ["S", "1 win, ½ draw, 0 loss"]], anchors: [["1400 beats 1600, K 20", "+15"]], note: "" },
     { id: "ch_wpf", name: "Win probability", topic: "Engines", lesson: "ch_eval", f: "win% = 50 + 50 · (2 / (1 + e^{−0.00368 · cp}) − 1)", vars: [["cp", "centipawns for the side"]], anchors: [["+100", "59%"], ["+200", "68%"], ["+300", "75%"], ["+500", "86%"]], note: "Grades are drops in this number." },
     { id: "ch_accf", name: "Accuracy", topic: "Engines", lesson: "ch_eval", f: "move accuracy = 103.17 · e^{−0.04354 · drop} − 3.17 · game accuracy = mean over your moves", vars: [["drop", "win% of the best move minus win% of the move played, in points"]], anchors: [["drop 0", "100%"], ["drop 1", "≈ 96%"], ["drop 2", "≈ 91%"], ["drop 5", "≈ 80%"]], note: "Lichess's per-move curve; lichess blends a harmonic and a weighted mean over the game, this app takes the plain mean. ACPL is shown alongside." },
-    { id: "ch_knight", name: "Knight reach", topic: "The board", lesson: "ch_pieces", f: "centre 8 squares · edge 4 · corner 2", anchors: [["a knight on the rim", "is dim"]], note: "" },
+    { id: "ch_knight", name: "Knight reach", topic: "The board", lesson: "ch_pieces", f: "centre 8 squares · edge 3–4 · corner 2", anchors: [["a knight on the rim", "is dim"]], note: "" },
     { id: "ch_cct", name: "CCT", topic: "Tactics", lesson: "ch_best", f: "Checks · Captures · Threats, both sides, every move", anchors: [], note: "Then the blunder check." },
     { id: "ch_mates", name: "Mate in one test", topic: "Tactics", lesson: "ch_mate1", f: "for each check: king move? capture? block?", anchors: [["three no's", "mate"]], note: "" },
     { id: "ch_lucena", name: "Lucena and Philidor", topic: "Endgames", lesson: "ch_rook", f: "Lucena: rook to the 4th, bridge → win · Philidor: rook on the 3rd, then checks from behind → draw", anchors: [], note: "Rooks behind passed pawns." },
@@ -4410,7 +4418,7 @@ var SV_VOCAB = {
     ["nio", "nine", "num", "", "Nio spelare.", "Nine players."],
     ["tio", "ten", "num", "", "Tio minuter.", "Ten minutes."],
     ["tjugo", "twenty", "num", "tjugoett, tjugotvå...", "Tjugo kronor.", "Twenty crowns."],
-    ["hundra", "hundred", "num", "ett hundra, två hundra", "Hundra kronor.", "A hundred crowns."],
+    ["hundra", "hundred", "num", "(ett)hundra, tvåhundra (written as one word)", "Hundra kronor.", "A hundred crowns."],
     ["tusen", "thousand", "num", "", "Tusen tack!", "A thousand thanks!"],
     ["klockan", "o'clock / the time", "n", "Hur mycket är klockan?", "Klockan är tre.", "It is three o'clock."],
     ["timme", "hour", "n", "en timme, timmen, timmar, timmarna", "Det tar en timme.", "It takes an hour."],
@@ -4494,7 +4502,7 @@ var SV_VOCAB = {
     ["middag", "dinner", "n", "en middag, middagen", "Middagen är klar.", "Dinner is ready."],
     ["restaurang", "restaurant", "n", "en restaurang, restaurangen, restauranger", "En bra restaurang.", "A good restaurant."],
     ["meny", "menu", "n", "en meny, menyn, menyer", "Kan jag få menyn?", "Can I have the menu?"],
-    ["nota", "the bill", "n", "en nota, notan", "Notan, tack!", "The bill, please!"],
+    ["nota", "bill (at a restaurant)", "n", "en nota, notan", "Notan, tack!", "The bill, please!"],
     ["beställa", "order", "verb", "beställer, beställde, beställt", "Jag vill beställa.", "I'd like to order."],
     ["hungrig", "hungry", "adj", "hungrig, hungrigt, hungriga", "Jag är hungrig.", "I am hungry."],
     ["törstig", "thirsty", "adj", "", "Är du törstig?", "Are you thirsty?"],
@@ -4527,7 +4535,7 @@ var SV_VOCAB = {
     ["klocka", "clock / watch", "n", "en klocka, klockan, klockor", "En ny klocka.", "A new watch."],
     ["musik", "music", "n", "en musik, musiken", "Jag gillar musik.", "I like music."],
     ["film", "film / movie", "n", "en film, filmen, filmer", "Ska vi se en film?", "Shall we watch a movie?"],
-    ["spel", "game", "n", "ett spel, spelet, spel; spela = play", "Ett nytt spel.", "A new game."],
+    ["spel", "game (board / video game)", "n", "ett spel, spelet, spel; spela = play", "Ett nytt spel.", "A new game."],
     ["hockey", "hockey", "n", "en hockey; ishockey", "Jag spelar hockey.", "I play hockey."],
     ["match", "game / match", "n", "en match, matchen, matcher", "Vi vann matchen!", "We won the game!"],
     ["lag", "team", "n", "ett lag, laget, lag, lagen", "Vårt lag är bra.", "Our team is good."],
@@ -4604,7 +4612,7 @@ var SV_VOCAB = {
     ["ben", "leg; bone", "n", "ett ben, benet, ben, benen", "Han bröt benet.", "He broke his leg."],
     ["arm", "arm", "n", "en arm, armen, armar", "Vänster arm.", "Left arm."],
     ["öga", "eye", "n", "ett öga, ögat, ögon, ögonen", "Blå ögon.", "Blue eyes."],
-    ["öra", "ear", "n", "ett öra, örat, öron, öronen", "Jag hör på örat.", "I hear with my ear."],
+    ["öra", "ear", "n", "ett öra, örat, öron, öronen", "Jag har ont i örat.", "My ear hurts."],
     ["mun", "mouth", "n", "en mun, munnen, munnar", "Öppna munnen.", "Open your mouth."],
     ["näsa", "nose", "n", "en näsa, näsan, näsor", "En röd näsa.", "A red nose."],
     ["mage", "stomach", "n", "en mage, magen, magar", "Ont i magen.", "Stomach ache."],
@@ -4738,7 +4746,7 @@ var SV_VOCAB = {
     ["däremot", "on the other hand", "adv", "", "Jag däremot tycker om vintern.", "I, on the other hand, like winter."],
     ["alltså", "so / thus", "adv", "", "Du kommer alltså inte?", "So you're not coming?"],
     ["nämligen", "namely / you see", "adv", "", "Jag är sen, bussen var nämligen försenad.", "I'm late; the bus was delayed, you see."],
-    ["ändå", "anyway / still", "adv", "", "Det var kallt men vi gick ändå.", "It was cold but we went anyway."],
+    ["ändå", "anyway / nevertheless", "adv", "", "Det var kallt men vi gick ändå.", "It was cold but we went anyway."],
     ["fortfarande", "still", "adv", "", "Jag bor fortfarande här.", "I still live here."],
     ["redan", "already", "adv", "", "Är du redan klar?", "Are you already done?"],
     ["snart", "soon", "adv", "", "Vi ses snart.", "See you soon."],
@@ -4766,7 +4774,7 @@ var SV_VOCAB = {
     ["trivas", "enjoy being somewhere / thrive", "verb", "trivs, trivdes, trivts (deponent)", "Jag trivs i Sverige.", "I like it in Sweden."],
     ["längta efter", "long for", "verb", "längtar, längtade, längtat", "Jag längtar efter sommaren.", "I'm longing for summer."],
     ["hålla med", "agree", "verb", "håller med, höll med, hållit med", "Jag håller med dig.", "I agree with you."],
-    ["komma överens", "get along / agree", "verb", "", "Vi kommer bra överens.", "We get along well."],
+    ["komma överens", "get along", "verb", "kommer överens, kom överens, kommit överens; komma överens om = agree on", "Vi kommer bra överens.", "We get along well."],
     ["ha råd med", "afford", "verb", "", "Jag har inte råd med det.", "I can't afford it."],
     ["bry sig om", "care about", "verb", "bryr sig, brydde sig, brytt sig", "Jag bryr mig inte.", "I don't care."],
     ["ge upp", "give up", "verb", "", "Ge aldrig upp!", "Never give up!"],
@@ -4780,7 +4788,7 @@ var SV_VOCAB = {
     ["skål", "cheers", "phrase", "", "Skål!", "Cheers!"],
     ["jobbigt", "tough / tiresome", "adj", "jobbig, jobbigt, jobbiga", "Det var jobbigt.", "That was tough."],
     ["gärna", "gladly / with pleasure", "adv", "hellre, helst", "Ja, gärna!", "Yes, gladly!"],
-    ["hur som helst", "anyway / in any case", "phrase", "", "Hur som helst, vi ses imorgon.", "Anyway, see you tomorrow."],
+    ["hur som helst", "anyway / anyhow", "phrase", "", "Hur som helst, vi ses imorgon.", "Anyway, see you tomorrow."],
     ["i alla fall", "in any case / at least", "phrase", "", "Jag kommer i alla fall.", "I'm coming in any case."],
     ["vad sägs om", "how about", "phrase", "", "Vad sägs om en fika?", "How about a fika?"],
     ["det är ingen fara", "no worries / it's fine", "phrase", "", "Det är ingen fara.", "No worries."],
@@ -4795,7 +4803,7 @@ var SV_VOCAB = {
 var SV_NOUNS = {
   name: "Noun forms", cols: ["indefinite singular", "definite singular", "indefinite plural", "definite plural", "meaning"], ask: [1, 2, 3], given: 0, gloss: 4, target: 9,
   q: "{w} ({g}): give the <b>{form}</b>.",
-  rule: { 1: "Definite singular: en-words add -en (-n after a vowel), ett-words add -et (-t after a vowel).", 2: "Plural endings by declension: -or (en-words in -a), -ar (most en-words), -er (loans, some with umlaut), -n (ett-words ending in a vowel), nothing (ett-words ending in a consonant, en-words in -are).", 3: "Definite plural: -na after -or/-ar/-er, -a after -n, -en after a bare consonant plural." },
+  rule: { 1: "Definite singular: en-words add -en (-n after a vowel or unstressed -el/-er: nyckeln, systern), ett-words add -et (-t after a vowel).", 2: "Plural endings by declension: -or (en-words in -a), -ar (most en-words), -er (loans, some with umlaut), -n (ett-words ending in a vowel), nothing (ett-words ending in a consonant, en-words in -are).", 3: "Definite plural: -na after -or/-ar/-er, -a after -n, -en after a bare consonant plural; en-words in -are drop the -e: lärarna." },
   rows: [
     ["en bil", "bilen", "bilar", "bilarna", "car"], ["ett hus", "huset", "hus", "husen", "house"], ["en flicka", "flickan", "flickor", "flickorna", "girl"],
     ["en pojke", "pojken", "pojkar", "pojkarna", "boy"], ["ett äpple", "äpplet", "äpplen", "äpplena", "apple"], ["en bok", "boken", "böcker", "böckerna", "book"],
@@ -4812,7 +4820,7 @@ var SV_NOUNS = {
 var SV_GENDER = {
   name: "en or ett", cols: ["noun", "article", "meaning"], ask: [1], given: 0, gloss: 2, choice: true, target: 5,
   q: "Is it <b>en</b> or <b>ett</b> {w} ({g})?",
-  rule: { 1: "About three in four nouns are en-words. People and animals are almost always en. Ett-words must be learned; nouns ending in -ande/-ende, -eri, -em and most that end in a vowel + t are typically ett." },
+  rule: { 1: "About three in four nouns are en-words. People and animals are almost always en. Ett-words must be learned; nouns ending in -eri, -em, -um and -ande/-ende (when not a person: ett leende, but en studerande) are typically ett." },
   rows: [["bil", "en", "car"], ["hus", "ett", "house"], ["bok", "en", "book"], ["bord", "ett", "table"], ["stol", "en", "chair"], ["barn", "ett", "child"], ["fönster", "ett", "window"], ["dörr", "en", "door"],
     ["äpple", "ett", "apple"], ["kaffe", "ett", "coffee"], ["te", "ett", "tea"], ["flicka", "en", "girl"], ["hund", "en", "dog"], ["språk", "ett", "language"], ["rum", "ett", "room"], ["stad", "en", "city"],
     ["land", "ett", "country"], ["år", "ett", "year"], ["vecka", "en", "week"], ["dag", "en", "day"], ["lag", "ett", "team"], ["problem", "ett", "problem"], ["fråga", "en", "question"], ["svar", "ett", "answer"],
@@ -4830,7 +4838,7 @@ var SV_VERBS = {
     ["må", "mår", "mådde", "mått", "3", "feel"], ["skriva", "skriver", "skrev", "skrivit", "4", "write"], ["dricka", "dricker", "drack", "druckit", "4", "drink"], ["komma", "kommer", "kom", "kommit", "4", "come"],
     ["gå", "går", "gick", "gått", "4", "go / walk"], ["se", "ser", "såg", "sett", "4", "see"], ["vara", "är", "var", "varit", "4", "be"], ["ha", "har", "hade", "haft", "irr", "have"],
     ["göra", "gör", "gjorde", "gjort", "irr", "do / make"], ["säga", "säger", "sade / sa", "sagt", "irr", "say"], ["veta", "vet", "visste", "vetat", "irr", "know"], ["få", "får", "fick", "fått", "4", "get / may"],
-    ["ge", "ger", "gav", "gett", "4", "give"], ["ta", "tar", "tog", "tagit", "4", "take"], ["sova", "sover", "sov", "sovit", "4", "sleep"], ["äta", "äter", "åt", "ätit", "4", "eat"],
+    ["ge", "ger", "gav", "gett / givit", "4", "give"], ["ta", "tar", "tog", "tagit", "4", "take"], ["sova", "sover", "sov", "sovit", "4", "sleep"], ["äta", "äter", "åt", "ätit", "4", "eat"],
     ["springa", "springer", "sprang", "sprungit", "4", "run"], ["sitta", "sitter", "satt", "suttit", "4", "sit"], ["stå", "står", "stod", "stått", "4", "stand"], ["ligga", "ligger", "låg", "legat", "4", "lie"],
     ["bli", "blir", "blev", "blivit", "4", "become"], ["kunna", "kan", "kunde", "kunnat", "modal", "can"], ["vilja", "vill", "ville", "velat", "modal", "want"], ["behöva", "behöver", "behövde", "behövt", "2a", "need"],
     ["börja", "börjar", "började", "börjat", "1", "begin"], ["förstå", "förstår", "förstod", "förstått", "4", "understand"], ["heta", "heter", "hette", "hetat", "irr", "be called"], ["lägga", "lägger", "lade / la", "lagt", "irr", "put / lay"],
@@ -4840,7 +4848,7 @@ var SV_VERBS = {
 var SV_ADJ = {
   name: "Adjective agreement", cols: ["en-form", "ett-form", "plural / definite", "meaning"], ask: [1, 2], given: 0, gloss: 3, target: 7,
   q: "{w} ({g}): give the <b>{form}</b>.",
-  rule: { 1: "The ett-form adds -t. A long vowel + d/t: -tt (ny → nytt, vit → vitt). Ending in -d after a consonant: -t replaces (hård → hårt). Ending in -t already: unchanged (trött).", 2: "Plural and definite: -a. Adjectives in -el/-en/-er drop the e (enkel → enkla, vacker → vackra). Liten is irregular: liten, litet, små; definite lilla." },
+  rule: { 1: "The ett-form adds -t. Ending in a stressed vowel, or a long vowel + d/t: -tt (ny → nytt, röd → rött, vit → vitt). Ending in -d after a consonant: -t replaces (hård → hårt). Ending in a consonant + t: unchanged (kort, trött).", 2: "Plural and definite: -a. Adjectives in -el/-en/-er drop the e (enkel → enkla, vacker → vackra). Liten is irregular: liten, litet, små; definite lilla." },
   rows: [["stor", "stort", "stora", "big"], ["liten", "litet", "små", "small"], ["ny", "nytt", "nya", "new"], ["gammal", "gammalt", "gamla", "old"], ["god", "gott", "goda", "good / tasty"], ["röd", "rött", "röda", "red"],
     ["vacker", "vackert", "vackra", "beautiful"], ["lång", "långt", "långa", "long / tall"], ["kort", "kort", "korta", "short"], ["varm", "varmt", "varma", "warm"], ["kall", "kallt", "kalla", "cold"], ["snabb", "snabbt", "snabba", "fast"],
     ["billig", "billigt", "billiga", "cheap"], ["dyr", "dyrt", "dyra", "expensive"], ["trött", "trött", "trötta", "tired"], ["glad", "glatt", "glada", "happy"], ["svensk", "svenskt", "svenska", "Swedish"], ["enkel", "enkelt", "enkla", "simple"],
@@ -4859,7 +4867,7 @@ var SV_NUMBERS_TARGET = 10;
 var SV_V2 = [
   ["jag", "äter", "fisk", "idag", "Today I eat fish."], ["vi", "spelar", "hockey", "på lördag", "On Saturday we play hockey."], ["hon", "läser", "en bok", "nu", "Now she is reading a book."],
   ["de", "åker", "till Stockholm", "imorgon", "Tomorrow they go to Stockholm."], ["han", "dricker", "kaffe", "på morgonen", "In the morning he drinks coffee."], ["jag", "tränar", "mycket", "ibland", "Sometimes I train a lot."],
-  ["du", "kommer", "sent", "alltid", "You always come late."], ["vi", "är", "hemma", "ikväll", "Tonight we are at home."], ["barnen", "sover", "", "nu", "Now the children are sleeping."],
+  ["du", "kommer", "sent", "varje dag", "Every day you come late."], ["vi", "är", "hemma", "ikväll", "Tonight we are at home."], ["barnen", "sover", "", "nu", "Now the children are sleeping."],
   ["jag", "tar", "bussen", "därför", "Therefore I take the bus."], ["hon", "jobbar", "hemifrån", "på fredagar", "On Fridays she works from home."], ["det", "regnar", "mycket", "här", "Here it rains a lot."]
 ];
 /* main vs subordinate clause: [main clause with inte, subordinate version, gloss] */
@@ -4872,9 +4880,9 @@ var SV_BIFF = [
 /* questions and negation: [statement, yes/no question, negation, gloss] */
 var SV_QN = [
   ["Du bor här.", "Bor du här?", "Du bor inte här.", "You live here."], ["Hon spelar hockey.", "Spelar hon hockey?", "Hon spelar inte hockey.", "She plays hockey."],
-  ["De har en bil.", "Har de en bil?", "De har inte en bil.", "They have a car."], ["Han är hemma.", "Är han hemma?", "Han är inte hemma.", "He is at home."],
+  ["De har bil.", "Har de bil?", "De har inte bil.", "They have a car."], ["Han är hemma.", "Är han hemma?", "Han är inte hemma.", "He is at home."],
   ["Vi kan simma.", "Kan vi simma?", "Vi kan inte simma.", "We can swim."], ["Du förstår.", "Förstår du?", "Du förstår inte.", "You understand."],
-  ["Jag vill äta.", "Vill du äta?", "Jag vill inte äta.", "I want to eat."], ["Tåget kommer nu.", "Kommer tåget nu?", "Tåget kommer inte nu.", "The train is coming now."]
+  ["Du vill äta.", "Vill du äta?", "Du vill inte äta.", "You want to eat."], ["Tåget kommer nu.", "Kommer tåget nu?", "Tåget kommer inte nu.", "The train is coming now."]
 ];
 /* tenses: [present sentence, past sentence, perfect sentence, future sentence, gloss] */
 var SV_TENSE = [
@@ -4933,7 +4941,7 @@ var SV_DIALOGUES = [
   { id: "sv_d3", title: "Asking the way", setting: "You are lost in Göteborg and need the central station.", level: "A2",
     turns: [
       { bot: "Hej, kan jag hjälpa dig?", botg: "Hi, can I help you?", expect: ["var (är|ligger)", "stationen", "jag letar efter", "hur kommer jag"], model: "Ja, var ligger centralstationen?", modelg: "Yes, where is the central station?", hint: "Var ligger ...? / Hur kommer jag till ...?" },
-      { bot: "Gå rakt fram och sväng till vänster vid banken. Är det långt?", botg: "Go straight ahead and turn left at the bank. Is it far? (she is testing you: say it back)", expect: ["rakt fram", "vänster", "banken"], model: "Rakt fram och till vänster vid banken.", modelg: "Straight ahead and left at the bank.", hint: "Repeat the directions: rakt fram ... vänster ..." },
+      { bot: "Gå rakt fram och sväng till vänster vid banken. Hänger du med?", botg: "Go straight ahead and turn left at the bank. Are you with me? (say the directions back)", expect: ["rakt fram", "vänster", "banken"], model: "Rakt fram och till vänster vid banken.", modelg: "Straight ahead and left at the bank.", hint: "Repeat the directions: rakt fram ... vänster ..." },
       { bot: "Precis. Det tar ungefär tio minuter. Ska du ta tåget?", botg: "Exactly. It takes about ten minutes. Are you taking the train?", expect: ["ja", "nej", "tåg(et)?", "stockholm", "jag ska"], model: "Ja, jag ska åka till Stockholm.", modelg: "Yes, I'm going to Stockholm.", hint: "Ja, jag ska åka till ..." },
       { bot: "Lycka till! Hej då.", botg: "Good luck! Bye.", expect: ["tack", "hej då"], model: "Tack så mycket! Hej då.", modelg: "Thanks a lot! Bye.", hint: "Tack ... hej då" }
     ] },
@@ -4948,7 +4956,7 @@ var SV_DIALOGUES = [
   { id: "sv_d5", title: "Talking about the game", setting: "A friend asks about last night's hockey game. Use the past tense.", level: "B1",
     turns: [
       { bot: "Hur gick matchen igår?", botg: "How did the game go yesterday?", expect: ["vann", "förlorade", "det gick", "oavgjort"], model: "Vi vann med 3–2!", modelg: "We won 3–2!", hint: "Vi vann / Vi förlorade / Det gick bra" },
-      { bot: "Grattis! Gjorde du något mål?", botg: "Congratulations! Did you score?", expect: ["ja", "nej", "mål", "gjorde", "passning"], model: "Jag gjorde ett mål och en passning.", modelg: "I scored a goal and an assist.", hint: "Jag gjorde ... / Nej, men ..." },
+      { bot: "Grattis! Gjorde du något mål?", botg: "Congratulations! Did you score?", expect: ["ja", "nej", "mål", "gjorde", "assist", "passning"], model: "Jag gjorde ett mål och en assist.", modelg: "I scored a goal and an assist.", hint: "Jag gjorde ... / Nej, men ..." },
       { bot: "Vad var det svåraste?", botg: "What was the hardest part?", expect: ["svåraste", "var att", "tredje perioden", "trött(a)?", "snabba", "deras"], model: "Det svåraste var tredje perioden, vi var trötta.", modelg: "The hardest was the third period, we were tired.", hint: "Det svåraste var ..." },
       { bot: "När är nästa match?", botg: "When's the next game?", expect: ["på (måndag|tisdag|onsdag|torsdag|fredag|lördag|söndag)", "nästa", "imorgon", "veck(a|an)"], model: "På lördag, borta mot Frölunda.", modelg: "On Saturday, away against Frölunda.", hint: "På ... / Nästa vecka" },
       { bot: "Jag kommer och tittar. Lycka till!", botg: "I'll come and watch. Good luck!", expect: ["tack", "kul", "vad roligt"], model: "Tack, vad kul!", modelg: "Thanks, great!", hint: "Tack ..." }
@@ -4973,8 +4981,8 @@ var SV_READINGS = [
   { id: "sv_r2", title: "En dag i Stockholm", level: "A2", text: [
       "Igår åkte jag till Stockholm med tåget. Resan tog ungefär fyrtio minuter. Jag kom fram klockan tio och gick direkt till Gamla stan.",
       "I Gamla stan finns det många små gator och gamla hus. Jag drack kaffe på ett litet kafé och åt en kanelbulle. Sedan gick jag till Kungliga slottet. Det var mycket folk där.",
-      "På eftermiddagen tog jag båten till Djurgården och besökte Vasamuseet. Skeppet Vasa sjönk år 1628 och hittades igen 1961. Det var fantastiskt att se. På kvällen åkte jag hem, trött men nöjd."
-    ], gloss: [["kom fram", "arrived"], ["slottet", "the palace"], ["folk", "people"], ["skeppet", "the ship"], ["sjönk", "sank"], ["hittades", "was found"]],
+      "På eftermiddagen tog jag båten till Djurgården och besökte Vasamuseet. Skeppet Vasa sjönk år 1628 och bärgades 1961. Det var fantastiskt att se. På kvällen åkte jag hem, trött men nöjd."
+    ], gloss: [["kom fram", "arrived"], ["slottet", "the palace"], ["folk", "people"], ["skeppet", "the ship"], ["sjönk", "sank"], ["bärgades", "was raised"]],
     qs: [{ q: "Hur åkte hon till Stockholm?", options: ["Med bil", "Med tåg", "Med buss", "Med båt"], answer: "Med tåg" }, { q: "Vad gjorde hon på eftermiddagen?", options: ["Drack kaffe", "Gick till slottet", "Besökte Vasamuseet", "Åkte hem"], answer: "Besökte Vasamuseet" }, { q: "När sjönk Vasa?", options: ["1628", "1961", "1828", "1721"], answer: "1628" }] },
   { id: "sv_r3", title: "Fika", level: "A2", text: [
       "Fika är mer än en kaffepaus. Det är en svensk tradition och nästan ett sätt att leva. Man dricker kaffe eller te och äter något sött, ofta en kanelbulle eller en bit kaka. Men det viktigaste är inte maten. Det viktigaste är att man tar en paus och pratar med andra.",
@@ -5011,9 +5019,9 @@ var SV_DICTATION = [
 ];
 var SV_WRITING = [
   ["I am tired.", ["Jag är trött."], "A1"], ["Where do you live?", ["Var bor du?"], "A1"], ["I don't understand.", ["Jag förstår inte."], "A1"], ["We have a dog.", ["Vi har en hund."], "A1"],
-  ["Today I'm playing hockey.", ["Idag spelar jag hockey.", "Jag spelar hockey idag."], "A2"], ["The book is on the table.", ["Boken ligger på bordet.", "Boken är på bordet."], "A2"], ["Can you help me?", ["Kan du hjälpa mig?"], "A2"], ["She bought a new car.", ["Hon köpte en ny bil."], "A2"],
-  ["I know that he isn't coming.", ["Jag vet att han inte kommer."], "B1"], ["We have lived here for three years.", ["Vi har bott här i tre år."], "B1"], ["If it rains, we'll stay at home.", ["Om det regnar stannar vi hemma.", "Om det regnar, stannar vi hemma."], "B1"], ["Yesterday I was at the rink all day.", ["Igår var jag på rinken hela dagen.", "Igår var jag i ishallen hela dagen."], "B1"],
-  ["Swedish is spoken in Sweden.", ["Svenska talas i Sverige."], "B2"], ["Although we lost, I was proud of the team.", ["Fastän vi förlorade var jag stolt över laget.", "Trots att vi förlorade var jag stolt över laget."], "B2"], ["I would rather train in the morning.", ["Jag tränar hellre på morgonen.", "Jag skulle hellre träna på morgonen."], "B2"], ["The game was cancelled because of the weather.", ["Matchen ställdes in på grund av vädret."], "B2"]
+  ["Today I'm playing hockey.", ["Idag spelar jag hockey.", "Jag spelar hockey idag.", "I dag spelar jag hockey.", "Jag spelar hockey i dag."], "A2"], ["The book is on the table.", ["Boken ligger på bordet.", "Boken är på bordet."], "A2"], ["Can you help me?", ["Kan du hjälpa mig?"], "A2"], ["She bought a new car.", ["Hon köpte en ny bil."], "A2"],
+  ["I know that he isn't coming.", ["Jag vet att han inte kommer."], "B1"], ["We have lived here for three years.", ["Vi har bott här i tre år."], "B1"], ["If it rains, we'll stay at home.", ["Om det regnar stannar vi hemma.", "Om det regnar, stannar vi hemma.", "Om det regnar så stannar vi hemma.", "Vi stannar hemma om det regnar."], "B1"], ["Yesterday I was at the rink all day.", ["Igår var jag på rinken hela dagen.", "Igår var jag i ishallen hela dagen.", "Jag var på rinken hela dagen igår.", "Jag var i ishallen hela dagen igår.", "I går var jag i ishallen hela dagen."], "B1"],
+  ["Swedish is spoken in Sweden.", ["Svenska talas i Sverige."], "B2"], ["Although we lost, I was proud of the team.", ["Fastän vi förlorade var jag stolt över laget.", "Trots att vi förlorade var jag stolt över laget.", "Även om vi förlorade var jag stolt över laget."], "B2"], ["I would rather train in the morning.", ["Jag tränar hellre på morgonen.", "Jag skulle hellre träna på morgonen."], "B2"], ["The game was cancelled because of the weather.", ["Matchen ställdes in på grund av vädret.", "Matchen blev inställd på grund av vädret."], "B2"]
 ];
 
 /* ============================================================
@@ -5035,7 +5043,7 @@ var SV_WRITING = [
         { t: "key", x: "Read each word aloud, cover the meaning, say it, uncover. Then the other way. Thirty words take ten minutes; the checkpoint tests recognition, and the schedule takes it from there." },
         { t: "how", drill: "Vocabulary", ask: "What does this word mean? Which word means this? Type it. Fill the gap. Type what you heard. Say it.",
           steps: ["Each word is its own skill on the schedule. Early reviews ask you to recognise it; later ones make you produce it, spell it into a sentence, hear it and say it.",
-            "Typing without the accent is marked wrong on purpose: å, ä and ö are different letters, and tak (roof) is not tack (thanks).",
+            "Typing without the accent is marked wrong on purpose: å, ä and ö are different letters, and har (has) is not här (here).",
             "If the device has a Swedish voice, the word is spoken; listen first, then look."],
           tip: "Say the example sentence out loud every time. The word comes back with its company, which is how native speakers hold it." }
       ]) };
@@ -5071,8 +5079,8 @@ var SV_WRITING = [
     blocks: [
       { t: "p", x: "Swedish has two famous sounds. The tj-sound (as in kjol, kyrka, tjugo) is close to English 'sh' said with the tongue tip down, like 'ch' in German ich. The sj-sound (sju, sked, station) has no English equivalent: a breathy 'hw' made far back, as if blowing on cold hands. Both are triggered by spelling rules you can learn in a minute." },
       { t: "tbl", head: ["Spelling", "Before a, o, u, å (hard)", "Before e, i, y, ä, ö (soft)"], rows: [["k", "k: kaffe, katt, kort", "tj-sound: kök, kyrka, kille"], ["g", "g: gå, gul, god", "j-sound: ge, gärna, göra"], ["sk", "sk: skola, skåp", "sj-sound: sked, skida, skön"], ["kj, tj", "", "tj-sound always: kjol, tjugo"], ["sj, skj, stj, sch, -tion", "", "sj-sound always: sju, skjorta, stjärna, station"], ["dj, lj, hj, gj", "", "the first letter is silent: djur, ljus, hjärta, gjorde"]] },
-      { t: "rule", x: "soft vowels: e, i, y, ä, ö\nk → tj   g → j   sk → sj   before a soft vowel", note: "Loanwords and some names keep the hard sound (kille follows the rule; kö, from French queue, does too: 'tjö')." },
-      { t: "p", x: "Two more: r before s, t, d, n, l merges into a retroflex (fors sounds like 'fosh', bort like 'bawt' with a curled tongue), and a final -g after a vowel often turns into j (jag sounds like 'ja', dag like 'daa')." },
+      { t: "rule", x: "soft vowels: e, i, y, ä, ö\nk → tj   g → j   sk → sj   before a soft vowel", note: "Loanwords often keep the hard sound (gitarr, ketchup, skeptisk); kille follows the rule, and so does kö, from French queue: 'tjö'." },
+      { t: "p", x: "Two more: r before s, t, d, n, l merges into a retroflex (fors sounds like 'fosh', bort like 'bawt' with a curled tongue), and in everyday speech a final -g is often dropped (jag sounds like 'ja', dag like 'da'); after l or r it sounds like j (älg, berg)." },
       { t: "key", x: "Soft vowels e i y ä ö make k→tj, g→j, sk→sj. sj/skj/stj/-tion are always the sj-sound. dj/lj/hj/gj drop the first letter." },
       { t: "how", drill: "Sound rules", ask: "How is the first consonant of this word pronounced?", steps: ["Look at the vowel after the consonant.", "Soft vowel: pick the soft sound; otherwise hard.", "Watch for the always-soft clusters and the silent first letters."], tip: "Say the word before you answer. The rule should become a reflex of the mouth, not of the eye." }
     ] });
@@ -5103,7 +5111,7 @@ var SV_WRITING = [
   add({ id: "sv_gender", mode: "svgender", pass: 8, of: 10, title: "En or ett", sub: "The two genders", gist: "Three quarters of nouns are en-words. The rest you learn one by one, and the drill makes sure you do.",
     blocks: [
       { t: "p", x: "Old Swedish had three genders; masculine and feminine merged into the common gender (en) and the neuter stayed (ett). The gender is invisible in the bare noun and visible everywhere else: en bil → bilen, en stor bil, den; ett hus → huset, ett stort hus, det." },
-      { t: "tbl", head: ["Clue", "Usually"], rows: [["People, animals, professions", "en (en man, en hund, en lärare)"], ["Nouns ending in -a, -ing, -het, -ion, -are", "en (en flicka, en tidning, en nyhet)"], ["Nouns ending in -ande, -ende, -eri, -em, -um", "ett (ett leende, ett bageri, ett problem)"], ["Many short, concrete things and substances", "ett, but unreliably (ett hus, ett bord, ett kött)"]] },
+      { t: "tbl", head: ["Clue", "Usually"], rows: [["People, animals, professions", "en (en man, en hund, en lärare)"], ["Nouns ending in -a, -ing, -het, -ion, -are", "en (en flicka, en tidning, en nyhet)"], ["Nouns ending in -eri, -em, -um, and -ande/-ende when not a person", "ett (ett leende, ett bageri, ett problem; but en studerande)"], ["Many short, concrete things and substances", "ett, but unreliably (ett hus, ett bord, ett kött)"]] },
       { t: "rule", x: "en → den / -en / stor\nett → det / -et / stort", note: "Pronoun, definite ending and adjective all follow the gender." },
       { t: "key", x: "Learn the article as part of the noun. When in doubt, en: it is right three times in four." },
       { t: "how", drill: "En or ett", ask: "Is it en or ett?", steps: ["Say the word with both articles and pick the one that sounds right.", "If neither does, you have not met the word enough: the schedule will fix that."], tip: "Say the plural too when you learn a noun: en bil, bilar." }
@@ -5112,7 +5120,7 @@ var SV_WRITING = [
     blocks: [
       { t: "p", x: "Swedish has no word 'the' before a noun. It attaches 'the' to the end: bil → bilen, hus → huset. The plural has five declensions, chosen mostly by gender and the last letter, and the definite plural adds another ending on top." },
       { t: "tbl", head: ["Declension", "Plural ending", "Which nouns", "Example"], rows: [["1", "-or", "en-words ending in -a", "en flicka, flickor, flickorna"], ["2", "-ar", "most en-words", "en bil, bilar, bilarna"], ["3", "-er", "en-words from Latin/French, some with umlaut", "en stad, städer, städerna"], ["4", "-n", "ett-words ending in a vowel", "ett äpple, äpplen, äpplena"], ["5", "no ending", "ett-words ending in a consonant; en-words in -are", "ett hus, hus, husen; en lärare, lärare, lärarna"]] },
-      { t: "rule", x: "definite singular: -en / -n (en-words), -et / -t (ett-words)\ndefinite plural: -na after -or/-ar/-er, -a after -n, -en after a bare consonant plural", note: "A handful of umlaut plurals must simply be known: man/män, bok/böcker, fot/fötter, hand/händer, stad/städer, land/länder." },
+      { t: "rule", x: "definite singular: -en / -n (en-words), -et / -t (ett-words)\ndefinite plural: -na after -or/-ar/-er, -a after -n, -en after a bare consonant plural (but en lärare → lärarna)", note: "A handful of umlaut plurals must simply be known: man/män, bok/böcker, fot/fötter, hand/händer, stad/städer, land/länder." },
       { t: "ex", title: "Worked example", facts: [["Noun", "en stol"], ["Ask", "the chairs"]], steps: ["en-word, not ending in -a: declension 2, plural -ar: stolar.", "Definite plural after -ar: -na: stolarna."], punch: "Two decisions, both mechanical once the declension is known." },
       { t: "key", x: "Definite = ending. Plurals: -or (en, -a), -ar (en), -er (loans), -n (ett, vowel), nothing (ett, consonant). Definite plural -na / -a / -en." },
       { t: "how", drill: "Noun forms", ask: "Give the definite singular, the plural, or the definite plural.", steps: ["Find the gender and the last letter.", "Pick the declension.", "Add the ending; for the definite plural, add the second ending."], tip: "Say all four forms in a row every time you learn a noun: bil, bilen, bilar, bilarna." }
@@ -5147,7 +5155,7 @@ var SV_WRITING = [
     blocks: [
       { t: "p", x: "Adjectives have three forms: the base (en-form), the -t form for ett-words, and the -a form for plurals and for definite phrases. En stor bil, ett stort hus, stora bilar, den stora bilen. Notice the last one: with 'the' the adjective takes -a even in the singular, and Swedish uses double definiteness, den + -a + -en." },
       { t: "rule", x: "en stor bil · ett stort hus · stora bilar\nden stora bilen · det stora huset · de stora bilarna", note: "Double definiteness: the article in front and the ending on the noun, both at once." },
-      { t: "tbl", head: ["Ending", "ett-form", "Example"], rows: [["most", "add -t", "stor → stort, kall → kallt"], ["vowel + d or t", "-tt", "ny → nytt, vit → vitt, röd → rött"], ["consonant + d", "replace with -t", "hård → hårt, mild → milt"], ["ends in -t already", "unchanged", "trött → trött"], ["-el, -en, -er", "plural drops the e", "enkel → enkla, vacker → vackra"], ["liten", "irregular", "liten, litet, små; den lilla"]] },
+      { t: "tbl", head: ["Ending", "ett-form", "Example"], rows: [["most", "add -t", "stor → stort, kall → kallt"], ["stressed vowel, or long vowel + d or t", "-tt", "ny → nytt, vit → vitt, röd → rött"], ["consonant + d", "replace with -t", "hård → hårt, mild → milt"], ["consonant + t", "unchanged", "trött → trött, kort → kort"], ["-el, -en, -er", "plural drops the e", "enkel → enkla, vacker → vackra"], ["liten", "irregular", "liten, litet, små; den lilla"]] },
       { t: "key", x: "-t for ett, -a for plural and after the/den/det/de. Double definiteness: den stora bilen." },
       { t: "how", drill: "Adjective agreement", ask: "Give the ett-form or the plural form.", steps: ["Ett-word? add -t (with the spelling rules).", "Plural or definite? add -a.", "Check the exceptions: liten, bra, and the -el/-en/-er drop."], tip: "Chant three forms every time: stor, stort, stora." }
     ] });
@@ -5175,7 +5183,7 @@ var SV_WRITING = [
   /* ---------------- stage 4: tenses and clauses ---------------- */
   add({ id: "sv_past", mode: "svtense", pass: 7, of: 10, title: "The past: preteritum and perfekt", sub: "-ade, -de, -te, -dde, and the strong verbs", gist: "Two past tenses, used almost exactly like English simple past and present perfect.",
     blocks: [
-      { t: "p", x: "Preteritum is the simple past: Jag läste boken igår. Perfekt is 'har' plus the supine, for things with a connection to now: Jag har läst boken. The split matches English closely, with one difference: Swedish uses perfekt for 'I have lived here for two years' and also for news just in: Han har kommit!" },
+      { t: "p", x: "Preteritum is the simple past: Jag läste boken igår. Perfekt is 'har' plus the supine, for things with a connection to now: Jag har läst boken. The split matches English closely, with one difference: when no time is named, Swedish often uses perfekt where English uses the simple past: Var har du köpt tröjan? (Where did you buy the sweater?)" },
       { t: "rule", x: "preteritum: group 1 -ade · 2a -de · 2b -te · 3 -dde · 4 vowel change\nperfekt: har + supine (-at · -t · -tt · -it)\npluskvamperfekt: hade + supine", note: "The supine is a form used only after har/hade. For groups 1 to 3 it looks like the ett-form of the participle; for strong verbs it ends in -it." },
       { t: "tbl", head: ["Infinitive", "Preteritum", "Perfekt"], rows: [["tala", "talade", "har talat"], ["ringa", "ringde", "har ringt"], ["köpa", "köpte", "har köpt"], ["bo", "bodde", "har bott"], ["skriva", "skrev", "har skrivit"], ["gå", "gick", "har gått"], ["vara", "var", "har varit"], ["göra", "gjorde", "har gjort"]] },
       { t: "ex", title: "Worked example", facts: [["Present", "Vi spelar hockey."], ["Ask", "past and perfect"]], steps: ["spela: ends in -a, group 1.", "Preteritum: spelade. Vi spelade hockey.", "Supine: spelat. Vi har spelat hockey."], punch: "For group 1, which is most verbs, the past is -ade and -at. Learn the strong verbs as a list." },
@@ -5188,7 +5196,7 @@ var SV_WRITING = [
       { t: "tbl", head: ["Modal", "Meaning", "Example"], rows: [["kan", "can, is able", "Jag kan simma."], ["vill", "wants to (never 'will'!)", "Jag vill äta."], ["ska", "shall, is going to", "Vi ska spela."], ["måste", "must", "Du måste komma."], ["får", "may, is allowed to", "Får jag fråga?"], ["bör / borde", "should / ought to", "Du borde sova."], ["behöver", "needs to", "Jag behöver inte gå."]] },
       { t: "rule", x: "modal + bare infinitive (no 'att')\nJag vill äta. · Vi måste gå. · Hon kan komma.", note: "'Vill' means want. 'Jag vill komma' is 'I want to come', not 'I will come'. The false friend costs everyone once." },
       { t: "key", x: "Ska = intention, kommer att = prediction, present + time word = everyday future. Modals take the bare infinitive." },
-      { t: "how", drill: "Tenses", ask: "Put the sentence in the future.", steps: ["ska + infinitive is accepted for every future answer.", "Watch the infinitive: no -r, no 'att'."], tip: "Listen for how rarely Swedes say 'ska': the present tense does most of the work." }
+      { t: "how", drill: "Tenses", ask: "Put the sentence in the future.", steps: ["ska and kommer att + infinitive are both accepted, except for a prediction like 'I will be tired', which takes kommer att.", "Watch the infinitive: no -r, and no 'att' after ska."], tip: "Listen for how rarely Swedes say 'ska': the present tense does most of the work." }
     ] });
   add({ id: "sv_biff", mode: "svbiff", pass: 7, of: 10, title: "Subordinate clauses and BIFF", sub: "I bisats kommer inte före det finita verbet", gist: "After att, om, eftersom, som and the rest, 'inte' moves in front of the verb. Swedish teachers call it BIFF.",
     blocks: [
@@ -5202,7 +5210,7 @@ var SV_WRITING = [
   add({ id: "sv_pass", mode: "svpass", pass: 6, of: 8, title: "The -s passive", sub: "Svenska talas i Sverige", gist: "Add -s to the verb and the object becomes the subject. Also used for reciprocals and a few verbs that are always -s.",
     blocks: [
       { t: "p", x: "The passive is formed by adding -s to any tense of the verb: talas, talades, har talats. It is the normal passive in writing and instructions: Biljetter säljs här. Dörrarna stängs. The alternative with bli + participle (blev stängd) stresses the event." },
-      { t: "rule", x: "present: talar → talas · past: talade → talades · supine: talat → talats\ngroup 2 present drops the -r: köper → köps · ringer → rings", note: "A few verbs are always -s (deponent) with active meaning: hoppas, finnas, trivas, minnas, lyckas, andas." },
+      { t: "rule", x: "present: talar → talas · past: talade → talades · supine: talat → talats\ngroup 2 present drops the -er: köper → köps · ringer → rings", note: "A few verbs are always -s (deponent) with active meaning: hoppas, finnas, trivas, minnas, lyckas, andas." },
       { t: "tbl", head: ["Active", "Passive"], rows: SV_PASSIVE.map(function (r) { return [r[0], r[1]]; }) },
       { t: "key", x: "Add -s for the passive. Hoppas, finnas, trivas, minnas are -s verbs with active meaning." },
       { t: "how", drill: "Passive", ask: "Rewrite in the -s passive.", steps: ["Find the object; it becomes the subject.", "Add -s to the verb in the same tense.", "Drop the agent unless it matters (av + agent)."], tip: "'Det finns' (there is) is the most common -s verb of all, and you already use it." }
@@ -5249,7 +5257,7 @@ var SV_WRITING = [
   /* ---------------- stage 7: the pro path ---------------- */
   add({ id: "sv_pro", mode: "none", title: "From B1 to native: the programme", sub: "What the app cannot drill, and how to do it anyway", gist: "Past B1 the limiting factor is hours of input and output, not rules. Here is the plan, the hour targets, and how the app tracks them.",
     blocks: [
-      { t: "p", x: "The honest picture. The US Foreign Service Institute, which has trained diplomats in Swedish for seventy years with the most intensive method ever run at scale (and is what people usually mean by 'the CIA method'; the CIA itself uses the same FSI/DLI programmes), puts Swedish in its easiest category: about 600–750 classroom hours to professional working proficiency, roughly C1. That is with five hours of class a day plus homework. There is no shortcut around the hours; there are shortcuts around wasting them, and they are built into this course: spaced retrieval, speed gates, interleaving, output with feedback, and sounds before words before grammar." },
+      { t: "p", x: "The honest picture. The US Foreign Service Institute, which has trained diplomats in Swedish for seventy years with the most intensive method ever run at scale (and is what people usually mean by 'the CIA method'), puts Swedish in its easiest category: about 600–750 classroom hours to professional working proficiency, roughly C1. That is with five hours of class a day plus homework. There is no shortcut around the hours; there are shortcuts around wasting them, and they are built into this course: spaced retrieval, speed gates, interleaving, output with feedback, and sounds before words before grammar." },
       { t: "tbl", head: ["Level", "What it looks like", "Hours (rough)", "What to do"], rows: [["A1–A2", "Survive: order, ask, introduce", "0–150", "This course's stages 0–5, daily reviews"], ["B1", "Hold a conversation, read easy news", "150–350", "Readers here, then 8 Sidor daily; one scripted dialogue a day; shadowing"], ["B2", "Fluent conversation, native TV with subtitles", "350–600", "An hour of native input a day (SVT, SR); write 100 words a day; a tutor or tandem partner twice a week"], ["C1", "Professional use, argue, read anything", "600–900", "Native input without subtitles, books, long-form podcasts; speak daily; study register and idiom"], ["C2", "Near-native nuance", "1000+", "Live in the language: read widely, write for real readers, get corrected by natives"]] },
       { t: "rule", x: "the level model = words known + grammar passed + applied skill + logged hours\nhours count toward 700, the FSI estimate", note: "Log every minute of real input and output on the Level page. The drills get you to B1; the log is what gets you past it, and the calendar schedules it like any other session." },
       { t: "p", x: "Tandem speaking without immersion: find a Swede learning English (Tandem, HelloTalk, or the Swedish Hockey League's English-speaking fan forums) and trade thirty minutes each way, twice a week. Record yourself. Shadow the recording. It is the closest thing to immersion that exists outside Sweden, and the research on output and interaction says it is most of what immersion does anyway." },
@@ -5289,7 +5297,7 @@ var SV_WRITING = [
     svnum: { name: "Numbers", target: 9, gen: function (ctx) {
       var n = ctx.rnd() < 0.4 ? (ctx.rnd() * 21) | 0 : ctx.rnd() < 0.7 ? 20 + ((ctx.rnd() * 80) | 0) : 100 + ((ctx.rnd() * 900) | 0);
       var w = lgNumberWords("sv", n);
-      return { kind: "text", question: "Write <b>" + n + "</b> in Swedish.", answer: w, accept: [w, w.replace(/ /g, ""), w.replace(/^ettusen/, "tusen")], target: 9, explain: ["<b>" + n + "</b> = " + w], speakAfter: tts(w, ctx.caps) };
+      return { kind: "text", question: "Write <b>" + n + "</b> in Swedish.", answer: w, accept: [w, w.replace(/ /g, ""), w.replace(/^ettusen/, "tusen"), w.replace(/^hundra/, "etthundra")], target: 9, explain: ["<b>" + n + "</b> = " + w], speakAfter: tts(w, ctx.caps) };
     } },
     svgender: { name: "En or ett", target: 5, gen: function (ctx) { return lgFormQ(SV_GENDER, "sv", ctx.rnd, ctx.caps); } },
     svnoun: { name: "Noun forms", target: 9, gen: function (ctx) { return lgFormQ(SV_NOUNS, "sv", ctx.rnd, ctx.caps); } },
@@ -5349,7 +5357,7 @@ var SV_WRITING = [
     { id: "sv_groups", name: "Verb groups", topic: "Verbs", lesson: "sv_pres", f: "1: -ar -ade -at · 2: -er -de/-te -t · 3: -r -dde -tt · 4: -er, vowel change, -it", anchors: [["tala", "talar talade talat"], ["köpa", "köper köpte köpt"], ["bo", "bor bodde bott"], ["skriva", "skriver skrev skrivit"]], note: "Guess group 1 for an unknown -a verb." },
     { id: "sv_v2f", name: "Verb second", topic: "Word order", lesson: "sv_v2", f: "[X] [verb] [subject] [rest]", anchors: [["Idag äter jag fisk", "time first"], ["Bor du här?", "question: verb first"]], note: "Whatever X is, the verb is next." },
     { id: "sv_inte", name: "Where inte goes", topic: "Word order", lesson: "sv_biff", f: "main: verb + inte · subordinate: inte + verb", anchors: [["Han kommer inte", "main"], ["att han inte kommer", "subordinate"]], note: "BIFF. The same slot for alltid, aldrig, ofta, kanske." },
-    { id: "sv_agr", name: "Adjective agreement", topic: "Adjectives", lesson: "sv_adj", f: "en: stor · ett: stort · plural / definite: stora", anchors: [["den stora bilen", "double definiteness"]], note: "Vowel + d/t gives -tt: nytt, vitt." },
+    { id: "sv_agr", name: "Adjective agreement", topic: "Adjectives", lesson: "sv_adj", f: "en: stor · ett: stort · plural / definite: stora", anchors: [["den stora bilen", "double definiteness"]], note: "A stressed vowel, or a long vowel + d/t, gives -tt: nytt, rött, vitt." },
     { id: "sv_sin", name: "Sin vs hans", topic: "Pronouns", lesson: "sv_pron", f: "sin / sitt / sina = the subject's own", anchors: [["Han tar sin bil", "his own"], ["Han tar hans bil", "another's"]], note: "" },
     { id: "sv_tenses", name: "The tenses", topic: "Verbs", lesson: "sv_past", f: "preteritum · har + supine · hade + supine · ska / kommer att + infinitive", anchors: [["Jag läste", "finished time"], ["Jag har läst", "link to now"], ["Jag ska läsa", "plan"]], note: "Present + time word is the everyday future." },
     { id: "sv_modal", name: "Modals", topic: "Verbs", lesson: "sv_mod", f: "kan · vill · ska · måste · får · bör + bare infinitive", anchors: [["vill", "wants to, never 'will'"]], note: "" },
@@ -5369,7 +5377,7 @@ var SV_WRITING = [
     ["tj-sound", ["tj-ljud"], "The soft 'ch' in kjol, kyrka, tjugo, kök.", "sv_cons"],
     ["shadowing", [], "Speaking along with native audio half a second behind it, copying rhythm and melody.", "sv_shadow"],
     ["CEFR", ["A1", "A2", "B1", "B2", "C1", "C2"], "The European scale of language levels from A1 (beginner) to C2 (mastery).", "sv_pro"],
-    ["FSI", ["Foreign Service Institute", "DLI"], "The US diplomatic language school whose hour estimates are the best-known measure of how long a language takes.", "sv_pro"],
+    ["FSI", ["Foreign Service Institute"], "The US diplomatic language school whose hour estimates are the best-known measure of how long a language takes.", "sv_pro"],
     ["lagom", [], "Just the right amount: the word Swedes use to describe themselves.", "sv_v14"],
     ["fika", [], "Coffee with something sweet and, above all, a pause with other people.", "sv_v5"]
   ];
@@ -5524,7 +5532,7 @@ var HE_VOCAB = {
     ["אִמָּא", "ima", "mum", "n", "אֵם = mother", "אִמָּא מִתְקַשֶּׁרֶת.", "Mum is calling."],
     ["אַבָּא", "aba", "dad", "n", "אָב = father", "אַבָּא נוֹהֵג.", "Dad drives."],
     ["אָח", "ach", "brother", "n", "אַחִים", "הָאָח שֶׁלִּי גָּדוֹל מִמֶּנִּי.", "My brother is older than me."],
-    ["אָחוֹת", "achot", "sister; nurse", "n", "אֲחָיוֹת", "אָחוֹת שֶׁלִּי לוֹמֶדֶת.", "My sister is studying."],
+    ["אָחוֹת", "achot", "sister; nurse", "n", "אֲחָיוֹת", "הָאָחוֹת שֶׁלִּי לוֹמֶדֶת.", "My sister is studying."],
     ["בַּיִת", "bayit", "house / home", "n", "בָּתִּים; הַבַּיְתָה = homeward; בַּבַּיִת = at home", "אֲנִי בַּבַּיִת.", "I'm at home."],
     ["דִּירָה", "dira", "apartment", "n", "דִּירוֹת", "דִּירָה קְטַנָּה.", "A small apartment."],
     ["חֶדֶר", "cheder", "room", "n", "חֲדָרִים", "הַחֶדֶר שֶׁלִּי קָטָן.", "My room is small."],
@@ -5624,11 +5632,11 @@ var HE_VOCAB = {
     ["מָטוֹס", "matos", "plane", "n", "טִיסָה = flight", "הַטִּיסָה שֶׁלִּי בְּעֶשֶׂר.", "My flight is at ten."],
     ["כַּרְטִיס", "kartis", "ticket; card", "n", "כַּרְטִיסִים", "כַּרְטִיס לְחֵיפָה.", "A ticket to Haifa."],
     ["יָמִינָה", "yamina", "to the right", "adv", "יָמִין = right", "תִּפְנֶה יָמִינָה.", "Turn right."],
-    ["שְׂמֹאלָה", "smola", "to the left", "adv", "שְׂמֹאל = left", "זֶה מִשְּׂמֹאל.", "It's on the left."],
+    ["שְׂמֹאלָה", "smola", "to the left", "adv", "שְׂמֹאל = left", "תִּפְנֶה שְׂמֹאלָה.", "Turn left."],
     ["יָשָׁר", "yashar", "straight", "adv", "", "לֵךְ יָשָׁר.", "Go straight."],
     ["קָרוֹב", "karov", "near", "adj", "קְרוֹבָה", "זֶה קָרוֹב.", "It's close."],
     ["רָחוֹק", "rachok", "far", "adj", "רְחוֹקָה", "זֶה רָחוֹק?", "Is it far?"],
-    ["פֹּה", "po", "here", "adv", "כָּאן = here (also)", "בּוֹא הֵנָּה!", "Come here!"],
+    ["פֹּה", "po", "here", "adv", "כָּאן = here (also)", "אֲנִי גָּר פֹּה.", "I live here."],
     ["שָׁם", "sham", "there", "adv", "לְשָׁם = to there", "לֵךְ לְשָׁם.", "Go there."],
     ["מַפָּה", "mapa", "map; tablecloth", "n", "", "יֵשׁ לְךָ מַפָּה?", "Do you have a map?"],
     ["מָלוֹן", "malon", "hotel", "n", "בָּתֵּי מָלוֹן", "אֲנַחְנוּ בְּמָלוֹן.", "We're at a hotel."],
@@ -5652,7 +5660,7 @@ var HE_VOCAB = {
     ["שִׁעוּרֵי בַּיִת", "shi'urei bayit", "homework", "n", "שִׁעוּר = lesson", "עָשִׂיתָ שִׁעוּרֵי בַּיִת?", "Did you do the homework?"],
     ["מִשְׂרָד", "misrad", "office", "n", "מִשְׂרָדִים", "אֲנִי בַּמִּשְׂרָד.", "I'm at the office."],
     ["מְנַהֵל", "menahel", "boss / manager", "n", "מְנַהֶלֶת (f.)", "הַמְּנַהֵל שֶׁלִּי נֶחְמָד.", "My boss is nice."],
-    ["עָמִית", "amit", "colleague", "n", "עֲמִיתִים; חָבֵר לָעֲבוֹדָה", "חָבֵר מֵהָעֲבוֹדָה.", "A friend from work."],
+    ["עָמִית", "amit", "colleague", "n", "עֲמִיתִים; חָבֵר לָעֲבוֹדָה", "עָמִית לָעֲבוֹדָה.", "A colleague at work."],
     ["פְּגִישָׁה", "pgisha", "meeting", "n", "פְּגִישׁוֹת", "יֵשׁ לָנוּ פְּגִישָׁה בְּשָׁלוֹשׁ.", "We have a meeting at three."],
     ["מַשְׂכֹּרֶת", "maskoret", "salary", "n", "", "הַמַּשְׂכֹּרֶת מַגִּיעָה בָּעֶשְׂרִים וַחֲמִשָּׁה.", "The salary comes on the 25th."],
     ["חֶבְרָה", "chevra", "company; society", "n", "חֲבָרוֹת", "חֶבְרָה יִשְׂרְאֵלִית.", "An Israeli company."],
@@ -5931,11 +5939,11 @@ var HE_FUTURE = {
 var HE_PREP = {
   name: "Prepositions with suffixes", cols: ["preposition", "me", "you (m.)", "him", "her", "us", "them (m.)", "meaning"], ask: [1, 2, 3, 4, 5, 6], given: 0, gloss: 7, target: 8,
   q: "{w} ({g}): the form with <b>{form}</b>.",
-  rule: { 1: "A pronoun after a preposition becomes a suffix on it: לְ + אֲנִי = לִי. The suffix set is the same across most prepositions: -ִי, -ְךָ, -וֹ, -ָהּ, -נוּ, -ָם.", 2: "", 3: "", 4: "Her: -ָהּ with a dot (mappiq) in the he.", 5: "", 6: "" },
+  rule: { 1: "A pronoun after a preposition becomes a suffix on it: לְ + אֲנִי = לִי. The suffix set is the same across most prepositions: -ִי, -ְךָ, -וֹ, -ָהּ, -נוּ, -ָם (or -הֶם).", 2: "", 3: "", 4: "Her: -ָהּ with a dot (mappiq) in the he.", 5: "", 6: "" },
   rows: [["לְ", "לִי", "לְךָ", "לוֹ", "לָהּ", "לָנוּ", "לָהֶם", "to / for"], ["שֶׁל", "שֶׁלִּי", "שֶׁלְּךָ", "שֶׁלּוֹ", "שֶׁלָּהּ", "שֶׁלָּנוּ", "שֶׁלָּהֶם", "of (possession)"],
     ["אֶת", "אוֹתִי", "אוֹתְךָ", "אוֹתוֹ", "אוֹתָהּ", "אוֹתָנוּ", "אוֹתָם", "(object marker)"], ["עִם", "אִתִּי", "אִתְּךָ", "אִתּוֹ", "אִתָּהּ", "אִתָּנוּ", "אִתָּם", "with"],
     ["בְּ", "בִּי", "בְּךָ", "בּוֹ", "בָּהּ", "בָּנוּ", "בָּהֶם", "in"], ["עַל", "עָלַי", "עָלֶיךָ", "עָלָיו", "עָלֶיהָ", "עָלֵינוּ", "עֲלֵיהֶם", "on / about"],
-    ["אֶל", "אֵלַי", "אֵלֶיךָ", "אֵלָיו", "אֵלֶיהָ", "אֵלֵינוּ", "אֲלֵיהֶם", "to / toward"], ["מִן", "מִמֶּנִּי", "מִמְּךָ", "מִמֶּנּוּ", "מִמֶּנָּה", "מֵאִתָּנוּ", "מֵהֶם", "from"]]
+    ["אֶל", "אֵלַי", "אֵלֶיךָ", "אֵלָיו", "אֵלֶיהָ", "אֵלֵינוּ", "אֲלֵיהֶם", "to / toward"], ["מִן", "מִמֶּנִּי", "מִמְּךָ", "מִמֶּנּוּ", "מִמֶּנָּה", "מֵאִתָּנוּ / מִמֶּנּוּ", "מֵהֶם", "from"]]
 };
 /* adjectives: [m.sg, f.sg, m.pl, f.pl, meaning] */
 var HE_ADJ = {
@@ -5950,14 +5958,14 @@ var HE_ADJ = {
 };
 /* construct state (smichut): [first noun, second noun, construct phrase, meaning] */
 var HE_SMICHUT = {
-  name: "Construct state", cols: ["noun", "+ noun", "construct phrase", "meaning"], ask: [2], given: 0, gloss: 3, target: 9,
+  name: "Construct state", cols: ["noun", "+ noun", "construct phrase", "meaning"], ask: [2], given: 0, gloss: 1, target: 9,
   q: "{w} + {g}: build the construct phrase (\"X of Y\").",
   rule: { 2: "Two nouns joined as \"X of Y\": the first loses its definiteness and often changes shape (-ָה → -ַת, -ִים → -ֵי), and only the second takes הַ-: בֵּית הַסֵּפֶר. Stress and vowels shorten on the first word." },
   rows: [["בַּיִת", "סֵפֶר", "בֵּית סֵפֶר", "school (house of book)"], ["אֲרוּחָה", "בֹּקֶר", "אֲרוּחַת בֹּקֶר", "breakfast"], ["שִׁעוּרִים", "בַּיִת", "שִׁעוּרֵי בַּיִת", "homework"], ["מֶזֶג", "אֲוִיר", "מֶזֶג אֲוִיר", "weather"],
     ["בַּיִת", "חוֹלִים", "בֵּית חוֹלִים", "hospital"], ["כְּאֵב", "רֹאשׁ", "כְּאֵב רֹאשׁ", "headache"], ["חֻלְצָה", "הוֹקִי", "חֻלְצַת הוֹקִי", "hockey jersey"], ["תַּחֲנָה", "אוֹטוֹבּוּס", "תַּחֲנַת אוֹטוֹבּוּס", "bus stop"],
     ["יוֹם", "הֻלֶּדֶת", "יוֹם הֻלֶּדֶת", "birthday"], ["שֵׁם", "מִשְׁפָּחָה", "שֵׁם מִשְׁפָּחָה", "surname"], ["כַּרְטִיס", "אַשְׁרַאי", "כַּרְטִיס אַשְׁרַאי", "credit card"], ["סֵפֶר", "תּוֹרָה", "סֵפֶר תּוֹרָה", "Torah scroll"]]
 };
-/* yes/no questions, negation, and the definite article: [sentence with ha-, without, gloss] */
+/* the definite article: [without ha-, with ha-, gloss] */
 var HE_DEF = [
   ["סֵפֶר", "הַסֵּפֶר", "book / the book"], ["יֶלֶד", "הַיֶּלֶד", "boy / the boy"], ["עִיר", "הָעִיר", "city / the city"], ["אִישׁ", "הָאִישׁ", "man / the man"], ["חָבֵר", "הֶחָבֵר", "friend / the friend"], ["הַר", "הָהָר", "mountain / the mountain"],
   ["בַּיִת גָּדוֹל", "הַבַּיִת הַגָּדוֹל", "a big house / the big house"], ["מוֹרָה טוֹבָה", "הַמּוֹרָה הַטּוֹבָה", "a good teacher / the good teacher"]
@@ -5999,14 +6007,14 @@ var HE_DIALOGUES = [
   { id: "he_d3", title: "Asking the way", setting: "You are lost in Jerusalem and need the central bus station.", level: "A2",
     turns: [
       { bot: "שָׁלוֹם, אֶפְשָׁר לַעֲזֹר?", botg: "Hello, can I help?", expect: ["איפה", "התחנה", "איך מגיעים", "מחפש"], model: "כֵּן, אֵיפֹה הַתַּחֲנָה הַמֶּרְכָּזִית?", modelg: "Yes, where is the central station?", hint: "איפה ...? / איך מגיעים ל...?" },
-      { bot: "לֵךְ יָשָׁר וְתִפְנֶה שְׂמֹאלָה לְיַד הַבַּנְק. הֵבַנְתָּ?", botg: "Go straight and turn left by the bank. Did you get it? (say it back)", expect: ["ישר", "שמאלה", "הבנק"], model: "יָשָׁר, וְשְׂמֹאלָה לְיַד הַבַּנְק.", modelg: "Straight, and left by the bank.", hint: "Repeat: ישר ... שמאלה ..." },
+      { bot: "לֵךְ יָשָׁר וְתִפְנֶה שְׂמֹאלָה לְיַד הַבַּנְק. הֵבַנְתָּ?", botg: "Go straight and turn left by the bank. Did you get it? (say it back)", expect: ["ישר", "שמאלה", "הבנק"], model: "יָשָׁר, וּשְׂמֹאלָה לְיַד הַבַּנְק.", modelg: "Straight, and left by the bank.", hint: "Repeat: ישר ... שמאלה ..." },
       { bot: "בְּדִיּוּק. זֶה בְּעֵרֶךְ עֶשֶׂר דַּקּוֹת. אַתָּה נוֹסֵעַ לְתֵל אָבִיב?", botg: "Exactly. It's about ten minutes. Are you going to Tel Aviv?", expect: ["כן", "לא", "נוסע", "תל אביב", "חיפה"], model: "כֵּן, אֲנִי נוֹסֵעַ לְתֵל אָבִיב.", modelg: "Yes, I'm going to Tel Aviv.", hint: "כן, אני נוסע ל..." },
       { bot: "בְּהַצְלָחָה! לְהִתְרָאוֹת.", botg: "Good luck! Bye.", expect: ["תודה", "להתראות"], model: "תּוֹדָה רַבָּה! לְהִתְרָאוֹת.", modelg: "Thanks a lot! Bye.", hint: "תודה ... להתראות" }
     ] },
   { id: "he_d4", title: "At the doctor", setting: "You hurt your knee at hockey. Describe it in the past tense.", level: "A2",
     turns: [
       { bot: "שָׁלוֹם, מָה הַבְּעָיָה?", botg: "Hello, what's the problem?", expect: ["כואב(ת)?", "ה?ברך", "פצעתי", "נפלתי"], model: "כּוֹאֶבֶת לִי הַבֶּרֶךְ.", modelg: "My knee hurts.", hint: "כואב לי ה... / פצעתי את ה..." },
-      { bot: "מָתַי זֶה קָרָה?", botg: "When did it happen?", expect: ["אתמול", "לפני", "באימון", "במשחק", "ביום"], model: "אֶתְמוֹל, בָּאִמּוּן הוֹקִי.", modelg: "Yesterday, at hockey practice.", hint: "אתמול / לפני ... / באימון" },
+      { bot: "מָתַי זֶה קָרָה?", botg: "When did it happen?", expect: ["אתמול", "לפני", "באימון", "במשחק", "ביום"], model: "אֶתְמוֹל, בְּאִמּוּן הוֹקִי.", modelg: "Yesterday, at hockey practice.", hint: "אתמול / לפני ... / באימון" },
       { bot: "אַתָּה יָכוֹל לָלֶכֶת?", botg: "Can you walk?", expect: ["כן", "לא", "קצת", "יכול"], model: "כֵּן, אֲבָל קָשֶׁה.", modelg: "Yes, but it's hard.", hint: "כן / לא / קצת" },
       { bot: "קַח אֶת הַתְּרוּפָה פַּעֲמַיִם בְּיוֹם וְתָנוּחַ שָׁבוּעַ. בְּסֵדֶר?", botg: "Take the medicine twice a day and rest a week. OK?", expect: ["בסדר", "תודה", "כן"], model: "בְּסֵדֶר, תּוֹדָה רַבָּה.", modelg: "OK, thanks a lot.", hint: "בסדר, תודה" }
     ] },
@@ -6023,7 +6031,7 @@ var HE_DIALOGUES = [
 /* ---- graded readers (modern) ---- */
 var HE_READINGS = [
   { id: "he_r1", title: "הַמִּשְׁפָּחָה שֶׁלִּי", level: "A1", text: [
-      "קוֹרְאִים לִי שָׂרָה וַאֲנִי בַּת עֶשְׂרִים. אֲנִי גָּרָה בְּחֵיפָה עִם הַמִּשְׁפָּחָה שֶׁלִּי. אֲנַחְנוּ חָמֵשׁ: אִמָּא, אַבָּא, אָח, אָחוֹת וַאֲנִי.",
+      "קוֹרְאִים לִי שָׂרָה וַאֲנִי בַּת עֶשְׂרִים. אֲנִי גָּרָה בְּחֵיפָה עִם הַמִּשְׁפָּחָה שֶׁלִּי. אֲנַחְנוּ חֲמִשָּׁה: אִמָּא, אַבָּא, אָח, אָחוֹת וַאֲנִי.",
       "הָאָח שֶׁלִּי, יוֹנָתָן, בֶּן עֶשְׂרִים וְשָׁלוֹשׁ. הוּא מְשַׂחֵק הוֹקִי. הָאָחוֹת שֶׁלִּי, לִיאַת, בַּת חֲמֵשׁ עֶשְׂרֵה וְהִיא לוֹמֶדֶת בְּבֵית סֵפֶר. אִמָּא עוֹבֶדֶת בְּבֵית חוֹלִים וְאַבָּא מוֹרֶה.",
       "יֵשׁ לָנוּ גַּם כֶּלֶב. קוֹרְאִים לוֹ מַקְס. הוּא זָקֵן אֲבָל שָׂמֵחַ. בְּשַׁבָּת אֲנַחְנוּ אוֹכְלִים אֲרוּחַת עֶרֶב בְּיַחַד."
     ], gloss: [["בַּת עֶשְׂרִים", "twenty years old (f.)"], ["בֶּן", "aged (m.) / son"], ["בְּיַחַד", "together"]],
@@ -6031,7 +6039,7 @@ var HE_READINGS = [
   { id: "he_r2", title: "יוֹם בְּתֵל אָבִיב", level: "A2", text: [
       "אֶתְמוֹל נָסַעְתִּי לְתֵל אָבִיב בָּרַכֶּבֶת. הַנְּסִיעָה לָקְחָה בְּעֵרֶךְ שָׁעָה. הִגַּעְתִּי בְּעֶשֶׂר וְהָלַכְתִּי יָשָׁר לַשּׁוּק, לְשׁוּק הַכַּרְמֶל.",
       "בַּשּׁוּק יֵשׁ הַרְבֵּה אֲנָשִׁים, פֵּרוֹת, יְרָקוֹת וְתַבְלִינִים. שָׁתִיתִי מִיץ רִמּוֹנִים וְאָכַלְתִּי פָלָאפֶל. אַחַר כָּךְ הָלַכְתִּי לַיָּם. הַיָּם הָיָה חַם וְהַשֶּׁמֶשׁ זָרְחָה.",
-      "בָּעֶרֶב יָשַׁבְתִּי בְּבֵית קָפֶה בְּרְחוֹב דִּיזֶנְגוֹף וְקָרָאתִי סֵפֶר. בְּתֵשַׁע חָזַרְתִּי הַבַּיְתָה, עָיֵף אֲבָל מְרֻצֶּה."
+      "בָּעֶרֶב יָשַׁבְתִּי בְּבֵית קָפֶה בִּרְחוֹב דִּיזֶנְגוֹף וְקָרָאתִי סֵפֶר. בְּתֵשַׁע חָזַרְתִּי הַבַּיְתָה, עָיֵף אֲבָל מְרֻצֶּה."
     ], gloss: [["נְסִיעָה", "journey"], ["הִגַּעְתִּי", "I arrived"], ["שׁוּק", "market"], ["תַּבְלִינִים", "spices"], ["רִמּוֹנִים", "pomegranates"], ["זָרְחָה", "shone"], ["חָזַרְתִּי", "I returned"]],
     qs: [{ q: "אֵיךְ הוּא נָסַע לְתֵל אָבִיב?", options: ["בִּמְכוֹנִית", "בָּרַכֶּבֶת", "בְּאוֹטוֹבּוּס", "בְּמָטוֹס"], answer: "בָּרַכֶּבֶת" }, { q: "מָה הוּא שָׁתָה בַּשּׁוּק?", options: ["קָפֶה", "מַיִם", "מִיץ רִמּוֹנִים", "תֵּה"], answer: "מִיץ רִמּוֹנִים" }, { q: "מָה הוּא עָשָׂה בָּעֶרֶב?", options: ["הָלַךְ לַיָּם", "קָרָא סֵפֶר בְּבֵית קָפֶה", "אָכַל פָלָאפֶל", "יָשַׁן"], answer: "קָרָא סֵפֶר בְּבֵית קָפֶה" }] },
   { id: "he_r3", title: "שַׁבָּת בְּיִשְׂרָאֵל", level: "B1", text: [
@@ -6057,7 +6065,7 @@ var HE_DICTATION = [
 var HE_WRITING = [
   ["I am tired.", ["אני עייף.", "אני עייפה."], "A1"], ["Where do you live?", ["איפה אתה גר?", "איפה את גרה?"], "A1"], ["I don't understand.", ["אני לא מבין.", "אני לא מבינה."], "A1"], ["We have a dog.", ["יש לנו כלב."], "A1"],
   ["Today I'm playing hockey.", ["היום אני משחק הוקי.", "אני משחק הוקי היום."], "A2"], ["The book is on the table.", ["הספר על השולחן.", "הספר נמצא על השולחן."], "A2"], ["Can you help me?", ["אתה יכול לעזור לי?", "את יכולה לעזור לי?"], "A2"], ["She bought a new car.", ["היא קנתה מכונית חדשה."], "A2"],
-  ["I know that he isn't coming.", ["אני יודע שהוא לא בא.", "אני יודעת שהוא לא בא."], "B1"], ["We have lived here for three years.", ["אנחנו גרים פה שלוש שנים.", "אנחנו גרים כאן שלוש שנים.", "אנחנו גרים פה כבר שלוש שנים."], "B1"], ["If it rains, we'll stay home.", ["אם ירד גשם, נישאר בבית.", "אם ירד גשם נישאר בבית."], "B1"], ["Yesterday I was at the rink all day.", ["אתמול הייתי במגרש כל היום.", "אתמול הייתי בחלקה כל היום."], "B1"],
+  ["I know that he isn't coming.", ["אני יודע שהוא לא בא.", "אני יודעת שהוא לא בא."], "B1"], ["We have lived here for three years.", ["אנחנו גרים פה שלוש שנים.", "אנחנו גרים כאן שלוש שנים.", "אנחנו גרים פה כבר שלוש שנים."], "B1"], ["If it rains, we'll stay home.", ["אם ירד גשם, נישאר בבית.", "אם ירד גשם נישאר בבית."], "B1"], ["Yesterday I was at the rink all day.", ["אתמול הייתי במגרש כל היום.", "אתמול הייתי במשטח ההחלקה כל היום."], "B1"],
   ["Hebrew is spoken in Israel.", ["בישראל מדברים עברית.", "מדברים עברית בישראל."], "B2"], ["Although we lost, I was proud of the team.", ["למרות שהפסדנו, הייתי גאה בקבוצה.", "למרות שהפסדנו הייתי גאה בקבוצה."], "B2"], ["I would rather train in the morning.", ["אני מעדיף להתאמן בבוקר.", "אני מעדיפה להתאמן בבוקר."], "B2"], ["The game was cancelled because of the weather.", ["המשחק בוטל בגלל מזג האוויר."], "B2"]
 ];
 
@@ -6087,14 +6095,14 @@ var BH_VOCAB = {
     ["שָׁמַע", "shama", "he heard / obeyed", "verb", "שְׁמַע = hear! (imperative)", "שְׁמַע יִשְׂרָאֵל", "Hear, O Israel"],
     ["דָּבָר", "davar", "word; thing", "n", "דְּבָרִים (pl.)", "דְּבַר יְהוָה", "the word of the LORD"],
     ["אֶרֶץ", "erets", "earth / land", "n", "f.; הָאָרֶץ", "הָאָרֶץ", "the earth"],
-    ["שָׁמַיִם", "shamayim", "heavens / sky", "n", "dual form", "הַשָּׁמַיִם", "the heavens"],
+    ["שָׁמַיִם", "shamayim", "heavens / sky", "n", "plural; the -ayim ending only looks dual", "הַשָּׁמַיִם", "the heavens"],
     ["יוֹם", "yom", "day", "n", "יָמִים (pl.)", "יוֹם אֶחָד", "day one"],
     ["מֶלֶךְ", "melech", "king", "n", "מְלָכִים (pl.)", "מֶלֶךְ יִשְׂרָאֵל", "king of Israel"],
     ["אִישׁ", "ish", "man; each", "n", "אֲנָשִׁים (pl.)", "הָאִישׁ", "the man"],
     ["בֵּן", "ben", "son", "n", "בָּנִים (pl.); בֶּן־ in construct", "בֶּן־אָדָם", "son of man"],
     ["עַם", "am", "people / nation", "n", "עַמִּים (pl.)", "עַמִּי", "my people"],
     ["בַּיִת", "bayit", "house", "n", "בֵּית־ in construct", "בֵּית יְהוָה", "the house of the LORD"],
-    ["אָב", "av", "father", "n", "אָבוֹת (pl.)", "אֲבִי", "my father"],
+    ["אָב", "av", "father", "n", "אָבוֹת (pl.)", "אָבִי", "my father"],
     ["יָד", "yad", "hand; power", "n", "f.", "בְּיַד", "by the hand of"],
     ["לֵב", "lev", "heart; mind", "n", "לֵבָב also", "בְּכָל־לְבָבְךָ", "with all your heart"],
     ["כֹּל", "kol", "all / every", "n", "כָּל־ in construct", "כָּל־הָאָרֶץ", "all the earth"],
@@ -6120,7 +6128,7 @@ var BH_VOCAB = {
     ["עִיר", "ir", "city", "n", "f.; עָרִים (pl.)", "הָעִיר", "the city"],
     ["דֶּרֶךְ", "derech", "way / road", "n", "", "דֶּרֶךְ", "way"],
     ["נֶפֶשׁ", "nefesh", "soul / life / person", "n", "f.", "נַפְשִׁי", "my soul"],
-    ["מַיִם", "mayim", "water", "n", "dual form", "עַל־פְּנֵי הַמָּיִם", "over the face of the waters"],
+    ["מַיִם", "mayim", "water", "n", "plural; the -ayim ending only looks dual", "עַל־פְּנֵי הַמָּיִם", "over the face of the waters"],
     ["אוֹר", "or", "light", "n", "", "יְהִי אוֹר", "let there be light"],
     ["חֹשֶׁךְ", "choshech", "darkness", "n", "", "וְחֹשֶׁךְ", "and darkness"],
     ["רוּחַ", "ru'ach", "wind / spirit / breath", "n", "f.", "רוּחַ אֱלֹהִים", "the spirit of God"],
@@ -6190,8 +6198,8 @@ var BH_TEXTS = [
     { v: 1, text: "בְּרֵאשִׁית בָּרָא אֱלֹהִים אֵת הַשָּׁמַיִם וְאֵת הָאָרֶץ׃", words: [["בְּרֵאשִׁית", "in (the) beginning"], ["בָּרָא", "created"], ["אֱלֹהִים", "God"], ["אֵת", "(object marker)"], ["הַשָּׁמַיִם", "the heavens"], ["וְאֵת", "and (obj.)"], ["הָאָרֶץ", "the earth"]], gloss: "In the beginning God created the heavens and the earth." },
     { v: 2, text: "וְהָאָרֶץ הָיְתָה תֹהוּ וָבֹהוּ וְחֹשֶׁךְ עַל־פְּנֵי תְהוֹם וְרוּחַ אֱלֹהִים מְרַחֶפֶת עַל־פְּנֵי הַמָּיִם׃", words: [["וְהָאָרֶץ", "and the earth"], ["הָיְתָה", "was"], ["תֹהוּ וָבֹהוּ", "formless and empty"], ["וְחֹשֶׁךְ", "and darkness"], ["עַל־פְּנֵי", "upon the face of"], ["תְהוֹם", "the deep"], ["וְרוּחַ אֱלֹהִים", "and the spirit of God"], ["מְרַחֶפֶת", "hovering"], ["עַל־פְּנֵי הַמָּיִם", "over the face of the waters"]], gloss: "And the earth was formless and empty, and darkness was over the face of the deep, and the spirit of God was hovering over the face of the waters." },
     { v: 3, text: "וַיֹּאמֶר אֱלֹהִים יְהִי אוֹר וַיְהִי־אוֹר׃", words: [["וַיֹּאמֶר", "and he said"], ["אֱלֹהִים", "God"], ["יְהִי", "let there be"], ["אוֹר", "light"], ["וַיְהִי־אוֹר", "and there was light"]], gloss: "And God said, Let there be light; and there was light." },
-    { v: 4, text: "וַיַּרְא אֱלֹהִים אֶת־הָאוֹר כִּי־טוֹב וַיַּבְדֵּל אֱלֹהִים בֵּין הָאוֹר וּבֵין הַחֹשֶׁךְ׃", words: [["וַיַּרְא", "and he saw"], ["אֶת־הָאוֹר", "the light"], ["כִּי־טוֹב", "that (it was) good"], ["וַיַּבְדֵּל", "and he separated"], ["בֵּין", "between"], ["הָאוֹר", "the light"], ["וּבֵין", "and between"], ["הַחֹשֶׁךְ", "the darkness"]], gloss: "And God saw the light, that it was good; and God separated the light from the darkness." },
-    { v: 5, text: "וַיִּקְרָא אֱלֹהִים לָאוֹר יוֹם וְלַחֹשֶׁךְ קָרָא לָיְלָה וַיְהִי־עֶרֶב וַיְהִי־בֹקֶר יוֹם אֶחָד׃", words: [["וַיִּקְרָא", "and he called"], ["לָאוֹר", "to the light"], ["יוֹם", "Day"], ["וְלַחֹשֶׁךְ", "and to the darkness"], ["קָרָא", "he called"], ["לָיְלָה", "Night"], ["וַיְהִי־עֶרֶב", "and there was evening"], ["וַיְהִי־בֹקֶר", "and there was morning"], ["יוֹם אֶחָד", "day one"]], gloss: "And God called the light Day, and the darkness he called Night. And there was evening and there was morning, day one." }
+    { v: 4, text: "וַיַּרְא אֱלֹהִים אֶת־הָאוֹר כִּי־טוֹב וַיַּבְדֵּל אֱלֹהִים בֵּין הָאוֹר וּבֵין הַחֹשֶׁךְ׃", words: [["וַיַּרְא", "and he saw"], ["אֱלֹהִים", "God"], ["אֶת־הָאוֹר", "the light"], ["כִּי־טוֹב", "that (it was) good"], ["וַיַּבְדֵּל", "and he separated"], ["אֱלֹהִים", "God"], ["בֵּין", "between"], ["הָאוֹר", "the light"], ["וּבֵין", "and between"], ["הַחֹשֶׁךְ", "the darkness"]], gloss: "And God saw the light, that it was good; and God separated the light from the darkness." },
+    { v: 5, text: "וַיִּקְרָא אֱלֹהִים לָאוֹר יוֹם וְלַחֹשֶׁךְ קָרָא לָיְלָה וַיְהִי־עֶרֶב וַיְהִי־בֹקֶר יוֹם אֶחָד׃", words: [["וַיִּקְרָא", "and he called"], ["אֱלֹהִים", "God"], ["לָאוֹר", "to the light"], ["יוֹם", "Day"], ["וְלַחֹשֶׁךְ", "and to the darkness"], ["קָרָא", "he called"], ["לָיְלָה", "Night"], ["וַיְהִי־עֶרֶב", "and there was evening"], ["וַיְהִי־בֹקֶר", "and there was morning"], ["יוֹם אֶחָד", "day one"]], gloss: "And God called the light Day, and the darkness he called Night. And there was evening and there was morning, day one." }
   ] },
   { id: "ps23", title: "Psalm 23:1–4", ref: "תְּהִלִּים כג", verses: [
     { v: 1, text: "מִזְמוֹר לְדָוִד יְהוָה רֹעִי לֹא אֶחְסָר׃", words: [["מִזְמוֹר", "a psalm"], ["לְדָוִד", "of David"], ["יְהוָה", "the LORD"], ["רֹעִי", "(is) my shepherd"], ["לֹא", "not"], ["אֶחְסָר", "I shall lack"]], gloss: "A psalm of David. The LORD is my shepherd; I shall not want." },
@@ -6259,7 +6267,7 @@ var BH_TEXTS = [
   add({ id: "he_read", mode: "heread", pass: 8, of: 10, title: "Reading pointed words", sub: "Put the letters and points together", gist: "Decode real words syllable by syllable until the eye does it alone. Reading is the gateway to every other skill in Hebrew.",
     blocks: [
       { t: "p", x: "Decoding is a skill like any other: it gets automatic with reps and feedback. The drill shows a pointed word and asks for its pronunciation. Go slowly at first; the speed gate tightens as you climb the boxes, and in a few weeks you will read a word before you have consciously seen its letters." },
-      { t: "rule", x: "stress is on the LAST syllable in most words (shaLOM, yeLED is an exception: segolate nouns stress the first)\nthe definite article הַ doubles the next consonant: הַסֵּפֶר = ha-SE-fer", note: "Segolates (two segols: יֶלֶד, סֵפֶר, מֶלֶךְ) stress the first syllable. Everything else, last syllable, unless you are reading Biblical text with its own accents." },
+      { t: "rule", x: "stress is on the LAST syllable in most words (shaLOM; YEled is an exception: segolate nouns stress the first)\nthe definite article הַ doubles the next consonant: הַסֵּפֶר = ha-SE-fer", note: "Segolates (two segols: יֶלֶד, סֵפֶר, מֶלֶךְ) stress the first syllable. Everything else, last syllable, unless you are reading Biblical text with its own accents." },
       { t: "key", x: "Consonant, vowel, consonant, vowel. Stress last unless segolate. The points come off later; the sound stays." },
       { t: "how", drill: "Reading", ask: "How is this word pronounced?", steps: ["Read right to left, one consonant and its vowel at a time.", "Pick the transliteration.", "Say it with the stress on the last syllable."], tip: "Trace the word with a finger as you read: it keeps the eye from jumping ahead." }
     ] });
@@ -6273,7 +6281,7 @@ var BH_TEXTS = [
     [{ t: "rule", x: "לוֹמֵד (he / I m.) · לוֹמֶדֶת (she / I f.) · לוֹמְדִים (they m. / we) · לוֹמְדוֹת (they f.)", note: "Four forms per verb in the present. That is the whole present tense." }]));
   add({ id: "he_num", mode: "henum", pass: 7, of: 10, title: "Numbers", sub: "Counting, feminine and masculine", gist: "Hebrew numbers have two genders, and the feminine set is the one used for counting. Learn it first.",
     blocks: [
-      { t: "p", x: "Numbers agree with the noun's gender, and, confusingly, the feminine forms are the short ones (אַחַת, שְׁתַּיִם, שָׁלוֹשׁ) while the masculine forms carry an -a ending (אֶחָד, שְׁנַיִם, שְׁלוֹשָׁה). When you count aloud, tell the time or give a phone number, you use the feminine set. Start there." },
+      { t: "p", x: "Numbers agree with the noun's gender, and, confusingly, from three up the feminine forms are the short ones (שָׁלוֹשׁ, אַרְבַּע) while the masculine forms carry an -a ending (שְׁלוֹשָׁה, אַרְבָּעָה); one and two are אַחַת / אֶחָד and שְׁתַּיִם / שְׁנַיִם. When you count aloud, tell the time or give a phone number, you use the feminine set. Start there." },
       { t: "tbl", head: ["Number", "Feminine (counting)", "Masculine"], rows: [["1", "אַחַת", "אֶחָד"], ["2", "שְׁתַּיִם (שְׁתֵּי + noun)", "שְׁנַיִם (שְׁנֵי + noun)"], ["3", "שָׁלוֹשׁ", "שְׁלוֹשָׁה"], ["4", "אַרְבַּע", "אַרְבָּעָה"], ["5", "חָמֵשׁ", "חֲמִשָּׁה"], ["6", "שֵׁשׁ", "שִׁשָּׁה"], ["7", "שֶׁבַע", "שִׁבְעָה"], ["8", "שְׁמוֹנֶה", "שְׁמוֹנָה"], ["9", "תֵּשַׁע", "תִּשְׁעָה"], ["10", "עֶשֶׂר", "עֲשָׂרָה"], ["20", "עֶשְׂרִים", "עֶשְׂרִים"], ["30 … 90", "שְׁלוֹשִׁים, אַרְבָּעִים, חֲמִשִּׁים, שִׁשִּׁים, שִׁבְעִים, שְׁמוֹנִים, תִּשְׁעִים", "same"], ["100", "מֵאָה", "מֵאָה"], ["1000", "אֶלֶף", "אֶלֶף"]], rtl: true },
       { t: "rule", x: "21 = עֶשְׂרִים וְאַחַת (twenty and one)\n11–19 = unit + עֶשְׂרֵה: אַחַת עֶשְׂרֵה, שְׁתֵּים עֶשְׂרֵה", note: "Tens are the same for both genders; the unit after וְ agrees. The time: הַשָּׁעָה שָׁלוֹשׁ = it's three o'clock; שָׁלוֹשׁ וָחֵצִי = half past three." },
       { t: "key", x: "Count in the feminine: achat, shtayim, shalosh, arba, chamesh, shesh, sheva, shmone, tesha, eser. Tens + ve + unit." },
@@ -6319,7 +6327,7 @@ var BH_TEXTS = [
   add({ id: "he_yesh", mode: "heprep", pass: 7, of: 10, title: "Yesh, ein and the little prepositions", sub: "I have = there is to me", gist: "Hebrew has no verb 'to have'. יֵשׁ לִי is 'there is to me', and the preposition takes a pronoun suffix. The suffix set is the key to half the grammar.",
     blocks: [
       { t: "p", x: "A pronoun after a preposition becomes a suffix on the preposition: לְ + אֲנִי = לִי, שֶׁל + אַתָּה = שֶׁלְּךָ, אֶת + הוּא = אוֹתוֹ. The same ten suffixes recur on nouns (my, your…) and on verbs (me, you…), so this table is worth more than its size." },
-      { t: "tbl", head: ["", "me", "you (m.)", "him", "her", "us", "them"], rows: HE_PREP.rows.map(function (r) { return [r[0] + " (" + r[7] + ")", r[1], r[2], r[3], r[4], r[5], r[6]]; }), rtl: true },
+      { t: "tbl", head: ["", "me", "you (m.)", "him", "her", "us", "them"], rows: HE_PREP.rows.map(function (r) { return [r[0] + "<span class='tgl'>" + r[7] + "</span>", r[1], r[2], r[3], r[4], r[5], r[6]]; }), rtl: true },
       { t: "rule", x: "יֵשׁ לִי כֶּלֶב = I have a dog\nאֵין לִי זְמַן = I have no time\nיֵשׁ לָהּ / יֵשׁ לָהֶם", note: "In the past and future, 'to be' appears: הָיָה לִי (I had), יִהְיֶה לִי (I will have)." },
       { t: "key", x: "Suffixes: -i, -cha, -o, -a, -nu, -hem. Yesh li, ein li. Shel + suffix for 'my, your': ha-sefer sheli." },
       { t: "how", drill: "Prepositions", ask: "Give the preposition with the pronoun attached.", steps: ["Take the preposition's base.", "Add the suffix for the person.", "Some bases change: עַל → עָלַי, מִן → מִמֶּנִּי."], tip: "Point at things and say שֶׁלִּי, שֶׁלְּךָ, שֶׁלּוֹ. Possession is the most frequent use of the suffixes." }
@@ -6343,7 +6351,7 @@ var BH_TEXTS = [
 
   /* ---------------- stage 3: vocabulary by theme ---------------- */
   add(vocabLesson("he_v5", "Food and drink", "The café, the table, the bill", "Order, shop, and say it was tasty: בְּתֵאָבוֹן.", "Israeli food vocabulary mixes Hebrew, Arabic and the languages of the diaspora: פָלָאפֶל, חוּמוּס, שַׁקְשׁוּקָה need no translation. The Hebrew nouns carry gender in the forms column."));
-  add(vocabLesson("he_v6", "Daily life and the rink", "Routines, clothes, the game", "The hitpa'el verbs of a routine (get up, shower, dress, train) and the words of the game.", "Reflexive routines use the hitpa'el pattern, which starts with מִתְ in the present: מִתְקַלֵּחַ, מִתְלַבֵּשׁ, מִתְאַמֵּן. Spot the pattern and you have three verbs for the price of one."));
+  add(vocabLesson("he_v6", "Daily life and the rink", "Routines, clothes, the game", "The verbs of a routine (get up; the hitpa'el shower, dress, train) and the words of the game.", "Reflexive routines use the hitpa'el pattern, which starts with מִתְ in the present: מִתְקַלֵּחַ, מִתְלַבֵּשׁ, מִתְאַמֵּן. Spot the pattern and you have three verbs for the price of one."));
   add(vocabLesson("he_v7", "Out and about", "Streets, transport, directions", "Asking the way and getting there.", "Direction takes the suffix -ָה: יָמִינָה (to the right), שְׂמֹאלָה (to the left), הַבַּיְתָה (homeward). It is an old accusative ending that survives in a handful of words."));
   add(vocabLesson("he_v8", "Work and study", "The university, the office, right and wrong", "A student's week in Hebrew.", "Many professions have a feminine in -ת or -ית: מוֹרֶה / מוֹרָה, סְטוּדֶנְט / סְטוּדֶנְטִית, רוֹפֵא / רוֹפְאָה. Say the one that is true of you."));
   add(vocabLesson("he_v9", "Body and health", "Hurting, being ill, the doctor", "What hurts and where, for the clinic.", "'It hurts' is כּוֹאֵב לִי + the body part as the subject: כּוֹאֵב לִי הָרֹאשׁ, כּוֹאֶבֶת לִי הַבֶּטֶן (the verb agrees with the body part, which is feminine here)."));
@@ -6389,7 +6397,7 @@ var BH_TEXTS = [
   add({ id: "he_shadow", mode: "none", title: "Shadowing and native input", sub: "Where to find Hebrew to copy", gist: "Twenty minutes of shadowing a day builds the Israeli rhythm faster than anything else.",
     blocks: [
       { t: "p", x: "Shadow: play native speech and speak along, half a second behind, copying melody and stress rather than parsing. The sources below are free and graded from easy to native." },
-      { t: "tbl", head: ["Source", "What it is"], rows: [["Kan: Chadashot be'ivrit kala", "Israeli public radio's news in easy Hebrew, weekly, with text."], ["Streetwise Hebrew (podcast)", "Guy Sharett. Ten minutes on one word or idiom, in English, with real Israeli audio."], ["Hebrew Time / Teach Me Hebrew", "Beginner podcasts and videos with transcripts."], ["Kan 11 and Kan Box", "Israeli public TV: news, dramas (Shtisel, Fauda, Tehran) with Hebrew subtitles."], ["Pealim.com", "Every verb, every binyan, every form. The verb tables of this course, complete."], ["Sefaria", "The entire Hebrew Bible and rabbinic literature with English, free, for the Biblical track."]] },
+      { t: "tbl", head: ["Source", "What it is"], rows: [["Kan: Chadashot be'ivrit kala", "Israeli public radio's news in easy Hebrew, weekly, with text."], ["Streetwise Hebrew (podcast)", "Guy Sharett. Ten minutes on one word or idiom, in English, with real Israeli audio."], ["Hebrew Time / Teach Me Hebrew", "Beginner podcasts and videos with transcripts."], ["Kan 11 and Kan Box", "Israeli public TV: news and dramas (Tehran, among others) with Hebrew subtitles."], ["Pealim.com", "Every verb, every binyan, every form. The verb tables of this course, complete."], ["Sefaria", "The entire Hebrew Bible and rabbinic literature with English, free, for the Biblical track."]] },
       { t: "rule", x: "daily: 10 min shadowing + 10 min dialogue + reviews\nweekly: 30 minutes of a show with Hebrew subtitles, logged", note: "Log the minutes on the Level page. Hebrew is FSI category III: the hours matter even more than for Swedish." },
       { t: "key", x: "Shadow aloud daily. Log every minute of real Hebrew." }
     ] });
@@ -6415,12 +6423,12 @@ var BH_TEXTS = [
       { t: "rule", x: "qatal (perfect) = completed: שָׁמַר he kept\nyiqtol (imperfect) = incomplete: יִשְׁמֹר he will keep / keeps\nwayyiqtol (vav-consecutive) = past narrative: וַיִּשְׁמֹר and he kept", note: "The vav-consecutive is why the Bible's stories read as 'and… and… and…'. Each וַיִּ- is a new event in sequence." },
       { t: "key", x: "Verb first. Perfect and imperfect, not tenses. Vav-consecutive drives narrative. The words you know are mostly the same words." }
     ] });
-  add(vocabLesson("bh_v1", "The Bible's most frequent words", "Particles, God, the core verbs", "Thirty words that account for a large share of every page of the Tanakh. Learn these and Genesis 1 opens up.", "Frequency counts over the Hebrew Bible put the conjunction וְ, the article הַ, the prepositions לְ and בְּ, and the object marker אֶת at the top, followed by אֱלֹהִים, יְהוָה and the verbs of saying and being. The examples are verse fragments: you are reading scripture from the first card.", null, B));
+  add(vocabLesson("bh_v1", "The Bible's most frequent words", "Particles, God, the core verbs", "Thirty words that account for a large share of every page of the Tanakh. Learn these and Genesis 1 opens up.", "Frequency counts over the Hebrew Bible put the conjunction וְ, the article הַ, the prepositions לְ and בְּ, and the object marker אֶת at the top, followed by יְהוָה, the verbs of saying and being, and אֱלֹהִים. The examples are verse fragments: you are reading scripture from the first card.", null, B));
   add(vocabLesson("bh_v2", "The Bible's most frequent words, two", "Pronouns, adjectives, the big nouns", "Covenant, soul, spirit, name, law: the nouns of the text's main themes, with the particles that join clauses.", "Note the relative particle אֲשֶׁר (modern שֶׁ-), כִּי doing the work of 'because', 'that' and 'when', and עוֹלָם meaning 'forever' rather than 'world'. Meanings drift; the frequent words drift most.", null, B));
   add(vocabLesson("bh_v3", "Verbs of the narrative", "Created, called, went, took", "The verbs that carry the stories, each shown in its vav-consecutive form as it appears in the text.", "Each verb is listed as the 3ms perfect (he did), the dictionary form, with the wayyiqtol in the example. Learn both shapes: בָּרָא / וַיִּבְרָא, קָרָא / וַיִּקְרָא, הָלַךְ / וַיֵּלֶךְ. The weak roots (ending in ה, beginning with י or נ) bend the most.", null, B));
   add({ id: "bh_qal", mode: "bhqal", pass: 7, of: 10, title: "The Qal perfect and imperfect", sub: "שָׁמַר / יִשְׁמֹר", gist: "The strong verb paradigm every grammar begins with. The suffixes of the perfect and the prefixes of the imperfect are the same ones modern Hebrew uses for past and future.",
     blocks: [
-      { t: "p", x: "You already know most of this table: the perfect's suffixes are the modern past (-תִּי, -תָּ, -ָה, -נוּ, -וּ) and the imperfect's prefixes are the modern future (אֶ-, תִּ-, יִ-, נִ-). Biblical Hebrew adds a few forms modern speech dropped (the feminine plurals in -נָה, the 2fs perfect -תְּ) and uses the forms for aspect rather than time." },
+      { t: "p", x: "You already know most of this table: the perfect's suffixes are the modern past (-תִּי, -תָּ, -ָה, -נוּ, -וּ) and the imperfect's prefixes are the modern future (אֶ-, תִּ-, יִ-, נִ-). Biblical Hebrew adds a few forms modern speech dropped (the feminine plurals in -נָה, the vav-consecutive) and uses the forms for aspect rather than time." },
       { t: "tbl", head: ["Person", "Perfect", "Imperfect"], rows: BH_QAL.rows.map(function (r) { return [r[0], r[1], r[2]]; }), rtl: true },
       { t: "rule", x: "perfect = completed action (often past): שָׁמַר\nimperfect = incomplete, habitual, future, or modal: יִשְׁמֹר\nvav-consecutive imperfect = narrative past: וַיִּשְׁמֹר\nvav-consecutive perfect = future/command sequence: וְשָׁמַרְתָּ (and you shall keep)", note: "The vav flips the aspect: a perfect with וְ in a command sequence reads as future, an imperfect with וַ reads as past. That is the famous 'vav conversive'." },
       { t: "key", x: "Perfect suffixes = modern past. Imperfect prefixes = modern future. The vav-consecutive swaps them in narrative." },
@@ -6445,7 +6453,7 @@ var BH_TEXTS = [
   /* ---------------- stage 8: the pro path ---------------- */
   add({ id: "he_pro", mode: "none", title: "From B1 to native: the programme", sub: "Hours, sources, and both Hebrews", gist: "Hebrew is FSI category III: about 1,100 hours to professional proficiency. The drills get you to B1; input, output and logging get you the rest.",
     blocks: [
-      { t: "p", x: "The Foreign Service Institute puts Hebrew in category III (with Russian, Hindi, Thai): about 1,100 classroom hours, four times Swedish. The reasons are the script, the root system, and vocabulary with no English cognates. None of that is avoided by a clever method; all of it is shortened by not wasting hours: sounds first, frequency-ordered words, spaced retrieval, speed gates, daily output with feedback, and native input from the first month." },
+      { t: "p", x: "The Foreign Service Institute puts Hebrew in category III (with Russian, Hindi, Thai): about 1,100 classroom hours, nearly twice Swedish. The reasons are the script, the root system, and vocabulary with no English cognates. None of that is avoided by a clever method; all of it is shortened by not wasting hours: sounds first, frequency-ordered words, spaced retrieval, speed gates, daily output with feedback, and native input from the first month." },
       { t: "tbl", head: ["Level", "What it looks like", "Hours (rough)", "What to do"], rows: [["A1–A2", "Read pointed text, survive, introduce", "0–250", "Stages 0–5 here, daily reviews, dialogues"], ["B1", "Conversation, easy news, unpointed text", "250–500", "Readers here, Kan easy news daily, Streetwise Hebrew, one dialogue a day, shadowing"], ["B2", "Israeli TV with Hebrew subtitles, argue, write", "500–800", "An hour of native input a day, 100 written words a day, a tutor or tandem partner twice a week"], ["C1", "Professional use, read anything", "800–1200", "Native media without subtitles, books, long podcasts; speak daily; register and slang"], ["C2", "Near-native", "1500+", "Live in the language"]] },
       { t: "p", x: "Biblical Hebrew has its own track: after the three texts here, read a chapter a week on Sefaria with the English beside it, parse every verb, and keep the frequent-word decks on schedule. For grammar, Pratico and Van Pelt's Basics of Biblical Hebrew is the standard first book; for reading, start with Genesis, Ruth and Jonah, whose prose is the simplest in the Bible." },
       { t: "rule", x: "the level model = words known + grammar passed + applied skill + logged hours\nhours count toward 1,100", note: "Log every minute of real Hebrew input and output on the Level page." },
@@ -6472,19 +6480,19 @@ var BH_TEXTS = [
   var DRILLS = {
     heletter: { name: "Letters", target: 6, gen: function (ctx) {
       var row = pick(LET, ctx.rnd), kind = ctx.rnd();
-      if (kind < 0.4) return { kind: "choice", question: "What is the name of <b class='tw big'>" + row[0] + "</b>?", options: lgOptions(row[1], LET.map(function (r) { return r[1]; }), 3, ctx.rnd, "he"), answer: row[1], target: 6, explain: ["<b>" + row[0] + "</b> " + row[1] + ": " + row[2]], rtl: true };
-      if (kind < 0.8) return { kind: "choice", question: "Which letter is <b>" + row[1] + "</b> (" + row[2] + ")?", options: lgOptions(row[0], LET.map(function (r) { return r[0]; }), 3, ctx.rnd, "he"), answer: row[0], target: 6, explain: ["<b>" + row[0] + "</b> " + row[1] + ": " + row[2]], rtl: true };
+      if (kind < 0.4) return { kind: "choice", question: "What is the name of <b class='tw big'>" + row[0] + "</b>?", options: lgOptions(row[1], LET.map(function (r) { return r[1]; }), 3, ctx.rnd, "he"), answer: row[1], target: 6, explain: ["<b>" + row[0] + "</b> " + row[1] + ": " + row[2]], rtl: false };
+      if (kind < 0.8) return { kind: "choice", question: "Which letter is <b>" + row[1] + "</b> (" + row[2] + ")?", options: lgOptions(row[0], LET.map(function (r) { return r[0]; }), 3, ctx.rnd, "he"), answer: row[0], target: 6, explain: ["<b>" + row[0] + "</b> " + row[1] + ": " + row[2]], rtl: false };
       var finals = LET.filter(function (r) { return r[4]; }), fr = pick(finals, ctx.rnd);
-      return { kind: "choice", question: "What is the final form of <b class='tw big'>" + fr[0] + "</b> (" + fr[1] + ")?", options: lgOptions(fr[4], finals.map(function (r) { return r[4]; }), 3, ctx.rnd, "he"), answer: fr[4], target: 6, explain: ["<b>" + fr[0] + "</b> becomes <b>" + fr[4] + "</b> at the end of a word."], rtl: true };
+      return { kind: "choice", question: "What is the final form of <b class='tw big'>" + fr[0] + "</b> (" + fr[1] + ")?", options: lgOptions(fr[4], finals.map(function (r) { return r[4]; }), 3, ctx.rnd, "he"), answer: fr[4], target: 6, explain: ["<b>" + fr[0] + "</b> becomes <b>" + fr[4] + "</b> at the end of a word."], rtl: false };
     } },
     hevowel: { name: "Vowels", target: 6, gen: function (ctx) {
       var v = pick(HE_VOWELS, ctx.rnd);
-      return { kind: "choice", question: "Which sound does <b class='tw big'>" + "בּ" + v[0] + "</b> make? (" + v[1] + ")", options: lgOptions(v[2], HE_VOWELS.map(function (r) { return r[2]; }), 3, ctx.rnd, "he"), answer: v[2], target: 6, explain: ["<b>" + v[1] + "</b>: " + v[2] + " → b" + v[3]], rtl: true };
+      return { kind: "choice", question: "Which sound does <b class='tw big'>" + "בּ" + v[0] + "</b> make? (" + v[1] + ")", options: lgOptions(v[2], HE_VOWELS.map(function (r) { return r[2]; }), 3, ctx.rnd, "he"), answer: v[2], target: 6, explain: ["<b>" + v[1] + "</b>: " + v[2] + " → b" + v[3]], rtl: false };
     } },
     heread: { name: "Reading", target: 8, gen: function (ctx) {
       var pool = ALLV.filter(function (r) { return r[1].indexOf(" ") < 0 && r[1].length <= 9; });
       var row = pick(pool, ctx.rnd);
-      return { kind: "choice", question: "How is <b class='tw big'>" + row[0] + "</b> pronounced?", options: lgOptions(row[1], pool.map(function (r) { return r[1]; }), 3, ctx.rnd, "he"), answer: row[1], target: 8, explain: ["<b>" + row[0] + "</b> = " + row[1] + " (" + row[2] + ")"], speakAfter: tts(row[0], ctx.caps), rtl: true };
+      return { kind: "choice", question: "How is <b class='tw big'>" + row[0] + "</b> pronounced?", options: lgOptions(row[1], pool.map(function (r) { return r[1]; }), 3, ctx.rnd, "he"), answer: row[1], target: 8, explain: ["<b>" + row[0] + "</b> = " + row[1] + " (" + row[2] + ")"], speakAfter: tts(row[0], ctx.caps), rtl: false };
     } },
     henum: { name: "Numbers", target: 10, gen: function (ctx) {
       var n = ctx.rnd() < 0.5 ? (ctx.rnd() * 11) | 0 : ctx.rnd() < 0.8 ? 11 + ((ctx.rnd() * 89) | 0) : 100 + ((ctx.rnd() * 900) | 0);
@@ -6509,7 +6517,7 @@ var BH_TEXTS = [
       var r = pick(HE_ET, ctx.rnd), def = ctx.rnd() < 0.5, right = def ? r[1] : r[0], wrong = def ? r[0].replace(/\.$/, "") .replace(/ (\S+)\.?$/, " הַ$1.") : r[1];
       var g = r[2].split(" / ");
       var options = def ? [r[1], r[1].replace("אֶת ", "")] : [r[0], r[0].replace(/(\S+)\.$/, "אֶת $1.")];
-      return { kind: "choice", question: "Which is right for <b>" + (def ? g[1] || g[0] : g[0]) + "</b>?", options: lgShuffle(options, ctx.rnd), answer: right, target: 7, explain: ["<b>" + right + "</b>", def ? "The object is definite, so אֶת goes before it." : "The object is indefinite: no אֶת."], speakAfter: tts(right, ctx.caps), rtl: true };
+      return { kind: "choice", question: "<span dir='ltr'>Which is right for <b>" + (def ? g[1] || g[0] : g[0]).replace(/\.$/, "") + "</b>?</span>", options: lgShuffle(options, ctx.rnd), answer: right, target: 7, explain: ["<b>" + right + "</b>", def ? "The object is definite, so אֶת goes before it." : "The object is indefinite: no אֶת."], speakAfter: tts(right, ctx.caps), rtl: true };
     } },
     hedict: { name: "Dictation", target: 22, gen: function (ctx) {
       var r = pick(HE_DICTATION, ctx.rnd);
@@ -6528,6 +6536,51 @@ var BH_TEXTS = [
       var w = pick(words, ctx.rnd);
       return { kind: "choice", question: T.title + ": what does <b class='tw'>" + w[0] + "</b> mean?", options: lgOptions(w[1], words.map(function (x) { return x[1]; }), 3, ctx.rnd, "he"), answer: w[1], target: 7, explain: ["<b>" + w[0] + "</b> = " + w[1]], speakAfter: tts(w[0], ctx.caps), rtl: true };
     } };
+  });
+
+  /* unpointed spellings: typed Hebrew (and speech recognition) uses ktiv male, the full spelling, where the pointed word
+     uses ktiv chaser: שֻׁלְחָן is typed שולחן, לִכְתֹּב is typed לכתוב, שְׁתַּיִם is typed שתיים. hePlene gives the full
+     spellings of a pointed string (every combination of the five rules, since usage varies), for the accepted answers. */
+  function hePlene(s) {
+    var cl = [], m, re = /([\s\S])([\u0591-\u05BD\u05BF-\u05C7]*)/g;
+    s = String(s || "").normalize("NFC");
+    while ((m = re.exec(s)) && m[0]) cl.push({ b: m[1], p: m[2] });
+    function heb(c) { return !!c && /[\u05D0-\u05EA]/.test(c.b); }
+    function has(c, ch) { return !!c && c.p.indexOf(ch) >= 0; }
+    function voiced(i) {   /* the letter is followed by a vowel: a point other than shva, or a shuruk / cholam vav after it */
+      var c = cl[i], n = cl[i + 1];
+      if (!heb(c)) return false;
+      if (/[\u05B1-\u05BB\u05C7]/.test(c.p)) return true;
+      return !!n && n.b === "\u05D5" && !/[\u05B0-\u05B8\u05BB]/.test(n.p) && (has(n, "\u05BC") || has(n, "\u05B9"));
+    }
+    var out = {};
+    for (var mask = 1; mask < 32; mask++) {
+      var r = "";
+      cl.forEach(function (c, i) {
+        var p = cl[i - 1], n = cl[i + 1], first = !heb(p), add = "";
+        if (heb(c)) {
+          if ((mask & 1) && c.b !== "\u05D5" && has(c, "\u05B9") && !(n && (n.b === "\u05D5" || n.b === "\u05D0"))) add = "\u05D5";            /* cholam: ו */
+          if ((mask & 2) && /[\u05BB\u05B3\u05C7]/.test(c.p)) add = "\u05D5";                                                                 /* kubutz, chataf kamatz: ו */
+          if ((mask & 4) && has(c, "\u05B4") && heb(n) && n.b !== "\u05D9" && voiced(i + 1)) add = "\u05D9";                                  /* chirik in an open syllable: י */
+          if ((mask & 8) && c.b === "\u05D5" && !first && /[\u05B0-\u05B8]/.test(c.p) && heb(n) && n.b !== "\u05D5" && p.b !== "\u05D5") r += "\u05D5";   /* a consonant vav inside a word is doubled */
+          if ((mask & 16) && c.b === "\u05D9" && !first && /[\u05B1-\u05B8]/.test(c.p) && heb(n) && n.b !== "\u05D9" && n.b !== "\u05D5" && p.b !== "\u05D9") r += "\u05D9";   /* so is a consonant yod */
+        }
+        r += c.b + add;
+      });
+      out[r] = 1;
+    }
+    var base = lgStrip(s);
+    return Object.keys(out).map(lgStrip).filter(function (x, i, a) { return x !== base && a.indexOf(x) === i; });
+  }
+  /* every drill: typed answers also accept the full spellings; a choice whose options are all English reads left to right */
+  Object.keys(DRILLS).forEach(function (k) {
+    var gen = DRILLS[k].gen;
+    DRILLS[k].gen = function (ctx) {
+      var q = gen(ctx);
+      if (q.kind === "text" && q.accept) q.accept = q.accept.concat.apply(q.accept, q.accept.map(hePlene));
+      if (q.kind === "choice" && !q.options.some(function (o) { return /[\u05D0-\u05EA]/.test(o); })) q.rtl = false;
+      return q;
+    };
   });
 
   var FORMULAS = [
@@ -6573,7 +6626,7 @@ var BH_TEXTS = [
   ];
   var RANKS = [{ xp: 0, name: "מַתְחִיל · Matchil" }, { xp: 300, name: "תַּלְמִיד · Talmid" }, { xp: 1000, name: "מְדַבֵּר · Medaber" }, { xp: 2500, name: "קוֹרֵא · Kore" }, { xp: 5000, name: "כּוֹתֵב · Kotev" }, { xp: 9000, name: "שׁוֹטֵף · Shotef" }, { xp: 15000, name: "מֻמְחֶה · Mumche" }, { xp: 25000, name: "בָּקִי · Baki" }];
 
-  registerCourse({
+  var C = registerCourse({
     id: "he", name: "Hebrew", short: "HE", glyph: "א", kind: "lang", lang: "he", color: "#D4A03C",
     tagline: "Modern and Biblical, from the alef-bet to reading the text itself.",
     blurb: "The letters and points, the thousand words that matter, the root-and-pattern verb system, output under pressure, and a Biblical track that reads Genesis 1, Psalm 23 and the Shema word by word.",
@@ -6581,6 +6634,8 @@ var BH_TEXTS = [
     dialogues: HE_DIALOGUES, readings: HE_READINGS, texts: BH_TEXTS, need: 1100,
     apply: [{ id: "conv", label: "Conversation", blurb: "Five scenarios, graded turn by turn", min: 12 }, { id: "listen", label: "Dictation", blurb: "Hear it, write it", min: 8 }, { id: "write", label: "Writing", blurb: "Translate into Hebrew", min: 8 }, { id: "log", label: "Immersion log", blurb: "Log native input and output", min: 0 }]
   });
+  /* the words: the full spellings are accepted wherever the word is typed or said */
+  Object.keys(C.words).forEach(function (lid) { C.words[lid].forEach(function (it) { it.alt = hePlene(it.w); }); });
 })();
 
 /* ============================================================
@@ -6622,7 +6677,7 @@ var ES_VOCAB = {
     ["también", "also / too", "adv", "tampoco = neither", "Yo también.", "Me too."],
     ["perdón", "sorry / excuse me", "phrase", "disculpe (formal), lo siento = I'm sorry", "Perdón, ¿dónde está la estación?", "Excuse me, where is the station?"],
     ["un poco", "a little", "adv", "", "Hablo un poco de español.", "I speak a little Spanish."],
-    ["mucho", "much / a lot / very", "adv", "mucha, muchos, muchas as an adjective", "Muchas gracias.", "Thanks a lot."],
+    ["mucho", "much / a lot", "adv", "mucha, muchos, muchas as an adjective", "Muchas gracias.", "Thanks a lot."],
     ["de", "of / from", "prep", "del = de + el", "Soy de Canadá.", "I'm from Canada."]
   ],
   es_v2: [
@@ -6803,7 +6858,7 @@ var ES_VOCAB = {
     ["autobús", "bus", "n", "el autobús; el camión (Mexico), el colectivo (Argentina)", "El autobús viene ya.", "The bus is coming now."],
     ["avión", "plane", "n", "el avión; el vuelo = flight", "Mi vuelo sale a las diez.", "My flight leaves at ten."],
     ["billete", "ticket", "n", "el billete (Spain); el boleto (Lat. Am.)", "Un billete a Sevilla.", "A ticket to Seville."],
-    ["derecha", "right", "n", "a la derecha", "Gira a la derecha.", "Turn right."],
+    ["derecha", "right (side)", "n", "a la derecha", "Gira a la derecha.", "Turn right."],
     ["izquierda", "left", "n", "a la izquierda", "Está a la izquierda.", "It's on the left."],
     ["recto", "straight ahead", "adv", "todo recto; derecho (Lat. Am.)", "Sigue todo recto.", "Go straight ahead."],
     ["cerca", "near", "adv", "cerca de", "Está cerca.", "It's close."],
@@ -6914,7 +6969,7 @@ var ES_VOCAB = {
     ["claro", "of course / clear", "adv", "¡Claro que sí!", "¡Claro!", "Of course!"],
     ["más o menos", "more or less / approximately", "adv", "", "Más o menos diez minutos.", "About ten minutes."],
     ["sobre todo", "especially / above all", "adv", "", "Sobre todo en invierno.", "Especially in winter."],
-    ["querer decir", "to mean", "verb", "¿qué quieres decir?", "¿Qué quieres decir?", "What do you mean?"],
+    ["querer decir", "to mean (what a person means)", "verb", "¿qué quieres decir?", "¿Qué quieres decir?", "What do you mean?"],
     ["opinión", "opinion", "n", "la opinión; en mi opinión", "¿Cuál es tu opinión?", "What's your opinion?"],
     ["parecer", "to seem", "verb", "me parece que… = it seems to me", "Me parece bien.", "That seems fine to me."]
   ],
@@ -6979,7 +7034,7 @@ var ES_VOCAB = {
     ["desarrollo", "development", "n", "el desarrollo", "Un desarrollo rápido.", "A rapid development."],
     ["decidir", "to decide", "verb", "regular -ir", "Tú decides.", "You decide."],
     ["pasar", "to happen; to pass; to spend (time)", "verb", "¿qué pasó? = what happened?", "¿Qué pasó?", "What happened?"],
-    ["significar", "to mean", "verb", "regular -ar", "¿Qué significa la palabra?", "What does the word mean?"],
+    ["significar", "to mean (what a word means)", "verb", "regular -ar", "¿Qué significa la palabra?", "What does the word mean?"],
     ["palabra", "word", "n", "la palabra", "Una palabra nueva.", "A new word."]
   ],
   es_v13: [
@@ -7001,7 +7056,7 @@ var ES_VOCAB = {
     ["a menudo", "often", "adv", "muchas veces", "Entreno a menudo.", "I train often."],
     ["rara vez", "rarely", "adv", "casi nunca", "Rara vez llega tarde.", "He rarely arrives late."],
     ["siempre", "always", "adv", "", "Siempre tengo hambre.", "I'm always hungry."],
-    ["nunca", "never", "adv", "no … nunca (double negative is required)", "Nunca me rindo.", "I never give up."],
+    ["nunca", "never", "adv", "after the verb it needs no: no … nunca (double negative)", "Nunca me rindo.", "I never give up."],
     ["a veces", "sometimes", "adv", "", "A veces llueve.", "Sometimes it rains."],
     ["solo", "only / just; alone", "adv", "solamente", "Solo una vez.", "Only once."],
     ["bastante", "quite / enough", "adv", "", "Es bastante bueno.", "It's quite good."],
@@ -7033,9 +7088,9 @@ var ES_VOCAB = {
     ["poder permitirse", "to afford", "phrase", "", "No me lo puedo permitir.", "I can't afford it."],
     ["me da igual", "I don't care / it's all the same to me", "phrase", "", "Me da igual.", "I don't care."],
     ["rendirse", "to give up", "verb", "me rindo", "¡No te rindas!", "Don't give up!"],
-    ["tener ilusión por", "to look forward to", "phrase", "", "Tengo muchas ganas de ver el partido.", "I'm really looking forward to the game."],
+    ["tener ilusión por", "to look forward to", "phrase", "", "Tengo mucha ilusión por ver el partido.", "I'm really looking forward to the game."],
     ["averiguar", "to find out", "verb", "regular -ar", "Averigua cuándo sale el tren.", "Find out when the train leaves."],
-    ["dar pena", "to feel sorry for", "phrase", "me da pena", "Me da pena él.", "I feel sorry for him."],
+    ["dar pena", "to feel sorry for", "phrase", "me da pena", "Él me da pena.", "I feel sorry for him."],
     ["visitar", "to visit", "verb", "regular -ar", "Visitamos a la abuela.", "We're visiting grandma."],
     ["no importa", "it doesn't matter", "phrase", "", "No importa quién gane.", "It doesn't matter who wins."],
     ["de todas formas", "anyway / in any case", "phrase", "de todos modos", "De todas formas, nos vemos mañana.", "Anyway, see you tomorrow."],
@@ -7052,7 +7107,7 @@ var ES_VOCAB = {
 var ES_GENDER = {
   name: "El or la", cols: ["noun", "article", "meaning"], ask: [1], given: 0, gloss: 2, choice: true, target: 5,
   q: "Is it <b>el</b> or <b>la</b> {w} ({g})?",
-  rule: { 1: "-o is usually masculine, -a usually feminine. Famous exceptions: el día, el mapa, el problema, el idioma, el clima (Greek -ma words are masculine); la mano, la foto, la moto. Nouns in -ción, -sión, -dad, -tad, -tud are feminine; -or, -aje are masculine." },
+  rule: { 1: "-o is usually masculine, -a usually feminine. Famous exceptions: el día, el mapa, el problema, el idioma, el clima (Greek -ma words are masculine); la mano, la foto, la moto. Nouns in -ción, -sión, -dad, -tad, -tud are feminine; -or, -aje are masculine (but la flor)." },
   rows: [["libro", "el", "book"], ["casa", "la", "house"], ["día", "el", "day"], ["mano", "la", "hand"], ["problema", "el", "problem"], ["ciudad", "la", "city"], ["coche", "el", "car"], ["noche", "la", "night"],
     ["mapa", "el", "map"], ["foto", "la", "photo"], ["idioma", "el", "language"], ["universidad", "la", "university"], ["reloj", "el", "watch"], ["canción", "la", "song"], ["viaje", "el", "trip"], ["calle", "la", "street"],
     ["agua", "el", "water (f., but el in the singular)"], ["clima", "el", "climate"], ["flor", "la", "flower"], ["color", "el", "colour"], ["leche", "la", "milk"], ["pie", "el", "foot"], ["sal", "la", "salt"], ["pan", "el", "bread"],
@@ -7061,7 +7116,7 @@ var ES_GENDER = {
 var ES_PLURAL = {
   name: "Plurals", cols: ["singular", "plural", "meaning"], ask: [1], given: 0, gloss: 2, target: 7,
   q: "{w} ({g}): give the <b>plural</b>.",
-  rule: { 1: "Vowel + -s; consonant + -es; -z → -ces; words ending in -s with an unstressed last syllable do not change (el lunes, los lunes). A written accent on the last syllable disappears in the plural (canción → canciones)." },
+  rule: { 1: "Vowel + -s; consonant + -es; -z → -ces; words ending in -s with an unstressed last syllable do not change (el lunes, los lunes). A written accent on a final -n or -s syllable disappears in the plural (canción → canciones, autobús → autobuses), except where it splits a diphthong (país → países); examen gains one (exámenes)." },
   rows: [["libro", "libros", "book"], ["ciudad", "ciudades", "city"], ["lápiz", "lápices", "pencil"], ["lunes", "lunes", "Monday"], ["canción", "canciones", "song"], ["examen", "exámenes", "exam"], ["mes", "meses", "month"], ["jugador", "jugadores", "player"],
     ["pez", "peces", "fish"], ["luz", "luces", "light"], ["joven", "jóvenes", "young person"], ["país", "países", "country"], ["autobús", "autobuses", "bus"], ["hotel", "hoteles", "hotel"], ["mujer", "mujeres", "woman"], ["crisis", "crisis", "crisis"]]
 };
@@ -7142,11 +7197,11 @@ var ES_PRON = {
   rows: [["yo", "me", "me", "mí", "mi / mis", "I"], ["tú", "te", "te", "ti", "tu / tus", "you"], ["él", "lo", "le", "él", "su / sus", "he"], ["ella", "la", "le", "ella", "su / sus", "she"],
     ["usted", "lo / la", "le", "usted", "su / sus", "you (formal)"], ["nosotros", "nos", "nos", "nosotros", "nuestro / nuestra / nuestros / nuestras", "we"], ["ellos", "los", "les", "ellos", "su / sus", "they"], ["ellas", "las", "les", "ellas", "su / sus", "they (f.)"]]
 };
-/* gustar-type sentences: [English, Spanish, gloss note] */
+/* gustar-type sentences: [English, Spanish, gloss note, other accepted answers] */
 var ES_GUSTAR = [
-  ["I like coffee.", "Me gusta el café.", "singular thing → gusta"], ["I like apples.", "Me gustan las manzanas.", "plural thing → gustan"], ["Do you like hockey?", "¿Te gusta el hockey?", ""], ["She likes to read.", "Le gusta leer.", "an infinitive → gusta"],
-  ["We like the city.", "Nos gusta la ciudad.", ""], ["They like the games.", "Les gustan los partidos.", ""], ["I don't like winter.", "No me gusta el invierno.", ""], ["My knee hurts.", "Me duele la rodilla.", "doler works the same way"],
-  ["My feet hurt.", "Me duelen los pies.", ""], ["He is interested in history.", "Le interesa la historia.", "interesar too"], ["I love tacos.", "Me encantan los tacos.", "encantar = love"], ["It seems good to me.", "Me parece bien.", "parecer"]
+  ["I like coffee.", "Me gusta el café.", "singular thing → gusta", ["A mí me gusta el café."]], ["I like apples.", "Me gustan las manzanas.", "plural thing → gustan", ["A mí me gustan las manzanas."]], ["Do you like hockey?", "¿Te gusta el hockey?", "", ["¿A ti te gusta el hockey?", "¿Le gusta el hockey?"]], ["She likes to read.", "Le gusta leer.", "an infinitive → gusta", ["A ella le gusta leer."]],
+  ["We like the city.", "Nos gusta la ciudad.", "", ["A nosotros nos gusta la ciudad."]], ["They like the games.", "Les gustan los partidos.", "", ["A ellos les gustan los partidos."]], ["I don't like winter.", "No me gusta el invierno.", "", ["A mí no me gusta el invierno."]], ["My knee hurts.", "Me duele la rodilla.", "doler works the same way"],
+  ["My feet hurt.", "Me duelen los pies.", ""], ["He is interested in history.", "Le interesa la historia.", "interesar too", ["A él le interesa la historia."]], ["I love tacos.", "Me encantan los tacos.", "encantar = love", ["A mí me encantan los tacos."]], ["It seems good to me.", "Me parece bien.", "parecer"]
 ];
 /* tense choice: preterite vs imperfect: [sentence with blank, answer, gloss] */
 var ES_PASTCHOICE = {
@@ -7162,9 +7217,9 @@ var ES_PASTCHOICE = {
 var ES_SOUND_RULES = ["hard c / g (k, g)", "soft c (s / th)", "soft g (like Spanish j)", "silent h", "ll / y (y sound)", "ñ (ny)", "rr (rolled)", "j (throaty h)", "qu / gu (silent u)"];
 var ES_SOUNDS = [
   ["casa", "hard c / g (k, g)", "house"], ["cine", "soft c (s / th)", "cinema"], ["gente", "soft g (like Spanish j)", "people"], ["gato", "hard c / g (k, g)", "cat"], ["hola", "silent h", "hello"], ["llave", "ll / y (y sound)", "key"],
-  ["año", "ñ (ny)", "year"], ["perro", "rr (rolled)", "dog"], ["jugar", "j (throaty h)", "to play"], ["queso", "qu / gu (silent u)", "cheese"], ["guitarra", "qu / gu (silent u)", "guitar"], ["ciudad", "soft c (s / th)", "city"],
-  ["gimnasio", "soft g (like Spanish j)", "gym"], ["hielo", "silent h", "ice"], ["calle", "ll / y (y sound)", "street"], ["niño", "ñ (ny)", "child"], ["carro", "rr (rolled)", "car"], ["hijo", "j (throaty h)", "son"],
-  ["cuánto", "hard c / g (k, g)", "how much"], ["gracias", "soft c (s / th)", "thanks"], ["general", "soft g (like Spanish j)", "general"], ["hora", "silent h", "hour"], ["ella", "ll / y (y sound)", "she"], ["mañana", "ñ (ny)", "tomorrow"]
+  ["año", "ñ (ny)", "year"], ["perro", "rr (rolled)", "dog"], ["ojo", "j (throaty h)", "eye"], ["queso", "qu / gu (silent u)", "cheese"], ["seguir", "qu / gu (silent u)", "to follow"], ["ciudad", "soft c (s / th)", "city"],
+  ["gimnasio", "soft g (like Spanish j)", "gym"], ["hielo", "silent h", "ice"], ["lluvia", "ll / y (y sound)", "rain"], ["niño", "ñ (ny)", "child"], ["tierra", "rr (rolled)", "earth"], ["joven", "j (throaty h)", "young"],
+  ["cuánto", "hard c / g (k, g)", "how much"], ["cena", "soft c (s / th)", "dinner"], ["general", "soft g (like Spanish j)", "general"], ["hora", "silent h", "hour"], ["ella", "ll / y (y sound)", "she"], ["mañana", "ñ (ny)", "tomorrow"]
 ];
 /* stress: [word, stressed syllable number (1-based), syllables, rule] */
 var ES_STRESS = [
@@ -7173,13 +7228,13 @@ var ES_STRESS = [
   ["universidad", 5, "u-ni-ver-si-DAD", "ends in a consonant: last"], ["teléfono", 2, "te-LÉ-fo-no", "accent mark"], ["mañana", 2, "ma-ÑA-na", "ends in a vowel: second-to-last"], ["examen", 2, "e-XA-men", "ends in n: second-to-last"]
 ];
 /* minimal pairs by accent: [a, b, meanings] */
-var ES_PAIRS = [["hablo", "habló", "I speak / he spoke"], ["papa", "papá", "potato / dad"], ["esta", "está", "this / is"], ["si", "sí", "if / yes"], ["el", "él", "the / he"], ["tu", "tú", "your / you"], ["como", "comió", "I eat / he ate"], ["pero", "perro", "but / dog"], ["caro", "carro", "expensive / car"], ["pera", "perra", "pear / female dog"]];
+var ES_PAIRS = [["hablo", "habló", "I speak / he spoke"], ["papa", "papá", "potato / dad"], ["esta", "está", "this / is"], ["seria", "sería", "serious / would be"], ["hacia", "hacía", "towards / was doing"], ["tomo", "tomó", "I take / he took"], ["sabana", "sábana", "savanna / bed sheet"], ["pero", "perro", "but / dog"], ["caro", "carro", "expensive / car"], ["pera", "perra", "pear / female dog"]];
 
 /* ---- dialogues ---- */
 var ES_DIALOGUES = [
   { id: "es_d1", title: "Hello, who are you?", setting: "A new teammate at the rink. Introduce yourself.", level: "A1",
     turns: [
-      { bot: "¡Hola! Me llamo Lucía. ¿Cómo te llamas?", botg: "Hi! My name is Lucía. What's your name?", expect: ["me llamo", "mi nombre", "^soy "], model: "¡Hola! Me llamo Erik.", modelg: "Hi! My name is Erik.", hint: "Me llamo ... (My name is ...)" },
+      { bot: "¡Hola! Me llamo Lucía. ¿Cómo te llamas?", botg: "Hi! My name is Lucía. What's your name?", expect: ["me llamo", "mi nombre", "^(yo )?soy "], model: "¡Hola! Me llamo Erik.", modelg: "Hi! My name is Erik.", hint: "Me llamo ... (My name is ...)" },
       { bot: "¡Mucho gusto! ¿De dónde eres?", botg: "Nice to meet you! Where are you from?", expect: ["soy de", "de canad[aá]", "canadiense", "vengo de"], model: "Soy de Canadá.", modelg: "I'm from Canada.", hint: "Soy de ... " },
       { bot: "¡Qué bien! ¿Vives aquí ahora?", botg: "Great! Do you live here now?", expect: ["^s[ií]", "^no", "vivo"], model: "Sí, vivo aquí ahora.", modelg: "Yes, I live here now.", hint: "Sí / No, vivo ..." },
       { bot: "¿Juegas al hockey?", botg: "Do you play hockey?", expect: ["s[ií]", "juego"], reject: ["no"], model: "Sí, juego al hockey.", modelg: "Yes, I play hockey.", hint: "Sí, juego al ..." },
@@ -7270,10 +7325,10 @@ var ES_DICTATION = [
   ["Aunque el equipo jugó bien, perdió por un gol.", "B2"], ["Lo más importante es parar y hablar con la gente.", "B2"], ["El gobierno propone bajar los impuestos el año que viene.", "B2"], ["Nunca pensé que el invierno fuera tan largo.", "B2"]
 ];
 var ES_WRITING = [
-  ["I am tired.", ["Estoy cansado.", "Estoy cansada."], "A1"], ["Where do you live?", ["¿Dónde vives?", "Dónde vives"], "A1"], ["I don't understand.", ["No entiendo.", "No comprendo."], "A1"], ["We have a dog.", ["Tenemos un perro."], "A1"],
-  ["Today I'm playing hockey.", ["Hoy juego al hockey.", "Hoy juego hockey.", "Juego al hockey hoy."], "A2"], ["The book is on the table.", ["El libro está en la mesa.", "El libro está sobre la mesa."], "A2"], ["Can you help me?", ["¿Puedes ayudarme?", "¿Me puedes ayudar?", "Puedes ayudarme"], "A2"], ["She bought a new car.", ["Compró un coche nuevo.", "Ella compró un coche nuevo.", "Compró un carro nuevo."], "A2"],
-  ["I know that he isn't coming.", ["Sé que no viene.", "Sé que él no viene.", "Sé que no va a venir."], "B1"], ["We have lived here for three years.", ["Vivimos aquí desde hace tres años.", "Hace tres años que vivimos aquí.", "Llevamos tres años viviendo aquí."], "B1"], ["If it rains, we'll stay at home.", ["Si llueve, nos quedamos en casa.", "Si llueve nos quedamos en casa.", "Si llueve, nos quedaremos en casa."], "B1"], ["Yesterday I was at the rink all day.", ["Ayer estuve en la pista todo el día.", "Ayer estuve en la pista de hielo todo el día."], "B1"],
-  ["Spanish is spoken in Spain.", ["En España se habla español.", "Se habla español en España."], "B2"], ["Although we lost, I was proud of the team.", ["Aunque perdimos, estaba orgulloso del equipo.", "Aunque perdimos, estuve orgulloso del equipo.", "Aunque perdimos, estaba orgullosa del equipo."], "B2"], ["I would rather train in the morning.", ["Preferiría entrenar por la mañana.", "Prefiero entrenar por la mañana."], "B2"], ["The game was cancelled because of the weather.", ["El partido se canceló por el tiempo.", "Cancelaron el partido por el tiempo.", "El partido fue cancelado por el mal tiempo."], "B2"]
+  ["I am tired.", ["Estoy cansado.", "Estoy cansada."], "A1"], ["Where do you live?", ["¿Dónde vives?", "¿Dónde vive usted?", "¿Dónde vive?"], "A1"], ["I don't understand.", ["No entiendo.", "No comprendo."], "A1"], ["We have a dog.", ["Tenemos un perro."], "A1"],
+  ["Today I'm playing hockey.", ["Hoy juego al hockey.", "Hoy juego hockey.", "Juego al hockey hoy."], "A2"], ["The book is on the table.", ["El libro está en la mesa.", "El libro está sobre la mesa."], "A2"], ["Can you help me?", ["¿Puedes ayudarme?", "¿Me puedes ayudar?", "Puedes ayudarme"], "A2"], ["She bought a new car.", ["Compró un coche nuevo.", "Ella compró un coche nuevo.", "Compró un carro nuevo.", "Ella compró un carro nuevo."], "A2"],
+  ["I know that he isn't coming.", ["Sé que no viene.", "Sé que él no viene.", "Sé que no va a venir."], "B1"], ["We have lived here for three years.", ["Vivimos aquí desde hace tres años.", "Hace tres años que vivimos aquí.", "Llevamos tres años viviendo aquí.", "Hemos vivido aquí tres años."], "B1"], ["If it rains, we'll stay at home.", ["Si llueve, nos quedamos en casa.", "Si llueve nos quedamos en casa.", "Si llueve, nos quedaremos en casa."], "B1"], ["Yesterday I was at the rink all day.", ["Ayer estuve en la pista todo el día.", "Ayer estuve en la pista de hielo todo el día.", "Ayer estuve todo el día en la pista."], "B1"],
+  ["Spanish is spoken in Spain.", ["En España se habla español.", "Se habla español en España."], "B2"], ["Although we lost, I was proud of the team.", ["Aunque perdimos, estaba orgulloso del equipo.", "Aunque perdimos, estuve orgulloso del equipo.", "Aunque perdimos, estaba orgullosa del equipo.", "Aunque perdimos, estuve orgullosa del equipo."], "B2"], ["I would rather train in the morning.", ["Preferiría entrenar por la mañana.", "Prefiero entrenar por la mañana."], "B2"], ["The game was cancelled because of the weather.", ["El partido se canceló por el tiempo.", "Cancelaron el partido por el tiempo.", "El partido fue cancelado por el mal tiempo.", "El partido fue cancelado por el tiempo.", "El partido se canceló por el mal tiempo."], "B2"]
 ];
 
 /* ============================================================
@@ -7344,14 +7399,14 @@ var ES_WRITING = [
   add({ id: "es_gender", mode: "esgender", pass: 8, of: 10, title: "El or la", sub: "Gender and the article", gist: "-o masculine, -a feminine, and a short list of exceptions that everyone meets in the first week.",
     blocks: [
       { t: "p", x: "Gender is grammatical, not biological: la mesa, el libro. The ending is a strong clue, the article is the fact. Agreement spreads from the noun to everything around it: el coche rojo, la casa roja, los coches rojos." },
-      { t: "tbl", head: ["Clue", "Gender", "Examples and exceptions"], rows: [["-o", "masculine", "el libro, el coche; but la mano, la foto, la moto, la radio"], ["-a", "feminine", "la casa, la mesa; but el día, el mapa, el planeta, and the Greek -ma words: el problema, el idioma, el clima, el sistema"], ["-ción, -sión, -dad, -tad, -tud, -umbre", "feminine", "la canción, la ciudad, la libertad"], ["-or, -aje, -an", "masculine", "el color, el viaje, el pan"], ["-e", "either", "el coche, la noche, el café, la leche: learn each"], ["stressed a-", "el in the singular, feminine", "el agua fría, las aguas; el águila"]] },
+      { t: "tbl", head: ["Clue", "Gender", "Examples and exceptions"], rows: [["-o", "masculine", "el libro, el coche; but la mano, la foto, la moto, la radio"], ["-a", "feminine", "la casa, la mesa; but el día, el mapa, el planeta, and the Greek -ma words: el problema, el idioma, el clima, el sistema"], ["-ción, -sión, -dad, -tad, -tud, -umbre", "feminine", "la canción, la ciudad, la libertad"], ["-or, -aje, -an", "masculine", "el color, el viaje, el pan; but la flor"], ["-e", "either", "el coche, la noche, el café, la leche: learn each"], ["stressed a-", "el in the singular, feminine", "el agua fría, las aguas; el águila"]] },
       { t: "rule", x: "el / la · los / las · un / una · unos / unas\nde + el = del · a + el = al", note: "Two contractions, and only two: voy al cine, el libro del profesor." },
       { t: "key", x: "-o el, -a la, -ción/-dad la, -ma el. The article is part of the word. del and al." },
       { t: "how", drill: "El or la", ask: "Is it el or la?", steps: ["Look at the ending.", "Check the exception list.", "Say the noun with its article."], tip: "Say the plural too: el libro, los libros." }
     ] });
   add({ id: "es_plural", mode: "esplural", pass: 7, of: 10, title: "Plurals and adjectives", sub: "-s, -es, and agreement", gist: "Vowel + s, consonant + es, z to c. Adjectives follow the noun and agree with it in gender and number.",
     blocks: [
-      { t: "p", x: "The plural adds -s after a vowel and -es after a consonant; a final z becomes c (lápiz, lápices); a written accent on the last syllable drops (canción, canciones). Adjectives agree: -o/-a/-os/-as for most, -e and consonant adjectives have one form for both genders (grande, fácil) and add -s or -es." },
+      { t: "p", x: "The plural adds -s after a vowel and -es after a consonant; a final z becomes c (lápiz, lápices); a written accent on a final -n or -s syllable drops (canción, canciones), except where it splits a diphthong (país, países). Adjectives agree: -o/-a/-os/-as for most, -e and consonant adjectives have one form for both genders (grande, fácil) and add -s or -es." },
       { t: "tbl", head: ["m. sg.", "f. sg.", "m. pl.", "f. pl.", "meaning"], rows: ES_ADJ.rows },
       { t: "rule", x: "un coche rojo · una casa roja · coches rojos · casas rojas\nun buen día · un gran equipo (bueno, malo, grande shorten before a singular noun)", note: "Adjectives follow the noun. A few go in front with a change of meaning: un hombre grande (big) / un gran hombre (great); un amigo viejo (old in years) / un viejo amigo (long-standing)." },
       { t: "key", x: "Plural -s / -es, z → c. Adjective after the noun, agreeing in gender and number. Bueno, malo, grande shorten before the noun." },
@@ -7384,7 +7439,7 @@ var ES_WRITING = [
   add({ id: "es_gustar", mode: "esgustar", pass: 7, of: 10, title: "Gustar and friends", sub: "Me gusta, me gustan, me duele", gist: "Spanish does not say 'I like coffee'; it says 'coffee is pleasing to me'. The verb agrees with the thing, and the person is an indirect object.",
     blocks: [
       { t: "p", x: "Gustar means 'to please'. The thing liked is the subject, so the verb is gusta (singular or an infinitive) or gustan (plural), and the person who likes it is the indirect object: me, te, le, nos, os, les. A whole family works this way: encantar (love), interesar, importar, doler (hurt), parecer (seem), faltar (lack), quedar (have left)." },
-      { t: "tbl", head: ["English", "Spanish", "Note"], rows: ES_GUSTAR },
+      { t: "tbl", head: ["English", "Spanish", "Note"], rows: ES_GUSTAR.map(function (r) { return r.slice(0, 3); }) },
       { t: "rule", x: "(a mí) me gusta + singular / infinitive · me gustan + plural\nme duele la rodilla · me duelen los pies", note: "To stress or clarify the person: a mí me gusta, a Juan le gusta. The 'a' phrase is optional; the pronoun is not." },
       { t: "key", x: "Indirect pronoun + gusta/gustan agreeing with the thing. Doler, encantar, interesar, parecer the same." },
       { t: "how", drill: "Gustar", ask: "Translate the sentence.", steps: ["Who likes it? That is the pronoun.", "What is liked? Singular → gusta, plural → gustan.", "Article before the noun: me gusta el café."], tip: "Me gusta, te gusta, le gusta: say ten things you like in a row every morning." }
@@ -7407,7 +7462,7 @@ var ES_WRITING = [
     blocks: [
       { t: "p", x: "The preterite narrates: what happened, in order, and finished. Regular -ar: -é -aste -ó -amos -asteis -aron; -er/-ir: -í -iste -ió -imos -isteis -ieron. The accents on yo and él are not decoration: hablo is present, habló is past. The irregulars have their own stems and unaccented endings: tuve, hice, dije, puse, pude, vine, quise, supe, estuve; ser and ir share fui." },
       { t: "tbl", head: ["", "yo", "tú", "él", "nosotros", "ellos", ""], rows: ES_PRETERITE.rows.slice(0, 9).map(function (r) { return [r[0], r[1], r[2], r[3], r[4], r[5], r[6]]; }) },
-      { t: "rule", x: "irregular stems: tuv- hic- dij- pus- pud- vin- quis- sup- estuv- + -e -iste -o -imos -ieron\nfui fuiste fue fuimos fueron (ser and ir)", note: "Spelling changes keep the sound: jugué, busqué, empecé; leyó, oyó." },
+      { t: "rule", x: "irregular stems: tuv- hic- dij- pus- pud- vin- quis- sup- estuv- + -e -iste -o -imos -ieron\nfui fuiste fue fuimos fueron (ser and ir)", note: "Spelling changes keep the sound: jugué, busqué, empecé; leyó, oyó. After j the ellos ending loses its i: dijeron, trajeron." },
       { t: "key", x: "Completed events: -é -ó / -í -ió. The irregular stems as a chant: tuve, hice, dije, puse, pude, vine, quise, supe, estuve, fui." },
       { t: "how", drill: "Preterite", ask: "Give the preterite for the person.", steps: ["Regular? apply the endings, mind the accents.", "Irregular stem? unaccented endings."], tip: "Narrate yesterday in Spanish every night: me levanté, comí, entrené, volví." }
     ] });
@@ -7508,7 +7563,7 @@ var ES_WRITING = [
     espron: { name: "Pronouns", target: 6, gen: function (ctx) { return lgFormQ(ES_PRON, "es", ctx.rnd, ctx.caps); } },
     esgustar: { name: "Gustar", target: 12, gen: function (ctx) {
       var r = pick(ES_GUSTAR, ctx.rnd);
-      return { kind: "text", question: "Translate: <b>" + r[0] + "</b>", answer: r[1], accept: [r[1]], target: 12, explain: ["<b>" + r[1] + "</b>" + (r[2] ? " — " + r[2] : "")], speakAfter: tts(r[1], ctx.caps) };
+      return { kind: "text", question: "Translate: <b>" + r[0] + "</b>", answer: r[1], accept: [r[1]].concat(r[3] || []), target: 12, explain: ["<b>" + r[1] + "</b>" + (r[2] ? " — " + r[2] : "")], speakAfter: tts(r[1], ctx.caps) };
     } },
     espret: { name: "Preterite", target: 10, gen: function (ctx) { return lgFormQ(ES_PRETERITE, "es", ctx.rnd, ctx.caps); } },
     esimp: { name: "Preterite or imperfect", target: 9, gen: function (ctx) { return ctx.rnd() < 0.5 ? lgFormQ(ES_IMPERFECT, "es", ctx.rnd, ctx.caps) : lgFormQ(ES_PASTCHOICE, "es", ctx.rnd, ctx.caps); } },
@@ -17478,7 +17533,7 @@ function buildControls() {
   var c = $("controls"); c.innerHTML = ""; $("hint").textContent = "";
   if (q.kind === "choice") {
     var box = el("div", "opts" + (q.rtl ? " rtl" : ""));
-    q.options.forEach(function (o, i) { var b = btn(esc(o) + (i < 9 ? "<kbd>" + (i + 1) + "</kbd>" : ""), "", function () { submit(o); }); box.appendChild(b); });
+    q.options.forEach(function (o, i) { var b = btn(esc(o) + (i < 9 ? "<kbd>" + (i + 1) + "</kbd>" : ""), "", function () { submit(o); }); if (q.rtl) b.dir = "auto"; box.appendChild(b); });
     c.appendChild(box); $("hint").textContent = "Keys 1–" + Math.min(9, q.options.length) + " choose.";
   } else if (q.kind === "text" || q.kind === "num") {
     var wrap = el("div", "entry"), inp = el("input"); inp.type = "text"; inp.id = "inp"; inp.autocomplete = "off"; inp.autocapitalize = "off"; inp.spellcheck = false;
@@ -18159,7 +18214,7 @@ function drawBlock(b, c) {
   if (b.t === "warn") return el("div", "warn", b.x);
   if (b.t === "key") { var k = el("div", "keybox"); k.innerHTML = "<b>Commit this</b><span>" + b.x + "</span>"; return k; }
   if (b.t === "rule") { var r = el("div", "rule"); r.innerHTML = "<pre>" + esc(b.x) + "</pre>" + (b.note ? "<small>" + b.note + "</small>" : ""); return r; }
-  if (b.t === "tbl") { var w = el("div"), t = el("table", "tbl" + (b.rtl ? " rtl" : "")); t.innerHTML = "<thead><tr>" + b.head.map(function (h) { return "<th>" + h + "</th>"; }).join("") + "</tr></thead><tbody>" + b.rows.map(function (row) { return "<tr>" + row.map(function (cell, i) { return "<td" + (b.rtl && i === 0 ? " class='rtl'" : "") + ">" + cell + "</td>"; }).join("") + "</tr>"; }).join("") + "</tbody>"; var sc = el("div", "tbl-scroll"); sc.appendChild(t); w.appendChild(sc); if (b.caption) w.appendChild(el("div", "cap", b.caption)); return w; }
+  if (b.t === "tbl") { var w = el("div"), t = el("table", "tbl" + (b.rtl ? " rtl" : "")); t.innerHTML = "<thead><tr>" + b.head.map(function (h) { return "<th>" + h + "</th>"; }).join("") + "</tr></thead><tbody>" + b.rows.map(function (row) { return "<tr>" + row.map(function (cell, i) { return "<td" + (b.rtl && i === 0 ? " class='rtl'" : "") + ">" + cell + "</td>"; }).join("") + "</tr>"; }).join("") + "</tbody>"; var sc = el("div", "tbl-scroll" + (b.rtl ? " rtl" : "")); sc.appendChild(t); w.appendChild(sc); if (b.caption) w.appendChild(el("div", "cap", b.caption)); return w; }
   if (b.t === "ex") { var e = el("div", "ex"); e.appendChild(el("h4", null, b.title)); var body = el("div", "exb"); if (b.facts) { var f = el("dl", "facts"); b.facts.forEach(function (pr) { f.innerHTML += "<div class='fact'><dt>" + pr[0] + "</dt><dd>" + pr[1] + "</dd></div>"; }); body.appendChild(f); } var ol = el("ol", "steps"); b.steps.forEach(function (x) { ol.appendChild(el("li", null, x)); }); body.appendChild(ol); if (b.punch) body.appendChild(el("div", "punch", b.punch)); e.appendChild(body); return e; }
   if (b.t === "how") { var hw = el("div", "how"); hw.innerHTML = "<h4>In the drill" + (b.drill ? " <span>· " + esc(b.drill) + "</span>" : "") + "</h4>" + (b.ask ? '<p class="howask">“' + b.ask + '”</p>' : "") + '<ol class="howsteps">' + b.steps.map(function (s) { return "<li>" + s + "</li>"; }).join("") + "</ol>" + (b.tip ? '<div class="tip"><b>Tip</b>' + b.tip + "</div>" : ""); return hw; }
   if (b.t === "board") { var bw = el("div", "bwrap"); bw.appendChild(boardWidget(b.fen, { mark: b.mark, size: "sm", flip: b.flip })); if (b.caption) bw.appendChild(el("div", "cap", b.caption)); return bw; }
@@ -18197,7 +18252,7 @@ function miniQ(box, c, L) {
   if (qq.board) box.appendChild(boardWidget(qq.board.fen, { flip: qq.board.flip, mark: qq.board.mark, size: "sm", interactive: qq.kind === "square" || qq.kind === "move", onSquare: function (sq) { done(gradeAnswer(qq, sq).ok, sq); }, onMove: function (m, S) { done(gradeAnswer(qq, chSan(S, m)).ok, chSan(S, m)); } }));
   var ctl = el("div", "row"); box.appendChild(ctl);
   function done(ok, said) { ctl.innerHTML = ""; var v = el("div", "verdict"); v.appendChild(el("span", "badge " + (ok ? "ok" : "no"), ok ? "Correct" : "Off")); v.appendChild(el("span", "said", "Answer <b>" + esc(qq.answer) + "</b> · you said " + esc(said))); box.appendChild(v); var ex = el("div", "expl" + (qq.rtl ? " rtl" : "")); (qq.explain || []).forEach(function (l) { ex.appendChild(el("p", null, l)); }); box.appendChild(ex); if (qq.speakAfter) speak(qq.speakAfter.text, qq.speakAfter.lang); var again = btn("Another", "ghost sm", function () { miniQ(box, c, L); }); again.style.marginTop = "10px"; box.appendChild(again); }
-  if (qq.kind === "choice") { var opts = el("div", "opts" + (qq.rtl ? " rtl" : "")); qq.options.forEach(function (o) { opts.appendChild(btn(esc(o), "", function () { done(o === qq.answer, o); })); }); ctl.appendChild(opts); }
+  if (qq.kind === "choice") { var opts = el("div", "opts" + (qq.rtl ? " rtl" : "")); qq.options.forEach(function (o) { var ob = btn(esc(o), "", function () { done(o === qq.answer, o); }); if (qq.rtl) ob.dir = "auto"; opts.appendChild(ob); }); ctl.appendChild(opts); }
   else if (qq.kind === "text" || qq.kind === "num" || qq.kind === "speak") { var w = el("div", "entry"), inp = el("input"); inp.type = "text"; if (qq.rtl) inp.className = "rtl"; w.appendChild(inp); ctl.appendChild(w); ctl.appendChild(btn("Check", "", function () { var g = gradeAnswer(Object.assign({}, qq, { kind: qq.kind === "speak" ? "text" : qq.kind }), inp.value, c.lang); if (g) done(g.ok, inp.value); })); inp.onkeydown = function (e) { if (e.key === "Enter") { var g = gradeAnswer(Object.assign({}, qq, { kind: qq.kind === "speak" ? "text" : qq.kind }), inp.value, c.lang); if (g) done(g.ok, inp.value); } }; }
 }
 
@@ -18266,7 +18321,7 @@ function drawLevel(box, c) {
   box.appendChild(hero);
   var g = el("div", "grid2");
   var d = el("div", "panel"); d.innerHTML = '<div class="ph"><h3>What the level is made of</h3></div><div class="clist">' + lv.detail.map(function (x) { return "<div><span>" + esc(x[0]) + "</span><b>" + esc(String(x[1])) + "</b></div>"; }).join("") + '</div>' +
-    (c.kind === "lang" ? '<p class="pnote">Vocabulary (log-scaled toward 5,000 known words), grammar lessons passed, applied skill (conversation, reading, listening, writing), and hours of study and logged immersion against the FSI estimate of ' + (c.need || 700) + ' hours. A1 at 10, A2 at 25, B1 at 42, B2 at 60, C1 at 78, C2 at 92.</p>' : c.kind === "chess" ? '<p class="pnote">The rating is the engine\'s grade of your last 100 moves in Play (quality 0–1 per move, pulled toward the middle while there are few). The tactics rating moves like Elo on every drill answer: mate in one ≈ 1000–1100, forks ≈ 1100, best move ≈ 1300, mate in two ≈ 1400.</p>' : "");
+    (c.kind === "lang" ? '<p class="pnote">Vocabulary (log-scaled toward every word in the course known, then automatic), grammar lessons passed, applied skill (conversation, reading, listening, writing), and hours of study and logged immersion against the FSI estimate of ' + (c.need || 700) + ' hours. A1 at 10, A2 at 25, B1 at 42, B2 at 60, C1 at 78, C2 at 92.</p>' : c.kind === "chess" ? '<p class="pnote">The rating is the engine\'s grade of your last 100 moves in Play (quality 0–1 per move, pulled toward the middle while there are few). The tactics rating moves like Elo on every drill answer: mate in one ≈ 1000–1100, forks ≈ 1100, best move ≈ 1300, mate in two ≈ 1400.</p>' : "");
   g.appendChild(d);
   var lad = el("div", "panel"); var L = c.kind === "lang" ? LG_CEFR : c.kind === "chess" ? CHL_LEVELS : [];
   lad.innerHTML = '<div class="ph"><h3>The ladder</h3></div><div class="ladder">' + L.map(function (x, i) { return '<div class="' + (i === lv.index ? "cur" : i < lv.index ? "done" : "") + '"><b>' + esc(x.name) + '</b><span>' + esc(x.about) + '</span></div>'; }).join("") + '</div>';
@@ -18598,7 +18653,7 @@ function drawQuant(box, gid) {
   if (!qrun || qrun.g !== gid || qrun.over) {
     var how = G.mc ? "Press 1–4 or click an option; the next question comes straight away. " + G.count + " questions or " + qtClock(G.secs * 1000) + " minutes, whichever comes first; +1 right, −1 wrong."
       : G.noSkip ? "Type the answer; it is taken the moment it is right, no Enter. There is no skipping: keep typing until it is right."
-      : "Type the answer; it is taken the moment it is right, no Enter. Press Enter to give up on a question: it shows the right answer and moves on. " + (G.id === "estimate" ? "Within " + Math.round(G.set.tol * 100) + "% counts." : G.id === "odds" || G.id === "percent" ? "Percentages to within half a point." : "Exact answers.");
+      : "Type the answer; it is taken the moment it is right, no Enter. Press Enter to give up on a question: it shows the right answer and moves on. " + (G.id === "estimate" ? "Within " + Math.round(G.set.tol * 100) + "% counts." : G.id === "percent" ? "Answers to within half a point." : G.id === "odds" ? "Answers to within 0.6." : "Exact answers.");
     host.innerHTML = '<div class="ph"><h3>' + esc(G.name) + '</h3><span>' + esc(G.about) + ' · target ' + G.target + '</span></div><p class="pnote">' + esc(G.blurb) + ' ' + esc(how) + '</p>';
     var r = el("div", "row"); r.appendChild(btn("Start (" + (G.secs >= 60 && G.secs % 60 === 0 && G.secs > 120 ? G.secs / 60 + " minutes" : G.secs + " seconds") + ")", "go", function () { startQuant(gid); })); host.appendChild(r);
     var hist = qtHistory(S, gid, 60);
@@ -18826,7 +18881,7 @@ function drawApply(box, c, arg) {
     var nav = el("nav", "subnav"); nav.innerHTML = [["play", "Play the engine"], ["rush", "Tactics rush"]].map(function (t) { return '<a href="#/c/chess/apply/' + t[0] + '"' + ((arg || "play") === t[0] ? ' aria-current="page"' : '') + '>' + t[1] + '</a>'; }).join(""); box.appendChild(nav);
     var host = el("div"); host.id = "applyHost"; box.appendChild(host);
     if ((arg || "play") === "play") drawPlay(host);
-    else { var p = el("div", "panel"); p.innerHTML = '<div class="ph"><h3>Tactics rush</h3><span>ten rated puzzles</span></div><p class="pnote">Mates in one and two, forks and best-move positions, generated and verified by the engine. Each answer moves your tactics rating like Elo: solving a 1400 puzzle when you are rated 1000 gains a lot; missing a 1000 puzzle costs a lot. Speed counts for the schedule, not for the rating.</p>'; var r = el("div", "row"); r.appendChild(btn("Start a rush", "go", startRush)); p.appendChild(r); host.appendChild(p); var S = HUB.chess ? chlSummary(HUB.chess) : null; if (S) host.appendChild(el("p", "pnote", "Tactics rating <b>" + S.puzzle + "</b> over " + plural(S.puzzles, "puzzle") + ".")); }
+    else { var p = el("div", "panel"); p.innerHTML = '<div class="ph"><h3>Tactics rush</h3><span>ten rated puzzles</span></div><p class="pnote">Mates in one and two, forks and best-move positions, generated and verified by the engine. Each answer moves your tactics rating like Elo: solving a 1400 puzzle when you are rated 1000 gains a lot; missing a 1000 puzzle when you are rated 1400 costs a lot. Speed counts for the schedule, not for the rating.</p>'; var r = el("div", "row"); r.appendChild(btn("Start a rush", "go", startRush)); p.appendChild(r); host.appendChild(p); var S = HUB.chess ? chlSummary(HUB.chess) : null; if (S) host.appendChild(el("p", "pnote", "Tactics rating <b>" + S.puzzle + "</b> over " + plural(S.puzzles, "puzzle") + ".")); }
     return;
   }
   if (c.kind !== "lang") { box.appendChild(el("div", "empty", "Nothing to apply here yet.")); return; }
