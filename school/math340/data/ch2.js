@@ -305,7 +305,9 @@
               q: R`For events \(A\) and \(B\): \(P(A) = ${pa}\), \(P(B) = ${pb}\), and \(P(A \cap B) = ${pab}\). Find \(${ask}\).`,
               answer: ans, kind: "prob",
               sol: R`<div class="sol-step">By the definition of conditional probability, $$${ask} = \frac{P(A \cap B)}{${flip ? `P(B)` : `P(A)`}} = \frac{${pab}}{${flip ? pb : pa}} \approx ${U.fmt(ans)}.$$</div>
-                   <div class="sol-step">Sanity check: conditioning on the ${flip ? "smaller" : "larger"} event gives the ${flip ? "larger" : "smaller"} answer — the same overlap, divided by a different slice of the sample space.</div>`,
+                   <div class="sol-step">${pa === pb
+                      ? R`Sanity check: here \(P(A) = P(B)\), so \(P(A \mid B) = P(B \mid A)\) — the same overlap divided by the same amount.`
+                      : R`Sanity check: \(P(A \mid B)\) and \(P(B \mid A)\) share the numerator \(P(A \cap B)\), so conditioning on the ${(flip ? pb : pa) < (flip ? pa : pb) ? "smaller" : "larger"} event gives the ${(flip ? pb : pa) < (flip ? pa : pb) ? "larger" : "smaller"} answer — the same overlap, divided by a different slice of the sample space.`}</div>`,
             };
           },
         },
@@ -648,12 +650,13 @@
             // "1 times as likely"), so keep the denominator away from the numerator.
             const lrDen = (d => (d === lrNum ? 1 : d))(U.randInt(1, 3));
             const postOdds = (priorNum / priorDen) * (lrNum / lrDen);
+            const lrTex = U.fracTex(lrNum, lrDen); // 2/3 exactly, not "0.667"
             const ans = postOdds / (1 + postOdds);
             return {
-              q: R`Before seeing any evidence, the odds in favour of hypothesis \(H\) are ${priorNum} to ${priorDen}. A piece of evidence \(E\) is then observed; it is ${U.fmt(lrNum / lrDen, 3)} times as likely under \(H\) as under \(H^c\) (that is, \(P(E \mid H)/P(E \mid H^c) = ${U.fmt(lrNum / lrDen, 3)}\)). Find the <b>posterior probability</b> \(P(H \mid E)\).`,
+              q: R`Before seeing any evidence, the odds in favour of hypothesis \(H\) are ${priorNum} to ${priorDen}. A piece of evidence \(E\) is then observed; it is \(${lrTex}\) times as likely under \(H\) as under \(H^c\) (that is, \(P(E \mid H)/P(E \mid H^c) = ${lrTex}\)). Find the <b>posterior probability</b> \(P(H \mid E)\).`,
               answer: ans, kind: "prob",
               sol: R`<div class="sol-step">The odds form of Bayes' rule multiplies rather than adds — no LOTP denominator needed:</div>
-                   <div class="sol-step">$$\underbrace{\frac{P(H \mid E)}{P(H^c \mid E)}}_{\text{posterior odds}} = \underbrace{\frac{P(E \mid H)}{P(E \mid H^c)}}_{\text{likelihood ratio}} \times \underbrace{\frac{P(H)}{P(H^c)}}_{\text{prior odds}} = ${U.fmt(lrNum / lrDen, 3)} \times \frac{${priorNum}}{${priorDen}} = ${U.fmt(postOdds, 4)}$$</div>
+                   <div class="sol-step">$$\underbrace{\frac{P(H \mid E)}{P(H^c \mid E)}}_{\text{posterior odds}} = \underbrace{\frac{P(E \mid H)}{P(E \mid H^c)}}_{\text{likelihood ratio}} \times \underbrace{\frac{P(H)}{P(H^c)}}_{\text{prior odds}} = ${lrTex} \times \frac{${priorNum}}{${priorDen}} = ${U.fmt(postOdds, 4)}$$</div>
                    <div class="sol-step">Convert odds back to a probability with \(P = \frac{\text{odds}}{1 + \text{odds}}\): $$P(H \mid E) = \frac{${U.fmt(postOdds, 4)}}{1 + ${U.fmt(postOdds, 4)}} \approx ${U.fmt(ans)}$$</div>`,
             };
           },
@@ -1226,7 +1229,7 @@
         {
           name: "Given a specific labelled item",
           make() {
-            const r = U.randInt(2, 6), b = U.randInt(2, 6), n = r + b, k = U.randInt(2, Math.min(4, n - 2));
+            const r = U.randInt(2, 6), b = U.randInt(2, 6), n = r + b, k = U.randInt(2, Math.min(4, r)); // k <= r, or "all red" is impossible
             // P(all k red | R1 in sample) = C(r-1, k-1) / C(n-1, k-1)
             const ans = U.choose(r - 1, k - 1) / U.choose(n - 1, k - 1);
             return {
@@ -1411,7 +1414,7 @@
     {
       when: R`"given that", "if we know", "among those who…", "of the people who…"`,
       use: R`Definition \(P(A \mid B) = \frac{P(A \cap B)}{P(B)}\)`,
-      why: R`The conditioning event becomes the new sample space; divide the overlap by it. In a two-way table this is just "row total" instead of "grand total".`,
+      why: R`The conditioning event becomes the new sample space; divide the overlap by it. In a two-way table this is just the conditioning row's or column's total instead of the grand total.`,
     },
     {
       when: R`you are given \(P(B)\) and \(P(A \mid B)\) and asked for the overlap`,
