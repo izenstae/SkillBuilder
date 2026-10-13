@@ -1,5 +1,5 @@
 /* ============================================================
-   LANGUAGE ENGINE: shared by Swedish and Hebrew
+   LANGUAGE ENGINE: shared by Swedish, Hebrew and Spanish
    The unit of learning is the word (or phrase), each on its own
    spaced-repetition schedule. The form of the question hardens
    as the word climbs the boxes, which is the "desirable
@@ -23,6 +23,7 @@ function lgStrip(s) { return String(s || "").replace(LG_MAQAF, " ").replace(LG_N
 function lgNorm(s, lang) {
   s = String(s == null ? "" : s).normalize("NFC").trim().toLowerCase();
   s = s.replace(/\(.*?\)/g, "");                               /* "(to) run" -> "run" */
+  s = s.replace(/[‘’]/g, "'");                                /* phone keyboards type curly apostrophes */
   if (lang === "he") { s = lgStrip(s).replace(/[ךםןףץ]/g, function (c) { return LG_FINALS[c]; }); s = s.replace(/[׳״'"]/g, ""); }
   s = s.replace(/[.,!?¿¡;:"“”„«»…–—]/g, " ").replace(/\s+/g, " ").trim();
   return s;
@@ -257,9 +258,11 @@ function lgNumberWords(lang, n) {
   if (n < 20) return hTeens[n - 10];
   if (n < 100) return hTens[(n / 10) | 0] + (n % 10 ? " ו" + hOnes[n % 10] : "");
   if (n === 100) return "מאה";
-  if (n < 200) return "מאה ו" + lgNumberWords("he", n % 100);
-  if (n < 300) return "מאתיים" + (n % 100 ? " ו" + lgNumberWords("he", n % 100) : "");
-  if (n < 1000) return hOnes[(n / 100) | 0].replace("שלוש", "שלוש").replace("ארבע", "ארבע") + " מאות" + (n % 100 ? " ו" + lgNumberWords("he", n % 100) : "");
+  /* ו joins only the last part: 125 is מאה עשרים וחמש, but 120 is מאה ועשרים and 115 מאה וחמש עשרה */
+  var rest = function (r) { return r ? (r > 20 && r % 10 ? " " : " ו") + lgNumberWords("he", r) : ""; };
+  if (n < 200) return "מאה" + rest(n % 100);
+  if (n < 300) return "מאתיים" + rest(n % 100);
+  if (n < 1000) return hOnes[(n / 100) | 0] + " מאות" + rest(n % 100);
   return "אלף" + (n % 1000 ? " ו" + lgNumberWords("he", n % 1000) : "");
 }
 
