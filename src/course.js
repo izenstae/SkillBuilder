@@ -59,7 +59,7 @@ var LESSONS_0 = [
         "But K Q J T are all diamonds and your ace is a heart, so you have no flush. Anyone holding a single diamond does, and it beats your straight."
       ],
       punch:"You made the nut straight using one card. And notice that anyone holding a single diamond has a flush, which beats you. The board did most of the work and that means it did it for everyone." },
-    { t:"warn", x:"When the board itself makes a strong hand, it makes it for the whole table. Five cards on the board that make a straight mean everyone chops. A pair on the board means everyone's two pair is live. Always ask what the board gives away for free." },
+    { t:"warn", x:"When the board itself makes a strong hand, it makes it for the whole table. Five cards on the board that make a straight mean everyone chops unless someone can beat it. A pair on the board means everyone's two pair is live. Always ask what the board gives away for free." },
     { t:"key", x:"Best five of seven. Your two cards are ingredients, not a hand. If the board is better than what you can build, you play the board and so does everyone else." },
     { t:"how", drill:"Read your hand", ask:"What is your best five card hand?",
       steps:[
@@ -83,7 +83,7 @@ var LESSONS_0 = [
       ["Turn","Your 2 + 4","Bets get big. Draws get expensive."],
       ["River","Your 2 + 5","No more cards. Pure value or pure bluff."]
     ], caption:"On every street you may check, bet, call, raise or fold. The hand ends when everyone but one folds, or at showdown after the river." },
-    { t:"p", x:"Position is the order you act in, and it is fixed for the whole hand. Acting last means you have watched everyone else before you decide. In a game of incomplete information, being last is a permanent, structural information advantage, and it is worth more than most of the card advantages you will ever hold." },
+    { t:"p", x:"Position is the order you act in, and from the flop on it is fixed for the rest of the hand. Acting last means you have watched everyone else before you decide. In a game of incomplete information, being last is a permanent, structural information advantage, and it is worth more than most of the card advantages you will ever hold." },
     { t:"p", x:"That is not a soft claim about comfort. The player in position sees a strictly larger information set at every decision node. Winrates by seat show it plainly: the same player, same cards, makes several big blinds per hundred more from the button than from early position. Nothing changed except who spoke last." },
     { t:"warn", x:"Beginners play too many hands from bad positions because the cards look nice. The cards are a small part of the equation. A mediocre hand acting last is often better than a good hand acting first." },
     { t:"key", x:"Four streets, and the button acts last on all of them but the first. If you take one strategic habit from this whole stage, make it playing more hands in position and fewer out of it." },
@@ -148,7 +148,7 @@ var LESSONS_2 = [
       ],
       bar:{ fill:50, tick:null, fillLabel:"8 of 16 AK combos survive", tickLabel:"" },
       punch:"Meanwhile his pocket pairs barely moved. So the composition of his range changed, not just its size, and the hands that got rarer are the ones that beat you." },
-    { t:"p", x:"The general rule: seeing a card of rank R kills a quarter of the two-card holdings that need one specific R, half of the ones that need two, and one third of the six combos of pocket RR. It hits the hands that are most specific about that rank hardest, which is usually the top of his range." },
+    { t:"p", x:"The general rule: seeing a card of rank R kills a quarter of the two-card holdings that need one R, and half of the six combos of pocket RR. It hits the hands that are most specific about that rank hardest, which is usually the top of his range." },
     { t:"tbl", head:["He needs","You hold one","Effect"], rows:[
       ["AK, one ace","the ace of spades","16 -> 12 combos, down 25%"],
       ["AA, both aces","the ace of spades","6 -> 3 combos, down 50%"],
@@ -184,7 +184,7 @@ var LESSONS_2 = [
       bar:{ fill:0, tick:null, fillLabel:"zero nut flushes available to him", tickLabel:"" },
       punch:"So when you shove here as a bluff, he cannot have the one hand that calls with total confidence. Your seven of diamonds is irrelevant and your ace of spades is worth more than a pair." },
     { t:"p", x:"This flips the naive intuition about which hands make good bluffs. The best bluffing candidate is not the hand with the least equity. It is the hand that removes the most combos from his calling range while having little showdown value of its own. Blockers are why a solver bluffs with hands that look like nothing and gives up with hands that look better." },
-    { t:"warn", x:"Blockers cut both ways and beginners only see one edge. Holding the ace of spades also means you cannot be called by worse flushes, and it means his range is now weighted toward the hands you did not block. Removal changes the whole conditional distribution, not just the part you were hoping for." },
+    { t:"warn", x:"Blockers cut both ways and beginners only see one edge. Holding the ace of spades does nothing to stop worse flushes calling you, and it means his range is now weighted toward the hands you did not block. Removal changes the whole conditional distribution, not just the part you were hoping for." },
     { t:"key", x:"Ask two questions before every bluff: what does my hand remove from his continuing range, and what does it leave behind. If the answer is nothing, pick a different bluff." },
     { t:"how", drill:"Blockers", ask:"How many ace-high flush combos can he have?",
       steps:[
@@ -214,7 +214,7 @@ var LESSONS_2 = [
       ],
       bar:{ fill:6, tick:null, fillLabel:"1 of 16 combos beat you", tickLabel:"" },
       punch:"You are good or chopping 94% of the time against the range you gave him. If you were about to fold this to a big bet, you were not making a read, you were making an arithmetic error." },
-    { t:"p", x:"Notice what happened. Your own two cards removed five of his eighteen pair combos, including five sixths of the aces. The hand that beat you got rare precisely because you held the cards it needed. That is the payoff of Stage 3, and it is why you cannot do this by feel." },
+    { t:"p", x:"Notice what happened. Your two cards and the board's ace removed eight of his eighteen pair combos, including five sixths of the aces. The hand that beat you got rare precisely because you held the cards it needed. That is the payoff of Stage 3, and it is why you cannot do this by feel." },
     { t:"key", x:"Every river decision is a counting problem with a small number of combos in it. If you find yourself agonising, you have stopped counting and started imagining." },
     { t:"how", drill:"What beats you", ask:"How many of his combos beat you right now?",
       steps:[
@@ -393,7 +393,7 @@ var LESSONS_3 = [
     { t:"p", x:"Every combo pair that survives card removal is one deal, its showdown decided once against the fixed board and cached. The solver sweeps all of them each iteration, exactly as Leduc sweeps its 120. Type any two ranges and any board below and it solves the spot you type." },
     { t:"lab", kind:"river" },
     { t:"p", x:"Read the top table first. The value hands jam the pot, the pure air jams the pot, and the medium hands check. That is polarisation, and it is the single most important idea about betting: a bet says my hand is either very good or very bad, because those are the two kinds of hand that want to make the pot bigger. Nobody wrote that rule into the solver. It is regret matching discovering that betting your middling hands only gets called by better and folds out worse." },
-    { t:"p", x:"Now the bottom table, which is Stage 4 and Stage 3 in the same picture. Against a pot-size bet the price is alpha equals one third, so you defend about two thirds or you are exploitable to any two cards. But the solver does not defend two thirds of every hand equally. It keeps the bluff-catchers that hold a card the value bets need, and folds the ones that do not. Minimum defence frequency told you how much to call. Card removal told you which hands. Neither alone is the answer." },
+    { t:"p", x:"Now the bottom table, which is Stage 4 and Stage 3 in the same picture. Against a pot-size bet the price is alpha equals one third, so you defend half or you are exploitable to any two cards. But the solver does not defend two thirds of every hand equally. It keeps the bluff-catchers that hold a card the value bets need, and folds the ones that do not. Minimum defence frequency told you how much to call. Card removal told you which hands. Neither alone is the answer." },
     { t:"p", x:"The two switches above the numbers are the road to a production solver, and both are now live. Engine flips between Enumerate, which sweeps every deal exactly, and Monte Carlo, which samples one deal an iteration: the same equilibrium, reached by drawing hands instead of grinding through all of them, which is what lets it take ranges the enumerator refuses. Buckets is abstraction: group the combos into a handful of strength classes and the info-set count collapses, at the cost of a slightly higher exploitability floor. Toggle them and watch the info-set count and the floor move." },
     { t:"warn", x:"Enumeration still floors out around a hundredth of a chip because it sweeps every deal, and Monte Carlo trades that exactness for reach: it is noisy early and needs tens of thousands of iterations, but a range that is 47,000 combo pairs wide, where one enumerated sweep would crawl, is nothing to it. Neither is a different idea. Both are the same regret matching from Kuhn, made to scale." },
     { t:"key", x:"You have now built the thing that sells for a subscription. A real board, two real ranges, exact best-response exploitability, sampling and abstraction on a switch, and a strategy that polarises and defends by blockers without being told to. The one thing still missing is a second street: on the river nothing is coming, so there is nothing to back up. Deal the turn and that changes." }
@@ -464,7 +464,7 @@ var LESSONS_4 = [
       ],
       bar:{ fill:6.5, tick:null, fillLabel:"129,600 hands on a 2,000,000 scale", tickLabel:"" },
       punch:"And that is for a strong winrate. A 2 bb/100 grinder needs 810,000 hands. A 1 bb/100 edge needs 3.2 million, which is a career, by which time the games have changed and the edge you measured no longer exists." },
-    { t:"p", x:"The quadratic is what does the damage. Halving your edge quadruples the sample. This is the same reason a strategy with a 0.3 Sharpe needs a decade of daily data and one with 1.5 needs a year, and it is why nobody sensible evaluates a system on its P&L alone." },
+    { t:"p", x:"The quadratic is what does the damage. Halving your edge quadruples the sample. This is the same reason a strategy with a 0.6 Sharpe needs a decade of daily data and one with 2 needs a year, and it is why nobody sensible evaluates a system on its P&L alone." },
     { t:"p", x:"Which leads somewhere useful rather than despairing. If results cannot tell you whether you are good inside any reasonable horizon, then results are the wrong instrument. You have to evaluate your decisions directly against a benchmark, hand by hand, which is what solvers and database work are for. Process, not P&L. You have heard this before in another context." },
     { t:"key", x:"n scales with the square of the noise to signal ratio. Six figures of hands to prove a good winrate, seven to prove a small one. Almost nobody has the sample they think they have." },
     { t:"how", drill:"Sample size", ask:"How many hands before this winrate is distinguishable from zero?",
@@ -521,9 +521,9 @@ var LESSONS_4 = [
         "Which means a bankroll of about 1,620 bb, or 16 buyins, is full Kelly for this edge."
       ],
       bar:{ fill:62, tick:null, fillLabel:"full Kelly at roughly 16 buyins", tickLabel:"" },
-      punch:"And now you can see where 20 to 40 buyins comes from. It is not a superstition. It is roughly half to quarter Kelly, which is what anyone sane runs when the edge itself is an estimate." },
+      punch:"And now you can see where 20 to 40 buyins comes from. It is not a superstition. It is roughly 0.8 down to 0.4 of full Kelly, fractional Kelly, which is what anyone sane runs when the edge itself is an estimate." },
     { t:"p", x:"The reason nobody plays full Kelly is the same reason nobody runs a book at full Kelly. Full Kelly maximises log growth on the assumption your edge estimate is exact. It is not exact, you established that two lessons ago, and Kelly is brutally asymmetric about overestimation: bet twice the optimal fraction and your growth rate goes to zero, not to double." },
-    { t:"p", x:"Half Kelly gives up 25% of the growth rate for roughly half the volatility and a far shorter drawdown. Quarter Kelly gives up 44% of growth and makes the ride survivable by a human being. Since your edge estimate has a standard error the size of the edge, fractional Kelly is not caution. It is the correct answer to a parameter you do not know." },
+    { t:"p", x:"Half Kelly gives up 25% of the growth rate for roughly half the volatility and a far shorter drawdown. Quarter Kelly gives up 56% of growth and makes the ride survivable by a human being. Since your edge estimate has a standard error the size of the edge, fractional Kelly is not caution. It is the correct answer to a parameter you do not know." },
     { t:"key", x:"f* = edge / variance, then divide by two or four because you do not know your edge. That is the entire theory of bankroll management." },
     { t:"how", drill:"Kelly", ask:"How big a bankroll, in big blinds, does full Kelly call for?",
       steps:[
