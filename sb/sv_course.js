@@ -30,7 +30,7 @@
   add({ id: "sv_alpha", mode: "svletter", pass: 7, of: 10, title: "The nine vowels", sub: "Why Swedish sounds the way it does",
     gist: "Swedish has 29 letters and nine vowels, each with a long and a short version. Get these right first and everything after is spelled the way it sounds.",
     blocks: [
-      { t: "p", x: "Swedish spelling is honest: once you know what each letter does, you can read a word you have never seen and say it right. The whole difficulty sits in nine vowels, three of which do not exist in English, and in a handful of consonant rules. Train the ear first. The Foreign Service Institute, Pimsleur and every modern method agree on the order: sounds, then words, then grammar." },
+      { t: "p", x: "Swedish spelling is honest: once you know what each letter does, you can read a word you have never seen and say it right. The whole difficulty sits in nine vowels, three of which do not exist in English, and in a handful of consonant rules. Train the ear first. Most structured courses, Pimsleur among them, start the same way: sounds, then words, then grammar." },
       { t: "tbl", head: ["Letter", "Sound"], rows: SV_LETTERS },
       { t: "rule", x: "a vowel is LONG before one consonant, SHORT before two\nglas (glaas) vs glass (glass) · tak (taak) vs tack (tack)", note: "Length is phonemic: it changes the word. A long vowel is also tenser and often a different quality, so vit (white) and vitt (white, ett-form) differ in both length and colour." },
       { t: "p", x: "The three extra letters sort at the end of the alphabet: å, ä, ö. They are not decorated a's and o's. Å is the vowel of English 'more'; ä is the vowel of 'bed' or 'air'; ö is 'ea' in 'earn' with rounded lips. Y is the hardest for English speakers: say 'ee' and round your lips as if to whistle." },
@@ -164,13 +164,13 @@
       { t: "key", x: "Preteritum for a finished time (igår). Perfekt (har + supine) for a link to now. Group 1: -ade / -at." },
       { t: "how", drill: "Tenses", ask: "Put the sentence in the past, the perfect, or the future.", steps: ["Find the verb and its group.", "Preteritum: the group's past ending. Perfekt: har + supine.", "Future: ska + infinitive, or kommer att + infinitive."], tip: "Strong verbs come in families: skriva/skrev/skrivit, driva/drev/drivit, bita/bet/bitit. Learn one, get five." }
     ] });
-  add({ id: "sv_mod", mode: "svtense", pass: 7, of: 10, title: "Future and modals", sub: "ska, kommer att, vill, kan, måste, bör", gist: "Future is 'ska' (intention) or 'kommer att' (prediction). Modals take a bare infinitive.",
+  add({ id: "sv_mod", mode: "svfut", pass: 7, of: 10, title: "Future and modals", sub: "ska, kommer att, vill, kan, måste, bör", gist: "Future is 'ska' (intention) or 'kommer att' (prediction). Modals take a bare infinitive.",
     blocks: [
       { t: "p", x: "Swedish has no future tense ending. 'Ska' expresses intention or plan: Jag ska åka till Stockholm. 'Kommer att' expresses prediction: Det kommer att regna. In speech the present tense with a time word is the most common future of all: Jag åker imorgon." },
       { t: "tbl", head: ["Modal", "Meaning", "Example"], rows: [["kan", "can, is able", "Jag kan simma."], ["vill", "wants to (never 'will'!)", "Jag vill äta."], ["ska", "shall, is going to", "Vi ska spela."], ["måste", "must", "Du måste komma."], ["får", "may, is allowed to", "Får jag fråga?"], ["bör / borde", "should / ought to", "Du borde sova."], ["behöver", "needs to", "Jag behöver inte gå."]] },
       { t: "rule", x: "modal + bare infinitive (no 'att')\nJag vill äta. · Vi måste gå. · Hon kan komma.", note: "'Vill' means want. 'Jag vill komma' is 'I want to come', not 'I will come'. The false friend costs everyone once." },
       { t: "key", x: "Ska = intention, kommer att = prediction, present + time word = everyday future. Modals take the bare infinitive." },
-      { t: "how", drill: "Tenses", ask: "Put the sentence in the future.", steps: ["ska and kommer att + infinitive are both accepted, except for a prediction like 'I will be tired', which takes kommer att.", "Watch the infinitive: no -r, and no 'att' after ska."], tip: "Listen for how rarely Swedes say 'ska': the present tense does most of the work." }
+      { t: "how", drill: "Future", ask: "Put the sentence in the future.", steps: ["ska and kommer att + infinitive are both accepted, except for a prediction like 'I will be tired', which takes kommer att.", "Watch the infinitive: no -r, and no 'att' after ska."], tip: "Listen for how rarely Swedes say 'ska': the present tense does most of the work." }
     ] });
   add({ id: "sv_biff", mode: "svbiff", pass: 7, of: 10, title: "Subordinate clauses and BIFF", sub: "I bisats kommer inte före det finita verbet", gist: "After att, om, eftersom, som and the rest, 'inte' moves in front of the verb. Swedish teachers call it BIFF.",
     blocks: [
@@ -199,7 +199,7 @@
       { t: "p", x: "How to use it: read the partner's line (and listen, if a voice is installed), then type your reply, or speak it if the device can listen. The grader checks that your reply does what the turn asks: it is lenient about wording and strict about function. Then compare with the model answer and say it aloud. Repeat the scenario until you can do it without the hints, then without looking at the partner's text." },
       { t: "key", x: "A conversation a day. Say every model answer out loud three times. Shadow the partner's lines: repeat them half a second behind the voice." }
     ] });
-  add({ id: "sv_shadow", mode: "none", title: "Shadowing and the voice", sub: "Train the mouth, not just the eye", gist: "Shadowing: repeat native speech a half-second behind it, matching rhythm and melody. Twenty minutes a day is the single most effective pronunciation method known.",
+  add({ id: "sv_shadow", mode: "none", title: "Shadowing and the voice", sub: "Train the mouth, not just the eye", gist: "Shadowing: repeat native speech a half-second behind it, matching rhythm and melody. Twenty minutes a day is one of the most practical ways to improve pronunciation and rhythm on your own.",
     blocks: [
       { t: "p", x: "Alexander Arguelles' shadowing technique, now backed by a body of research on pronunciation and listening fluency, is simple: play natural speech and speak along with it, slightly behind, copying the melody rather than thinking about the words. Do it walking, at full voice. The app's listening drills and dialogues are shadowable if a Swedish voice is installed; for real speech, the sources below are free." },
       { t: "tbl", head: ["Source", "What it is"], rows: [["Sveriges Radio: Radio Sweden på lätt svenska", "News in slow, simple Swedish, daily. The best A2–B1 listening there is."], ["SVT Play: Nyheter på lätt svenska", "Short TV news in easy Swedish, with subtitles."], ["8 Sidor", "A newspaper written in plain Swedish, with audio."], ["UR Språkplay", "Swedish TV with learner subtitles and word lookup."], ["SVT Play, SR", "Everything else: dramas, podcasts, sport. Hockey commentary is excellent shadowing material because you know what is happening."]] },
@@ -234,7 +234,7 @@
       { t: "p", x: "The honest picture. The US Foreign Service Institute, which has trained diplomats in Swedish for seventy years with the most intensive method ever run at scale (and is what people usually mean by 'the CIA method'), puts Swedish in its easiest category: about 600–750 classroom hours to professional working proficiency, roughly C1. That is with five hours of class a day plus homework. There is no shortcut around the hours; there are shortcuts around wasting them, and they are built into this course: spaced retrieval, speed gates, interleaving, output with feedback, and sounds before words before grammar." },
       { t: "tbl", head: ["Level", "What it looks like", "Hours (rough)", "What to do"], rows: [["A1–A2", "Survive: order, ask, introduce", "0–150", "This course's stages 0–5, daily reviews"], ["B1", "Hold a conversation, read easy news", "150–350", "Readers here, then 8 Sidor daily; one scripted dialogue a day; shadowing"], ["B2", "Fluent conversation, native TV with subtitles", "350–600", "An hour of native input a day (SVT, SR); write 100 words a day; a tutor or tandem partner twice a week"], ["C1", "Professional use, argue, read anything", "600–900", "Native input without subtitles, books, long-form podcasts; speak daily; study register and idiom"], ["C2", "Near-native nuance", "1000+", "Live in the language: read widely, write for real readers, get corrected by natives"]] },
       { t: "rule", x: "the level model = words known + grammar passed + applied skill + logged hours\nhours count toward 700, the FSI estimate", note: "Log every minute of real input and output on the Level page. The drills get you to B1; the log is what gets you past it, and the calendar schedules it like any other session." },
-      { t: "p", x: "Tandem speaking without immersion: find a Swede learning English (Tandem, HelloTalk, or the Swedish Hockey League's English-speaking fan forums) and trade thirty minutes each way, twice a week. Record yourself. Shadow the recording. It is the closest thing to immersion that exists outside Sweden, and the research on output and interaction says it is most of what immersion does anyway." },
+      { t: "p", x: "Tandem speaking without immersion: find a Swede learning English (Tandem, HelloTalk, or an online exchange community such as Reddit's language-exchange forums) and trade thirty minutes each way, twice a week. Record yourself. Shadow the recording. It is one of the closest things to immersion available outside Sweden, and research on output and interaction suggests it supplies much of what immersion does." },
       { t: "key", x: "After B1: an hour of native input a day, written output daily, spoken output twice a week with a native, everything logged. The calendar will hold you to it." }
     ] });
 
@@ -253,6 +253,13 @@
   /* ---------------- drills ---------------- */
   function pick(a, rnd) { return a[((rnd || Math.random)() * a.length) | 0]; }
   function tts(text, caps) { return caps && caps.tts ? { text: text, lang: "sv-SE" } : null; }
+  /* k: 1 past, 2 perfect, 3 future */
+  function tenseQ(ctx, k) {
+    var r = pick(SV_TENSE, ctx.rnd), names = ["", "past (preteritum)", "perfect (perfekt)", "future"];
+    var acc = [r[k]]; if (k === 3) acc.push(r[3].replace(" ska ", " kommer att "));
+    return { kind: "text", question: "Put it in the <b>" + names[k] + "</b>: <b class='tw'>" + r[0] + "</b> <small>(" + r[4] + ")</small>", answer: r[k], accept: acc, target: 12,
+      explain: ["<b>" + r[k] + "</b>", "Present: " + r[0] + " · Past: " + r[1] + " · Perfect: " + r[2] + " · Future: " + r[3]], speakAfter: tts(r[k], ctx.caps) };
+  }
   var DRILLS = {
     svletter: { name: "Letters", target: 6, gen: function (ctx) {
       var row = pick(SV_LETTERS, ctx.rnd);
@@ -293,12 +300,8 @@
       return { kind: "text", question: (ask === 1 ? "Make it a yes/no question: " : "Make it negative: ") + "<b class='tw'>" + r[0] + "</b> <small>(" + r[3] + ")</small>", answer: r[ask], accept: [r[ask]], target: 10,
         explain: ["<b>" + r[ask] + "</b>", ask === 1 ? "Question: the verb moves to the front, the subject follows." : "Negation: inte goes straight after the verb in a main clause."], speakAfter: tts(r[ask], ctx.caps) };
     } },
-    svtense: { name: "Tenses", target: 12, gen: function (ctx) {
-      var r = pick(SV_TENSE, ctx.rnd), k = 1 + ((ctx.rnd() * 3) | 0), names = ["", "past (preteritum)", "perfect (perfekt)", "future"];
-      var acc = [r[k]]; if (k === 3) acc.push(r[3].replace(" ska ", " kommer att "));
-      return { kind: "text", question: "Put it in the <b>" + names[k] + "</b>: <b class='tw'>" + r[0] + "</b> <small>(" + r[4] + ")</small>", answer: r[k], accept: acc, target: 12,
-        explain: ["<b>" + r[k] + "</b>", "Present: " + r[0] + " · Past: " + r[1] + " · Perfect: " + r[2] + " · Future: " + r[3]], speakAfter: tts(r[k], ctx.caps) };
-    } },
+    svtense: { name: "Tenses", target: 12, gen: function (ctx) { return tenseQ(ctx, 1 + ((ctx.rnd() * 3) | 0)); } },
+    svfut: { name: "Future", target: 12, gen: function (ctx) { return tenseQ(ctx, 3); } },
     svbiff: { name: "Clauses", target: 8, gen: function (ctx) {
       var r = pick(SV_BIFF, ctx.rnd), right = r[1];
       /* build the wrong version by swapping inte and the verb */
@@ -372,7 +375,7 @@
     { g: "Past B2", items: [
       ["Pippi Långstrump, then Män som hatar kvinnor", "Astrid Lindgren for the first novel; Stieg Larsson once you can read a page without the dictionary."],
       ["SVT Play and SR Play", "Everything Swedish television and radio make, free, with subtitles. Hockey is on both."],
-      ["Swedex / TISUS", "The official Swedish proficiency tests, if you want a certificate to aim at."]
+      ["TISUS", "The official test of Swedish for university studies (roughly B2/C1), if you want a certificate to aim at."]
     ] }
   ];
 
