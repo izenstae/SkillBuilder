@@ -17,7 +17,7 @@
         { t: "key", x: "Read each word aloud, cover the meaning, say it, uncover. Then the other way. Thirty words take ten minutes; the checkpoint tests recognition, and the schedule takes it from there." },
         { t: "how", drill: "Vocabulary", ask: "What does this word mean? Which word means this? Type it. Fill the gap. Type what you heard. Say it.",
           steps: ["Each word is its own skill on the schedule. Early reviews ask you to recognise it; later ones make you produce it, spell it into a sentence, hear it and say it.",
-            "Typing without the accent is marked wrong on purpose: å, ä and ö are different letters, and tak (roof) is not tack (thanks).",
+            "Typing without the accent is marked wrong on purpose: å, ä and ö are different letters, and har (has) is not här (here).",
             "If the device has a Swedish voice, the word is spoken; listen first, then look."],
           tip: "Say the example sentence out loud every time. The word comes back with its company, which is how native speakers hold it." }
       ]) };
