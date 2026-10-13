@@ -182,7 +182,7 @@ function genPosition() {
       "The chart used across this course: UTG " + pctFmt(rangePct(RFI.UTG), 0) + ", HJ " + pctFmt(rangePct(RFI.HJ), 0) +
         ", CO " + pctFmt(rangePct(RFI.CO), 0) + ", BTN " + pctFmt(rangePct(RFI.BTN), 0) + ", SB " + pctFmt(rangePct(RFI.SB), 0) + ".",
       "Fewer players behind you means fewer who can wake up with a hand, and a better chance of acting last after the flop.",
-      "Roughly: the range doubles from UTG to the cutoff and doubles again on the button."
+      "Roughly: the cutoff opens " + (rangePct(RFI.CO) / rangePct(RFI.UTG)).toFixed(1) + "× as many hands as UTG, and the button " + (rangePct(RFI.BTN) / rangePct(RFI.CO)).toFixed(1) + "× as many as the cutoff."
     ]
   };
 }
@@ -331,6 +331,8 @@ function genRFI() {
       pos + " chart (" + pctFmt(pct, 0) + "): " + RFI[pos] + ".",
       hand + (open ? " is in it: raise." : " is not: fold."),
       open ? "Hands at the edge of a chart are close to break-even; the chart draws the line where raising stops beating folding."
+           : pos === "BTN" ? "Even on the button, with only the blinds left to act, it loses more than folding."
+           : pos === "SB" ? "The button opens it, because it is in position after the flop; from the small blind you play every street out of position against the big blind."
            : "It would be an open from a later seat, where fewer players are left to wake up with a hand and you are more often in position."
     ]
   };
@@ -432,7 +434,7 @@ function genEQR() {
     math: [
       "Realised equity = " + eq + "% × " + R2 + " = " + eff.toFixed(1) + "%.",
       "Price = " + money(bet) + " / " + money(pot + 2 * bet) + " = " + price.toFixed(1) + "%.",
-      call ? "Realised equity clears the price: call." : "Raw equity alone would look fine or close, but what you actually collect falls short: fold."
+      call ? "Realised equity clears the price: call." : (eq >= price ? "Raw equity alone would clear the price, but what you actually collect falls short: fold." : "Even raw equity misses the price" + (R2 < 1 ? ", and realisation only widens the gap" : "") + ": fold.")
     ]
   };
 }

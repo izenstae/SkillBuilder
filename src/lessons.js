@@ -77,14 +77,14 @@ var LESSONS_1 = [
       ],
       bar:{ fill:35, tick:null, fillLabel:"you get there", tickLabel:"" },
       punch:"You did that in two seconds and you were off by three hundredths of a point. There is no spot at any table where that error changes a decision." },
-    { t:"key", x:"9 outs: 19% one card, 35% two. 8 outs: 17% and 31%. 4 outs: 9% and 17%. Those six numbers cover most of your drawing life." },
+    { t:"key", x:"9 outs: 19% one card, 35% two. 8 outs: 17% and 31%. 4 outs: 9% and 16.5%. Those six numbers cover most of your drawing life." },
     { t:"how", drill:"Outs to equity", ask:"How often do you hit at least one out?",
       steps:[
         "You are given a number of outs and a street line. Read the street line first: it tells you whether one more card is coming or two.",
         "Two cards to come: multiply outs by 4. One card to come: multiply outs by 2. That is the whole calculation.",
         "If you have more than 8 outs and both cards are coming, subtract one point for each out above 8, because the rule of 4 runs high up there. Then enter it."
       ],
-      tip:"Memorise three rows and you rarely have to multiply: 9 outs is 35% (two cards) or 19% (one), 8 outs is 31% or 17%, 4 outs is 17% or 9%. Most drawing spots are one of these." }
+      tip:"Memorise three rows and you rarely have to multiply: 9 outs is 35% (two cards) or 19% (one), 8 outs is 31% or 17%, 4 outs is 16.5% or 9%. Most drawing spots are one of these." }
   ]
 },
 {
@@ -141,7 +141,7 @@ var LESSONS_1 = [
         "They must fold 40% of the time for this to break even."
       ],
       bar:{ fill:40, tick:null, fillLabel:"folds needed to break even", tickLabel:"" },
-      punch:"Ask yourself honestly: out of every ten times, does this player really pass six? If yes, the bluff loses. That is now a question about him, not about you." },
+      punch:"Ask yourself honestly: out of every ten times, does this player really fold four? If not, the bluff loses. That is now a question about him, not about you." },
     { t:"p", x:"Now add cards to it. If you have a draw, the times they call are not all losses, and every point of equity when called buys you back fold equity you no longer need." },
     { t:"ex", title:"Worked example: semi-bluff",
       facts:[["Pot","$90"],["Your bet","$60"],["Equity when called","20%"]],
@@ -254,7 +254,7 @@ var LESSONS_1 = [
       ],
       bar:{ fill:30, tick:29, fillLabel:"your equity", tickLabel:"price of the call" },
       punch:"Four seconds. And notice you never needed to know if you were ahead. You are not. It does not matter." },
-    { t:"warn", x:"Round aggressively. 28.5 becomes 30, 34.97 becomes 35, and the villain's $37 bet into $61 becomes half pot. Every spot where rounding changes your answer was a spot worth almost nothing anyway. Precision is a trap that costs you tempo and tells the table you are thinking." },
+    { t:"warn", x:"Round aggressively. 28.5 becomes 30, 34.97 becomes 35, and the villain's $31 bet into $61 becomes half pot. Every spot where rounding changes your answer was a spot worth almost nothing anyway. Precision is a trap that costs you tempo and tells the table you are thinking." },
     { t:"key", x:"Price, equity, stacks, act. When the two numbers are within a couple of points, stop working. The decision is a coin flip and coin flips are free." },
     { t:"how", drill:"Capstone", ask:"Everything from Stage 1, mixed together, against the clock.",
       steps:[

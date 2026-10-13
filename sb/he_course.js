@@ -52,7 +52,7 @@
   add({ id: "he_read", mode: "heread", pass: 8, of: 10, title: "Reading pointed words", sub: "Put the letters and points together", gist: "Decode real words syllable by syllable until the eye does it alone. Reading is the gateway to every other skill in Hebrew.",
     blocks: [
       { t: "p", x: "Decoding is a skill like any other: it gets automatic with reps and feedback. The drill shows a pointed word and asks for its pronunciation. Go slowly at first; the speed gate tightens as you climb the boxes, and in a few weeks you will read a word before you have consciously seen its letters." },
-      { t: "rule", x: "stress is on the LAST syllable in most words (shaLOM, yeLED is an exception: segolate nouns stress the first)\nthe definite article הַ doubles the next consonant: הַסֵּפֶר = ha-SE-fer", note: "Segolates (two segols: יֶלֶד, סֵפֶר, מֶלֶךְ) stress the first syllable. Everything else, last syllable, unless you are reading Biblical text with its own accents." },
+      { t: "rule", x: "stress is on the LAST syllable in most words (shaLOM; YEled is an exception: segolate nouns stress the first)\nthe definite article הַ doubles the next consonant: הַסֵּפֶר = ha-SE-fer", note: "Segolates (two segols: יֶלֶד, סֵפֶר, מֶלֶךְ) stress the first syllable. Everything else, last syllable, unless you are reading Biblical text with its own accents." },
       { t: "key", x: "Consonant, vowel, consonant, vowel. Stress last unless segolate. The points come off later; the sound stays." },
       { t: "how", drill: "Reading", ask: "How is this word pronounced?", steps: ["Read right to left, one consonant and its vowel at a time.", "Pick the transliteration.", "Say it with the stress on the last syllable."], tip: "Trace the word with a finger as you read: it keeps the eye from jumping ahead." }
     ] });
@@ -66,7 +66,7 @@
     [{ t: "rule", x: "לוֹמֵד (he / I m.) · לוֹמֶדֶת (she / I f.) · לוֹמְדִים (they m. / we) · לוֹמְדוֹת (they f.)", note: "Four forms per verb in the present. That is the whole present tense." }]));
   add({ id: "he_num", mode: "henum", pass: 7, of: 10, title: "Numbers", sub: "Counting, feminine and masculine", gist: "Hebrew numbers have two genders, and the feminine set is the one used for counting. Learn it first.",
     blocks: [
-      { t: "p", x: "Numbers agree with the noun's gender, and, confusingly, the feminine forms are the short ones (אַחַת, שְׁתַּיִם, שָׁלוֹשׁ) while the masculine forms carry an -a ending (אֶחָד, שְׁנַיִם, שְׁלוֹשָׁה). When you count aloud, tell the time or give a phone number, you use the feminine set. Start there." },
+      { t: "p", x: "Numbers agree with the noun's gender, and, confusingly, from three up the feminine forms are the short ones (שָׁלוֹשׁ, אַרְבַּע) while the masculine forms carry an -a ending (שְׁלוֹשָׁה, אַרְבָּעָה); one and two are אַחַת / אֶחָד and שְׁתַּיִם / שְׁנַיִם. When you count aloud, tell the time or give a phone number, you use the feminine set. Start there." },
       { t: "tbl", head: ["Number", "Feminine (counting)", "Masculine"], rows: [["1", "אַחַת", "אֶחָד"], ["2", "שְׁתַּיִם (שְׁתֵּי + noun)", "שְׁנַיִם (שְׁנֵי + noun)"], ["3", "שָׁלוֹשׁ", "שְׁלוֹשָׁה"], ["4", "אַרְבַּע", "אַרְבָּעָה"], ["5", "חָמֵשׁ", "חֲמִשָּׁה"], ["6", "שֵׁשׁ", "שִׁשָּׁה"], ["7", "שֶׁבַע", "שִׁבְעָה"], ["8", "שְׁמוֹנֶה", "שְׁמוֹנָה"], ["9", "תֵּשַׁע", "תִּשְׁעָה"], ["10", "עֶשֶׂר", "עֲשָׂרָה"], ["20", "עֶשְׂרִים", "עֶשְׂרִים"], ["30 … 90", "שְׁלוֹשִׁים, אַרְבָּעִים, חֲמִשִּׁים, שִׁשִּׁים, שִׁבְעִים, שְׁמוֹנִים, תִּשְׁעִים", "same"], ["100", "מֵאָה", "מֵאָה"], ["1000", "אֶלֶף", "אֶלֶף"]], rtl: true },
       { t: "rule", x: "21 = עֶשְׂרִים וְאַחַת (twenty and one)\n11–19 = unit + עֶשְׂרֵה: אַחַת עֶשְׂרֵה, שְׁתֵּים עֶשְׂרֵה", note: "Tens are the same for both genders; the unit after וְ agrees. The time: הַשָּׁעָה שָׁלוֹשׁ = it's three o'clock; שָׁלוֹשׁ וָחֵצִי = half past three." },
       { t: "key", x: "Count in the feminine: achat, shtayim, shalosh, arba, chamesh, shesh, sheva, shmone, tesha, eser. Tens + ve + unit." },
@@ -112,7 +112,7 @@
   add({ id: "he_yesh", mode: "heprep", pass: 7, of: 10, title: "Yesh, ein and the little prepositions", sub: "I have = there is to me", gist: "Hebrew has no verb 'to have'. יֵשׁ לִי is 'there is to me', and the preposition takes a pronoun suffix. The suffix set is the key to half the grammar.",
     blocks: [
       { t: "p", x: "A pronoun after a preposition becomes a suffix on the preposition: לְ + אֲנִי = לִי, שֶׁל + אַתָּה = שֶׁלְּךָ, אֶת + הוּא = אוֹתוֹ. The same ten suffixes recur on nouns (my, your…) and on verbs (me, you…), so this table is worth more than its size." },
-      { t: "tbl", head: ["", "me", "you (m.)", "him", "her", "us", "them"], rows: HE_PREP.rows.map(function (r) { return [r[0] + " (" + r[7] + ")", r[1], r[2], r[3], r[4], r[5], r[6]]; }), rtl: true },
+      { t: "tbl", head: ["", "me", "you (m.)", "him", "her", "us", "them"], rows: HE_PREP.rows.map(function (r) { return [r[0] + "<span class='tgl'>" + r[7] + "</span>", r[1], r[2], r[3], r[4], r[5], r[6]]; }), rtl: true },
       { t: "rule", x: "יֵשׁ לִי כֶּלֶב = I have a dog\nאֵין לִי זְמַן = I have no time\nיֵשׁ לָהּ / יֵשׁ לָהֶם", note: "In the past and future, 'to be' appears: הָיָה לִי (I had), יִהְיֶה לִי (I will have)." },
       { t: "key", x: "Suffixes: -i, -cha, -o, -a, -nu, -hem. Yesh li, ein li. Shel + suffix for 'my, your': ha-sefer sheli." },
       { t: "how", drill: "Prepositions", ask: "Give the preposition with the pronoun attached.", steps: ["Take the preposition's base.", "Add the suffix for the person.", "Some bases change: עַל → עָלַי, מִן → מִמֶּנִּי."], tip: "Point at things and say שֶׁלִּי, שֶׁלְּךָ, שֶׁלּוֹ. Possession is the most frequent use of the suffixes." }
@@ -136,7 +136,7 @@
 
   /* ---------------- stage 3: vocabulary by theme ---------------- */
   add(vocabLesson("he_v5", "Food and drink", "The café, the table, the bill", "Order, shop, and say it was tasty: בְּתֵאָבוֹן.", "Israeli food vocabulary mixes Hebrew, Arabic and the languages of the diaspora: פָלָאפֶל, חוּמוּס, שַׁקְשׁוּקָה need no translation. The Hebrew nouns carry gender in the forms column."));
-  add(vocabLesson("he_v6", "Daily life and the rink", "Routines, clothes, the game", "The hitpa'el verbs of a routine (get up, shower, dress, train) and the words of the game.", "Reflexive routines use the hitpa'el pattern, which starts with מִתְ in the present: מִתְקַלֵּחַ, מִתְלַבֵּשׁ, מִתְאַמֵּן. Spot the pattern and you have three verbs for the price of one."));
+  add(vocabLesson("he_v6", "Daily life and the rink", "Routines, clothes, the game", "The verbs of a routine (get up; the hitpa'el shower, dress, train) and the words of the game.", "Reflexive routines use the hitpa'el pattern, which starts with מִתְ in the present: מִתְקַלֵּחַ, מִתְלַבֵּשׁ, מִתְאַמֵּן. Spot the pattern and you have three verbs for the price of one."));
   add(vocabLesson("he_v7", "Out and about", "Streets, transport, directions", "Asking the way and getting there.", "Direction takes the suffix -ָה: יָמִינָה (to the right), שְׂמֹאלָה (to the left), הַבַּיְתָה (homeward). It is an old accusative ending that survives in a handful of words."));
   add(vocabLesson("he_v8", "Work and study", "The university, the office, right and wrong", "A student's week in Hebrew.", "Many professions have a feminine in -ת or -ית: מוֹרֶה / מוֹרָה, סְטוּדֶנְט / סְטוּדֶנְטִית, רוֹפֵא / רוֹפְאָה. Say the one that is true of you."));
   add(vocabLesson("he_v9", "Body and health", "Hurting, being ill, the doctor", "What hurts and where, for the clinic.", "'It hurts' is כּוֹאֵב לִי + the body part as the subject: כּוֹאֵב לִי הָרֹאשׁ, כּוֹאֶבֶת לִי הַבֶּטֶן (the verb agrees with the body part, which is feminine here)."));
@@ -182,7 +182,7 @@
   add({ id: "he_shadow", mode: "none", title: "Shadowing and native input", sub: "Where to find Hebrew to copy", gist: "Twenty minutes of shadowing a day builds the Israeli rhythm faster than anything else.",
     blocks: [
       { t: "p", x: "Shadow: play native speech and speak along, half a second behind, copying melody and stress rather than parsing. The sources below are free and graded from easy to native." },
-      { t: "tbl", head: ["Source", "What it is"], rows: [["Kan: Chadashot be'ivrit kala", "Israeli public radio's news in easy Hebrew, weekly, with text."], ["Streetwise Hebrew (podcast)", "Guy Sharett. Ten minutes on one word or idiom, in English, with real Israeli audio."], ["Hebrew Time / Teach Me Hebrew", "Beginner podcasts and videos with transcripts."], ["Kan 11 and Kan Box", "Israeli public TV: news, dramas (Shtisel, Fauda, Tehran) with Hebrew subtitles."], ["Pealim.com", "Every verb, every binyan, every form. The verb tables of this course, complete."], ["Sefaria", "The entire Hebrew Bible and rabbinic literature with English, free, for the Biblical track."]] },
+      { t: "tbl", head: ["Source", "What it is"], rows: [["Kan: Chadashot be'ivrit kala", "Israeli public radio's news in easy Hebrew, weekly, with text."], ["Streetwise Hebrew (podcast)", "Guy Sharett. Ten minutes on one word or idiom, in English, with real Israeli audio."], ["Hebrew Time / Teach Me Hebrew", "Beginner podcasts and videos with transcripts."], ["Kan 11 and Kan Box", "Israeli public TV: news and dramas (Tehran, among others) with Hebrew subtitles."], ["Pealim.com", "Every verb, every binyan, every form. The verb tables of this course, complete."], ["Sefaria", "The entire Hebrew Bible and rabbinic literature with English, free, for the Biblical track."]] },
       { t: "rule", x: "daily: 10 min shadowing + 10 min dialogue + reviews\nweekly: 30 minutes of a show with Hebrew subtitles, logged", note: "Log the minutes on the Level page. Hebrew is FSI category III: the hours matter even more than for Swedish." },
       { t: "key", x: "Shadow aloud daily. Log every minute of real Hebrew." }
     ] });
@@ -208,12 +208,12 @@
       { t: "rule", x: "qatal (perfect) = completed: שָׁמַר he kept\nyiqtol (imperfect) = incomplete: יִשְׁמֹר he will keep / keeps\nwayyiqtol (vav-consecutive) = past narrative: וַיִּשְׁמֹר and he kept", note: "The vav-consecutive is why the Bible's stories read as 'and… and… and…'. Each וַיִּ- is a new event in sequence." },
       { t: "key", x: "Verb first. Perfect and imperfect, not tenses. Vav-consecutive drives narrative. The words you know are mostly the same words." }
     ] });
-  add(vocabLesson("bh_v1", "The Bible's most frequent words", "Particles, God, the core verbs", "Thirty words that account for a large share of every page of the Tanakh. Learn these and Genesis 1 opens up.", "Frequency counts over the Hebrew Bible put the conjunction וְ, the article הַ, the prepositions לְ and בְּ, and the object marker אֶת at the top, followed by אֱלֹהִים, יְהוָה and the verbs of saying and being. The examples are verse fragments: you are reading scripture from the first card.", null, B));
+  add(vocabLesson("bh_v1", "The Bible's most frequent words", "Particles, God, the core verbs", "Thirty words that account for a large share of every page of the Tanakh. Learn these and Genesis 1 opens up.", "Frequency counts over the Hebrew Bible put the conjunction וְ, the article הַ, the prepositions לְ and בְּ, and the object marker אֶת at the top, followed by יְהוָה, the verbs of saying and being, and אֱלֹהִים. The examples are verse fragments: you are reading scripture from the first card.", null, B));
   add(vocabLesson("bh_v2", "The Bible's most frequent words, two", "Pronouns, adjectives, the big nouns", "Covenant, soul, spirit, name, law: the nouns of the text's main themes, with the particles that join clauses.", "Note the relative particle אֲשֶׁר (modern שֶׁ-), כִּי doing the work of 'because', 'that' and 'when', and עוֹלָם meaning 'forever' rather than 'world'. Meanings drift; the frequent words drift most.", null, B));
   add(vocabLesson("bh_v3", "Verbs of the narrative", "Created, called, went, took", "The verbs that carry the stories, each shown in its vav-consecutive form as it appears in the text.", "Each verb is listed as the 3ms perfect (he did), the dictionary form, with the wayyiqtol in the example. Learn both shapes: בָּרָא / וַיִּבְרָא, קָרָא / וַיִּקְרָא, הָלַךְ / וַיֵּלֶךְ. The weak roots (ending in ה, beginning with י or נ) bend the most.", null, B));
   add({ id: "bh_qal", mode: "bhqal", pass: 7, of: 10, title: "The Qal perfect and imperfect", sub: "שָׁמַר / יִשְׁמֹר", gist: "The strong verb paradigm every grammar begins with. The suffixes of the perfect and the prefixes of the imperfect are the same ones modern Hebrew uses for past and future.",
     blocks: [
-      { t: "p", x: "You already know most of this table: the perfect's suffixes are the modern past (-תִּי, -תָּ, -ָה, -נוּ, -וּ) and the imperfect's prefixes are the modern future (אֶ-, תִּ-, יִ-, נִ-). Biblical Hebrew adds a few forms modern speech dropped (the feminine plurals in -נָה, the 2fs perfect -תְּ) and uses the forms for aspect rather than time." },
+      { t: "p", x: "You already know most of this table: the perfect's suffixes are the modern past (-תִּי, -תָּ, -ָה, -נוּ, -וּ) and the imperfect's prefixes are the modern future (אֶ-, תִּ-, יִ-, נִ-). Biblical Hebrew adds a few forms modern speech dropped (the feminine plurals in -נָה, the vav-consecutive) and uses the forms for aspect rather than time." },
       { t: "tbl", head: ["Person", "Perfect", "Imperfect"], rows: BH_QAL.rows.map(function (r) { return [r[0], r[1], r[2]]; }), rtl: true },
       { t: "rule", x: "perfect = completed action (often past): שָׁמַר\nimperfect = incomplete, habitual, future, or modal: יִשְׁמֹר\nvav-consecutive imperfect = narrative past: וַיִּשְׁמֹר\nvav-consecutive perfect = future/command sequence: וְשָׁמַרְתָּ (and you shall keep)", note: "The vav flips the aspect: a perfect with וְ in a command sequence reads as future, an imperfect with וַ reads as past. That is the famous 'vav conversive'." },
       { t: "key", x: "Perfect suffixes = modern past. Imperfect prefixes = modern future. The vav-consecutive swaps them in narrative." },
@@ -238,7 +238,7 @@
   /* ---------------- stage 8: the pro path ---------------- */
   add({ id: "he_pro", mode: "none", title: "From B1 to native: the programme", sub: "Hours, sources, and both Hebrews", gist: "Hebrew is FSI category III: about 1,100 hours to professional proficiency. The drills get you to B1; input, output and logging get you the rest.",
     blocks: [
-      { t: "p", x: "The Foreign Service Institute puts Hebrew in category III (with Russian, Hindi, Thai): about 1,100 classroom hours, four times Swedish. The reasons are the script, the root system, and vocabulary with no English cognates. None of that is avoided by a clever method; all of it is shortened by not wasting hours: sounds first, frequency-ordered words, spaced retrieval, speed gates, daily output with feedback, and native input from the first month." },
+      { t: "p", x: "The Foreign Service Institute puts Hebrew in category III (with Russian, Hindi, Thai): about 1,100 classroom hours, nearly twice Swedish. The reasons are the script, the root system, and vocabulary with no English cognates. None of that is avoided by a clever method; all of it is shortened by not wasting hours: sounds first, frequency-ordered words, spaced retrieval, speed gates, daily output with feedback, and native input from the first month." },
       { t: "tbl", head: ["Level", "What it looks like", "Hours (rough)", "What to do"], rows: [["A1–A2", "Read pointed text, survive, introduce", "0–250", "Stages 0–5 here, daily reviews, dialogues"], ["B1", "Conversation, easy news, unpointed text", "250–500", "Readers here, Kan easy news daily, Streetwise Hebrew, one dialogue a day, shadowing"], ["B2", "Israeli TV with Hebrew subtitles, argue, write", "500–800", "An hour of native input a day, 100 written words a day, a tutor or tandem partner twice a week"], ["C1", "Professional use, read anything", "800–1200", "Native media without subtitles, books, long podcasts; speak daily; register and slang"], ["C2", "Near-native", "1500+", "Live in the language"]] },
       { t: "p", x: "Biblical Hebrew has its own track: after the three texts here, read a chapter a week on Sefaria with the English beside it, parse every verb, and keep the frequent-word decks on schedule. For grammar, Pratico and Van Pelt's Basics of Biblical Hebrew is the standard first book; for reading, start with Genesis, Ruth and Jonah, whose prose is the simplest in the Bible." },
       { t: "rule", x: "the level model = words known + grammar passed + applied skill + logged hours\nhours count toward 1,100", note: "Log every minute of real Hebrew input and output on the Level page." },
@@ -265,19 +265,19 @@
   var DRILLS = {
     heletter: { name: "Letters", target: 6, gen: function (ctx) {
       var row = pick(LET, ctx.rnd), kind = ctx.rnd();
-      if (kind < 0.4) return { kind: "choice", question: "What is the name of <b class='tw big'>" + row[0] + "</b>?", options: lgOptions(row[1], LET.map(function (r) { return r[1]; }), 3, ctx.rnd, "he"), answer: row[1], target: 6, explain: ["<b>" + row[0] + "</b> " + row[1] + ": " + row[2]], rtl: true };
-      if (kind < 0.8) return { kind: "choice", question: "Which letter is <b>" + row[1] + "</b> (" + row[2] + ")?", options: lgOptions(row[0], LET.map(function (r) { return r[0]; }), 3, ctx.rnd, "he"), answer: row[0], target: 6, explain: ["<b>" + row[0] + "</b> " + row[1] + ": " + row[2]], rtl: true };
+      if (kind < 0.4) return { kind: "choice", question: "What is the name of <b class='tw big'>" + row[0] + "</b>?", options: lgOptions(row[1], LET.map(function (r) { return r[1]; }), 3, ctx.rnd, "he"), answer: row[1], target: 6, explain: ["<b>" + row[0] + "</b> " + row[1] + ": " + row[2]], rtl: false };
+      if (kind < 0.8) return { kind: "choice", question: "Which letter is <b>" + row[1] + "</b> (" + row[2] + ")?", options: lgOptions(row[0], LET.map(function (r) { return r[0]; }), 3, ctx.rnd, "he"), answer: row[0], target: 6, explain: ["<b>" + row[0] + "</b> " + row[1] + ": " + row[2]], rtl: false };
       var finals = LET.filter(function (r) { return r[4]; }), fr = pick(finals, ctx.rnd);
-      return { kind: "choice", question: "What is the final form of <b class='tw big'>" + fr[0] + "</b> (" + fr[1] + ")?", options: lgOptions(fr[4], finals.map(function (r) { return r[4]; }), 3, ctx.rnd, "he"), answer: fr[4], target: 6, explain: ["<b>" + fr[0] + "</b> becomes <b>" + fr[4] + "</b> at the end of a word."], rtl: true };
+      return { kind: "choice", question: "What is the final form of <b class='tw big'>" + fr[0] + "</b> (" + fr[1] + ")?", options: lgOptions(fr[4], finals.map(function (r) { return r[4]; }), 3, ctx.rnd, "he"), answer: fr[4], target: 6, explain: ["<b>" + fr[0] + "</b> becomes <b>" + fr[4] + "</b> at the end of a word."], rtl: false };
     } },
     hevowel: { name: "Vowels", target: 6, gen: function (ctx) {
       var v = pick(HE_VOWELS, ctx.rnd);
-      return { kind: "choice", question: "Which sound does <b class='tw big'>" + "בּ" + v[0] + "</b> make? (" + v[1] + ")", options: lgOptions(v[2], HE_VOWELS.map(function (r) { return r[2]; }), 3, ctx.rnd, "he"), answer: v[2], target: 6, explain: ["<b>" + v[1] + "</b>: " + v[2] + " → b" + v[3]], rtl: true };
+      return { kind: "choice", question: "Which sound does <b class='tw big'>" + "בּ" + v[0] + "</b> make? (" + v[1] + ")", options: lgOptions(v[2], HE_VOWELS.map(function (r) { return r[2]; }), 3, ctx.rnd, "he"), answer: v[2], target: 6, explain: ["<b>" + v[1] + "</b>: " + v[2] + " → b" + v[3]], rtl: false };
     } },
     heread: { name: "Reading", target: 8, gen: function (ctx) {
       var pool = ALLV.filter(function (r) { return r[1].indexOf(" ") < 0 && r[1].length <= 9; });
       var row = pick(pool, ctx.rnd);
-      return { kind: "choice", question: "How is <b class='tw big'>" + row[0] + "</b> pronounced?", options: lgOptions(row[1], pool.map(function (r) { return r[1]; }), 3, ctx.rnd, "he"), answer: row[1], target: 8, explain: ["<b>" + row[0] + "</b> = " + row[1] + " (" + row[2] + ")"], speakAfter: tts(row[0], ctx.caps), rtl: true };
+      return { kind: "choice", question: "How is <b class='tw big'>" + row[0] + "</b> pronounced?", options: lgOptions(row[1], pool.map(function (r) { return r[1]; }), 3, ctx.rnd, "he"), answer: row[1], target: 8, explain: ["<b>" + row[0] + "</b> = " + row[1] + " (" + row[2] + ")"], speakAfter: tts(row[0], ctx.caps), rtl: false };
     } },
     henum: { name: "Numbers", target: 10, gen: function (ctx) {
       var n = ctx.rnd() < 0.5 ? (ctx.rnd() * 11) | 0 : ctx.rnd() < 0.8 ? 11 + ((ctx.rnd() * 89) | 0) : 100 + ((ctx.rnd() * 900) | 0);
@@ -302,7 +302,7 @@
       var r = pick(HE_ET, ctx.rnd), def = ctx.rnd() < 0.5, right = def ? r[1] : r[0], wrong = def ? r[0].replace(/\.$/, "") .replace(/ (\S+)\.?$/, " הַ$1.") : r[1];
       var g = r[2].split(" / ");
       var options = def ? [r[1], r[1].replace("אֶת ", "")] : [r[0], r[0].replace(/(\S+)\.$/, "אֶת $1.")];
-      return { kind: "choice", question: "Which is right for <b>" + (def ? g[1] || g[0] : g[0]) + "</b>?", options: lgShuffle(options, ctx.rnd), answer: right, target: 7, explain: ["<b>" + right + "</b>", def ? "The object is definite, so אֶת goes before it." : "The object is indefinite: no אֶת."], speakAfter: tts(right, ctx.caps), rtl: true };
+      return { kind: "choice", question: "<span dir='ltr'>Which is right for <b>" + (def ? g[1] || g[0] : g[0]).replace(/\.$/, "") + "</b>?</span>", options: lgShuffle(options, ctx.rnd), answer: right, target: 7, explain: ["<b>" + right + "</b>", def ? "The object is definite, so אֶת goes before it." : "The object is indefinite: no אֶת."], speakAfter: tts(right, ctx.caps), rtl: true };
     } },
     hedict: { name: "Dictation", target: 22, gen: function (ctx) {
       var r = pick(HE_DICTATION, ctx.rnd);
@@ -321,6 +321,51 @@
       var w = pick(words, ctx.rnd);
       return { kind: "choice", question: T.title + ": what does <b class='tw'>" + w[0] + "</b> mean?", options: lgOptions(w[1], words.map(function (x) { return x[1]; }), 3, ctx.rnd, "he"), answer: w[1], target: 7, explain: ["<b>" + w[0] + "</b> = " + w[1]], speakAfter: tts(w[0], ctx.caps), rtl: true };
     } };
+  });
+
+  /* unpointed spellings: typed Hebrew (and speech recognition) uses ktiv male, the full spelling, where the pointed word
+     uses ktiv chaser: שֻׁלְחָן is typed שולחן, לִכְתֹּב is typed לכתוב, שְׁתַּיִם is typed שתיים. hePlene gives the full
+     spellings of a pointed string (every combination of the five rules, since usage varies), for the accepted answers. */
+  function hePlene(s) {
+    var cl = [], m, re = /([\s\S])([\u0591-\u05BD\u05BF-\u05C7]*)/g;
+    s = String(s || "").normalize("NFC");
+    while ((m = re.exec(s)) && m[0]) cl.push({ b: m[1], p: m[2] });
+    function heb(c) { return !!c && /[\u05D0-\u05EA]/.test(c.b); }
+    function has(c, ch) { return !!c && c.p.indexOf(ch) >= 0; }
+    function voiced(i) {   /* the letter is followed by a vowel: a point other than shva, or a shuruk / cholam vav after it */
+      var c = cl[i], n = cl[i + 1];
+      if (!heb(c)) return false;
+      if (/[\u05B1-\u05BB\u05C7]/.test(c.p)) return true;
+      return !!n && n.b === "\u05D5" && !/[\u05B0-\u05B8\u05BB]/.test(n.p) && (has(n, "\u05BC") || has(n, "\u05B9"));
+    }
+    var out = {};
+    for (var mask = 1; mask < 32; mask++) {
+      var r = "";
+      cl.forEach(function (c, i) {
+        var p = cl[i - 1], n = cl[i + 1], first = !heb(p), add = "";
+        if (heb(c)) {
+          if ((mask & 1) && c.b !== "\u05D5" && has(c, "\u05B9") && !(n && (n.b === "\u05D5" || n.b === "\u05D0"))) add = "\u05D5";            /* cholam: ו */
+          if ((mask & 2) && /[\u05BB\u05B3\u05C7]/.test(c.p)) add = "\u05D5";                                                                 /* kubutz, chataf kamatz: ו */
+          if ((mask & 4) && has(c, "\u05B4") && heb(n) && n.b !== "\u05D9" && voiced(i + 1)) add = "\u05D9";                                  /* chirik in an open syllable: י */
+          if ((mask & 8) && c.b === "\u05D5" && !first && /[\u05B0-\u05B8]/.test(c.p) && heb(n) && n.b !== "\u05D5" && p.b !== "\u05D5") r += "\u05D5";   /* a consonant vav inside a word is doubled */
+          if ((mask & 16) && c.b === "\u05D9" && !first && /[\u05B1-\u05B8]/.test(c.p) && heb(n) && n.b !== "\u05D9" && n.b !== "\u05D5" && p.b !== "\u05D9") r += "\u05D9";   /* so is a consonant yod */
+        }
+        r += c.b + add;
+      });
+      out[r] = 1;
+    }
+    var base = lgStrip(s);
+    return Object.keys(out).map(lgStrip).filter(function (x, i, a) { return x !== base && a.indexOf(x) === i; });
+  }
+  /* every drill: typed answers also accept the full spellings; a choice whose options are all English reads left to right */
+  Object.keys(DRILLS).forEach(function (k) {
+    var gen = DRILLS[k].gen;
+    DRILLS[k].gen = function (ctx) {
+      var q = gen(ctx);
+      if (q.kind === "text" && q.accept) q.accept = q.accept.concat.apply(q.accept, q.accept.map(hePlene));
+      if (q.kind === "choice" && !q.options.some(function (o) { return /[\u05D0-\u05EA]/.test(o); })) q.rtl = false;
+      return q;
+    };
   });
 
   var FORMULAS = [
@@ -366,7 +411,7 @@
   ];
   var RANKS = [{ xp: 0, name: "מַתְחִיל · Matchil" }, { xp: 300, name: "תַּלְמִיד · Talmid" }, { xp: 1000, name: "מְדַבֵּר · Medaber" }, { xp: 2500, name: "קוֹרֵא · Kore" }, { xp: 5000, name: "כּוֹתֵב · Kotev" }, { xp: 9000, name: "שׁוֹטֵף · Shotef" }, { xp: 15000, name: "מֻמְחֶה · Mumche" }, { xp: 25000, name: "בָּקִי · Baki" }];
 
-  registerCourse({
+  var C = registerCourse({
     id: "he", name: "Hebrew", short: "HE", glyph: "א", kind: "lang", lang: "he", color: "#D4A03C",
     tagline: "Modern and Biblical, from the alef-bet to reading the text itself.",
     blurb: "The letters and points, the thousand words that matter, the root-and-pattern verb system, output under pressure, and a Biblical track that reads Genesis 1, Psalm 23 and the Shema word by word.",
@@ -374,4 +419,6 @@
     dialogues: HE_DIALOGUES, readings: HE_READINGS, texts: BH_TEXTS, need: 1100,
     apply: [{ id: "conv", label: "Conversation", blurb: "Five scenarios, graded turn by turn", min: 12 }, { id: "listen", label: "Dictation", blurb: "Hear it, write it", min: 8 }, { id: "write", label: "Writing", blurb: "Translate into Hebrew", min: 8 }, { id: "log", label: "Immersion log", blurb: "Log native input and output", min: 0 }]
   });
+  /* the words: the full spellings are accepted wherever the word is typed or said */
+  Object.keys(C.words).forEach(function (lid) { C.words[lid].forEach(function (it) { it.alt = hePlene(it.w); }); });
 })();

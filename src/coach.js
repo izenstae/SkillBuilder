@@ -160,8 +160,10 @@ function coachBet(g, A, to, rng) {
   /* with no responders (everyone else all in) the bet is just a call-like investment */
   var base = allInOpps.map(function (q) { return g.ranges[q.i]; });
   var heroAllIn = hero.stack - add <= 0.001;
+  var pOne = 0;                                  /* P(exactly one continues); the re-raise parts are inside it */
   resp.forEach(function (r, k) {
     var pOnly = (1 - r.pFold) * resp.reduce(function (a, o, j) { return j === k ? a : a * o.pFold; }, 1);
+    pOne += pOnly;
     if (pOnly < 1e-4) return;
     var heroLeft = hero.stack - add, toNow = c.players[g.hero].bet;
     var canRe = r.pRaise > 0.02 && !heroAllIn && r.reTo > toNow + 0.001;
@@ -185,7 +187,6 @@ function coachBet(g, A, to, rng) {
     parts.push({ what: r.name + " continues", p: pOnly, eq: eq, value: v });
     r.eqCalled = eq;
   });
-  var pOne = parts.slice(1).reduce(function (a, x) { return a + x.p; }, 0);
   var pMulti = Math.max(0, 1 - pAll - pOne);
   if (pMulti > 1e-3) {
     var eqm = equityVs(hero.cards, h.board, base.concat(resp.map(function (r) { return r.cont; })), 600, rng);

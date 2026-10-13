@@ -301,7 +301,7 @@ function drawQuant(box, gid) {
   if (!qrun || qrun.g !== gid || qrun.over) {
     var how = G.mc ? "Press 1–4 or click an option; the next question comes straight away. " + G.count + " questions or " + qtClock(G.secs * 1000) + " minutes, whichever comes first; +1 right, −1 wrong."
       : G.noSkip ? "Type the answer; it is taken the moment it is right, no Enter. There is no skipping: keep typing until it is right."
-      : "Type the answer; it is taken the moment it is right, no Enter. Press Enter to give up on a question: it shows the right answer and moves on. " + (G.id === "estimate" ? "Within " + Math.round(G.set.tol * 100) + "% counts." : G.id === "odds" || G.id === "percent" ? "Percentages to within half a point." : "Exact answers.");
+      : "Type the answer; it is taken the moment it is right, no Enter. Press Enter to give up on a question: it shows the right answer and moves on. " + (G.id === "estimate" ? "Within " + Math.round(G.set.tol * 100) + "% counts." : G.id === "percent" ? "Answers to within half a point." : G.id === "odds" ? "Answers to within 0.6." : "Exact answers.");
     host.innerHTML = '<div class="ph"><h3>' + esc(G.name) + '</h3><span>' + esc(G.about) + ' · target ' + G.target + '</span></div><p class="pnote">' + esc(G.blurb) + ' ' + esc(how) + '</p>';
     var r = el("div", "row"); r.appendChild(btn("Start (" + (G.secs >= 60 && G.secs % 60 === 0 && G.secs > 120 ? G.secs / 60 + " minutes" : G.secs + " seconds") + ")", "go", function () { startQuant(gid); })); host.appendChild(r);
     var hist = qtHistory(S, gid, 60);

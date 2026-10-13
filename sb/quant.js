@@ -68,7 +68,7 @@ function qtSequence(T, rnd) {
   var kind = qtPick(rnd, T.kinds), s = [], n = 5, i, expl, next, cur;
   if (kind === "geo") { var r = qtPick(rnd, [3, -2, 4, -3, 5]), g1 = qtInt(rnd, 1, 7); for (i = 0; i <= n; i++) s.push(g1 * Math.pow(r, i)); expl = "ratio " + r; }
   else if (kind === "squares") { var k0 = qtInt(rnd, 3, 14), cube = rnd() < 0.4; if (cube) k0 = qtInt(rnd, 2, 7); for (i = 0; i <= n; i++) s.push(cube ? Math.pow(k0 + i, 3) : (k0 + i) * (k0 + i)); expl = cube ? "consecutive cubes" : "consecutive squares"; }
-  else if (kind === "diff2") { var d1 = qtInt(rnd, -4, 9), dd = qtInt(rnd, 2, 7); cur = qtInt(rnd, -10, 30); var step = d1; for (i = 0; i <= n; i++) { s.push(cur); cur += step; step += dd; } expl = "the differences grow by " + dd + " each time"; }
+  else if (kind === "diff2") { var d1 = qtInt(rnd, -4, 9) || 1, dd = qtInt(rnd, 2, 7); cur = qtInt(rnd, -10, 30); var step = d1; for (i = 0; i <= n; i++) { s.push(cur); cur += step; step += dd; } expl = "the differences grow by " + dd + " each time"; }
   else if (kind === "alt") { var m = qtPick(rnd, [2, 3, -2]), p = qtInt(rnd, -9, 11) || 4; cur = qtInt(rnd, 2, 12); for (i = 0; i <= n; i++) { s.push(cur); cur = i % 2 === 0 ? cur * m : cur + p; } expl = "alternate: × " + m + ", then " + (p < 0 ? "− " + (-p) : "+ " + p); }
   else if (kind === "fib") { var f1 = qtInt(rnd, 1, 9), f2 = qtInt(rnd, 1, 12), tri = rnd() < 0.35; s = [f1, f2]; if (tri) s.push(qtInt(rnd, 1, 9)); for (i = s.length; i <= n; i++) s.push(s[i - 1] + s[i - 2] + (tri ? s[i - 3] : 0)); expl = tri ? "each term is the sum of the three before" : "each term is the sum of the two before"; }
   else if (kind === "primes") { var st = qtInt(rnd, 0, 18), sq = rnd() < 0.3; s = QT_PRIMES.slice(st, st + n + 1); if (sq) { st = qtInt(rnd, 0, 5); s = QT_PRIMES.slice(st, st + n + 1).map(function (x) { return x * x; }); } expl = sq ? "squares of consecutive primes" : "consecutive primes"; }
@@ -85,7 +85,7 @@ function qtEstimate(T, rnd) {
   else if (kind === "div") { var u = qtInt(rnd, 1000, 99999), v = qtInt(rnd, 7, 97); q = u + " ÷ " + v + " ≈ ?"; a = u / v; expl = "≈ " + a.toFixed(1); }
   else if (kind === "pow") { var bs = qtInt(rnd, 2, 9), ex = qtInt(rnd, 3, 7); if (bs >= 6 && ex > 5) ex = 5; q = bs + "^" + ex + " ≈ ?"; a = Math.pow(bs, ex); expl = "exact " + a; }
   else {
-    var F = qtPick(rnd, [["seconds in a day", 86400], ["hours in a year", 8760], ["minutes in a week", 10080], ["seconds in a week", 604800], ["days in 10 years", 3652], ["heartbeats in a day at 70/min", 100800], ["km in 100 miles", 161], ["cm in a mile", 160934], ["mm in 2.5 km", 2500000], ["steps in 10 km at 0.75 m", 13333], ["words in a 300-page novel at 280/page", 84000], ["weeks in 15 years", 782]]);
+    var F = qtPick(rnd, [["seconds in a day", 86400], ["hours in a year", 8760], ["minutes in a week", 10080], ["seconds in a week", 604800], ["days in 10 years", 3652], ["heartbeats in a day at 70/min", 100800], ["km in 100 miles", 161], ["cm in a mile", 160934], ["mm in 2.5 km", 2500000], ["steps in 10 km at 0.75 m", 13333], ["words in a 300-page novel at 280/page", 84000], ["weeks in 15 years", 783]]);
     q = "How many " + F[0] + "?"; a = F[1]; expl = "about " + F[1].toLocaleString();
   }
   return { q: q, a: a, tol: T.tol, kind: kind, expl: expl };
@@ -97,7 +97,7 @@ function qtPercent(T, rnd) {
   else if (kind === "reverse") { var orig = qtPick(rnd, [40, 50, 60, 80, 120, 150, 200, 240, 300]), pc = qtPick(rnd, [10, 20, 25, 40, 50]), after = orig * (100 - pc) / 100; q = "After a " + pc + "% discount the price is " + after + ". Original price?"; a = orig; expl = after + " is " + (100 - pc) + "% of the original: " + after + " / " + ((100 - pc) / 100) + " = " + orig; }
   else if (kind === "compound") { var base = qtPick(rnd, [100, 200, 400, 500, 1000]), p1 = qtPick(rnd, [10, 20, 25, 50]), p2 = qtPick(rnd, [10, 20, 25, 50]), up = rnd() < 0.5; var r1 = base * (1 + p1 / 100), r2 = up ? r1 * (1 + p2 / 100) : r1 * (1 - p2 / 100); q = base + " rises " + p1 + "% then " + (up ? "rises " : "falls ") + p2 + "%. Result?"; a = Math.round(r2 * 100) / 100; expl = base + " × " + (1 + p1 / 100) + " × " + (up ? (1 + p2 / 100) : (1 - p2 / 100)) + " = " + a + (!up && p1 === p2 ? ". Up then down the same percent never gets you back." : ""); }
   else { var total = qtPick(rnd, [60, 90, 120, 150, 180, 240, 300, 360]), ra = qtInt(rnd, 1, 5), rb = qtInt(rnd, 1, 5); q = total + " split in the ratio " + ra + ":" + rb + ". The larger share?"; a = Math.round(total * Math.max(ra, rb) / (ra + rb) * 100) / 100; expl = total + " × " + Math.max(ra, rb) + "/" + (ra + rb) + " = " + a; }
-  return { q: q, a: a, tol: 0.011, kind: kind, expl: expl, rel: kind === "change" ? 0 : null };
+  return { q: q, a: a, tol: 0.5, abs: true, kind: kind, expl: expl };
 }
 function qtOdds(T, rnd) {
   var kind = qtPick(rnd, T.kinds), q, a, expl;
@@ -136,9 +136,10 @@ function qtOptiver(rnd) {
     alts = [ans * 10, ans / 10, ans + 0.1, ans - 0.1, ans + 1, ans - 1];
   }
   else { x = qtPick(rnd, [12.5, 15, 35, 45, 65, 85, 7.5, 2.5, 17.5]); y = qtPick(rnd, [240, 360, 480, 640, 720, 880, 1200, 160]); q = qtNum(x) + "% of " + y; ans = x * y / 100; alts = [ans * 10, ans / 10, ans + 10, ans - 5, ans + 1, ans * 2]; }
-  var key = function (v) { return frac ? qtFrStr(v) : qtNum(v); }, seen = {}, opts = [ans];
+  var key = function (v) { return frac ? qtFrStr(v) : qtNum(v); }, seen = {}, opts = [ans], pos = (frac ? ans.n / ans.d : ans) > 0;
   seen[key(ans)] = 1;
-  alts.forEach(function (v) { if (opts.length >= 4) return; var k = key(v), val = frac ? v.n / v.d : v; if (seen[k] || !(val > 0)) return; seen[k] = 1; opts.push(v); });
+  /* distractors stay positive when the answer is, so a sign never gives the answer away */
+  alts.forEach(function (v) { if (opts.length >= 4) return; var k = key(v), val = frac ? v.n / v.d : v; if (seen[k] || (pos && !(val > 0))) return; seen[k] = 1; opts.push(v); });
   for (var g = 2; opts.length < 4; g++) { var w = frac ? qtFr(ans.n + g, ans.d) : ans + g; if (!seen[key(w)]) { seen[key(w)] = 1; opts.push(w); } }
   for (var i = opts.length - 1; i > 0; i--) { var j = (rnd() * (i + 1)) | 0, t = opts[i]; opts[i] = opts[j]; opts[j] = t; }
   var labels = opts.map(key), ci = labels.indexOf(key(ans));
@@ -150,13 +151,13 @@ function qtQuestion(gameId, ctx) {
   q.game = gameId;
   return q;
 }
-/* grade: a choice index for multiple choice; exact for integers; within tol (relative) for estimates; within abs for percents of odds */
+/* grade: a choice index for multiple choice; exact for integers; within tol (relative) for estimates; within tol (absolute) for percentages and odds */
 function qtCheck(q, raw) {
   if (q.choices) return String(raw) === String(q.ci);
-  var v = parseFloat(String(raw).replace(/[^0-9.\-]/g, ""));
+  var v = parseFloat(String(raw).replace(/[−–]/g, "-").replace(/[^0-9.\-]/g, ""));
   if (!isFinite(v)) return false;
   if (q.abs) return Math.abs(v - q.a) <= (q.tol || 0.6);
-  if (q.tol) return Math.abs(v - q.a) <= Math.max(0.5, Math.abs(q.a) * q.tol) || Math.abs(v - q.a) <= 0.011;
+  if (q.tol) return Math.abs(v - q.a) <= Math.abs(q.a) * q.tol;
   return Math.abs(v - q.a) < 1e-9;
 }
 

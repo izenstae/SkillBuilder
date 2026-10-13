@@ -122,7 +122,7 @@ function cpQuestion(c, L, ctx, asked) {
 /* grade an answer against a question */
 function gradeAnswer(q, raw, lang) {
   if (q.kind === "choice" || q.kind === "recall") return { ok: raw === q.answer, said: raw };
-  if (q.kind === "num") { var v = parseFloat(String(raw).replace(/[^0-9.\-]/g, "")); if (!isFinite(v)) return null; return { ok: Math.abs(v - q.answer) <= (q.tol || 0), said: v }; }
+  if (q.kind === "num") { var v = parseFloat(String(raw).replace(/[−–]/g, "-").replace(/[^0-9.\-]/g, "")); if (!isFinite(v)) return null; return { ok: Math.abs(v - q.answer) <= (q.tol || 0), said: v }; }
   if (q.kind === "text" || q.kind === "speak") {
     var ok = lgMatch(raw, q.accept || [q.answer], lang);
     var near = !ok && lgDistance(lgNorm(raw, lang), lgNorm(q.answer, lang)) === 1;

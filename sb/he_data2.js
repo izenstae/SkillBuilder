@@ -61,11 +61,11 @@ var HE_FUTURE = {
 var HE_PREP = {
   name: "Prepositions with suffixes", cols: ["preposition", "me", "you (m.)", "him", "her", "us", "them (m.)", "meaning"], ask: [1, 2, 3, 4, 5, 6], given: 0, gloss: 7, target: 8,
   q: "{w} ({g}): the form with <b>{form}</b>.",
-  rule: { 1: "A pronoun after a preposition becomes a suffix on it: לְ + אֲנִי = לִי. The suffix set is the same across most prepositions: -ִי, -ְךָ, -וֹ, -ָהּ, -נוּ, -ָם.", 2: "", 3: "", 4: "Her: -ָהּ with a dot (mappiq) in the he.", 5: "", 6: "" },
+  rule: { 1: "A pronoun after a preposition becomes a suffix on it: לְ + אֲנִי = לִי. The suffix set is the same across most prepositions: -ִי, -ְךָ, -וֹ, -ָהּ, -נוּ, -ָם (or -הֶם).", 2: "", 3: "", 4: "Her: -ָהּ with a dot (mappiq) in the he.", 5: "", 6: "" },
   rows: [["לְ", "לִי", "לְךָ", "לוֹ", "לָהּ", "לָנוּ", "לָהֶם", "to / for"], ["שֶׁל", "שֶׁלִּי", "שֶׁלְּךָ", "שֶׁלּוֹ", "שֶׁלָּהּ", "שֶׁלָּנוּ", "שֶׁלָּהֶם", "of (possession)"],
     ["אֶת", "אוֹתִי", "אוֹתְךָ", "אוֹתוֹ", "אוֹתָהּ", "אוֹתָנוּ", "אוֹתָם", "(object marker)"], ["עִם", "אִתִּי", "אִתְּךָ", "אִתּוֹ", "אִתָּהּ", "אִתָּנוּ", "אִתָּם", "with"],
     ["בְּ", "בִּי", "בְּךָ", "בּוֹ", "בָּהּ", "בָּנוּ", "בָּהֶם", "in"], ["עַל", "עָלַי", "עָלֶיךָ", "עָלָיו", "עָלֶיהָ", "עָלֵינוּ", "עֲלֵיהֶם", "on / about"],
-    ["אֶל", "אֵלַי", "אֵלֶיךָ", "אֵלָיו", "אֵלֶיהָ", "אֵלֵינוּ", "אֲלֵיהֶם", "to / toward"], ["מִן", "מִמֶּנִּי", "מִמְּךָ", "מִמֶּנּוּ", "מִמֶּנָּה", "מֵאִתָּנוּ", "מֵהֶם", "from"]]
+    ["אֶל", "אֵלַי", "אֵלֶיךָ", "אֵלָיו", "אֵלֶיהָ", "אֵלֵינוּ", "אֲלֵיהֶם", "to / toward"], ["מִן", "מִמֶּנִּי", "מִמְּךָ", "מִמֶּנּוּ", "מִמֶּנָּה", "מֵאִתָּנוּ / מִמֶּנּוּ", "מֵהֶם", "from"]]
 };
 /* adjectives: [m.sg, f.sg, m.pl, f.pl, meaning] */
 var HE_ADJ = {
@@ -80,14 +80,14 @@ var HE_ADJ = {
 };
 /* construct state (smichut): [first noun, second noun, construct phrase, meaning] */
 var HE_SMICHUT = {
-  name: "Construct state", cols: ["noun", "+ noun", "construct phrase", "meaning"], ask: [2], given: 0, gloss: 3, target: 9,
+  name: "Construct state", cols: ["noun", "+ noun", "construct phrase", "meaning"], ask: [2], given: 0, gloss: 1, target: 9,
   q: "{w} + {g}: build the construct phrase (\"X of Y\").",
   rule: { 2: "Two nouns joined as \"X of Y\": the first loses its definiteness and often changes shape (-ָה → -ַת, -ִים → -ֵי), and only the second takes הַ-: בֵּית הַסֵּפֶר. Stress and vowels shorten on the first word." },
   rows: [["בַּיִת", "סֵפֶר", "בֵּית סֵפֶר", "school (house of book)"], ["אֲרוּחָה", "בֹּקֶר", "אֲרוּחַת בֹּקֶר", "breakfast"], ["שִׁעוּרִים", "בַּיִת", "שִׁעוּרֵי בַּיִת", "homework"], ["מֶזֶג", "אֲוִיר", "מֶזֶג אֲוִיר", "weather"],
     ["בַּיִת", "חוֹלִים", "בֵּית חוֹלִים", "hospital"], ["כְּאֵב", "רֹאשׁ", "כְּאֵב רֹאשׁ", "headache"], ["חֻלְצָה", "הוֹקִי", "חֻלְצַת הוֹקִי", "hockey jersey"], ["תַּחֲנָה", "אוֹטוֹבּוּס", "תַּחֲנַת אוֹטוֹבּוּס", "bus stop"],
     ["יוֹם", "הֻלֶּדֶת", "יוֹם הֻלֶּדֶת", "birthday"], ["שֵׁם", "מִשְׁפָּחָה", "שֵׁם מִשְׁפָּחָה", "surname"], ["כַּרְטִיס", "אַשְׁרַאי", "כַּרְטִיס אַשְׁרַאי", "credit card"], ["סֵפֶר", "תּוֹרָה", "סֵפֶר תּוֹרָה", "Torah scroll"]]
 };
-/* yes/no questions, negation, and the definite article: [sentence with ha-, without, gloss] */
+/* the definite article: [without ha-, with ha-, gloss] */
 var HE_DEF = [
   ["סֵפֶר", "הַסֵּפֶר", "book / the book"], ["יֶלֶד", "הַיֶּלֶד", "boy / the boy"], ["עִיר", "הָעִיר", "city / the city"], ["אִישׁ", "הָאִישׁ", "man / the man"], ["חָבֵר", "הֶחָבֵר", "friend / the friend"], ["הַר", "הָהָר", "mountain / the mountain"],
   ["בַּיִת גָּדוֹל", "הַבַּיִת הַגָּדוֹל", "a big house / the big house"], ["מוֹרָה טוֹבָה", "הַמּוֹרָה הַטּוֹבָה", "a good teacher / the good teacher"]
@@ -129,14 +129,14 @@ var HE_DIALOGUES = [
   { id: "he_d3", title: "Asking the way", setting: "You are lost in Jerusalem and need the central bus station.", level: "A2",
     turns: [
       { bot: "שָׁלוֹם, אֶפְשָׁר לַעֲזֹר?", botg: "Hello, can I help?", expect: ["איפה", "התחנה", "איך מגיעים", "מחפש"], model: "כֵּן, אֵיפֹה הַתַּחֲנָה הַמֶּרְכָּזִית?", modelg: "Yes, where is the central station?", hint: "איפה ...? / איך מגיעים ל...?" },
-      { bot: "לֵךְ יָשָׁר וְתִפְנֶה שְׂמֹאלָה לְיַד הַבַּנְק. הֵבַנְתָּ?", botg: "Go straight and turn left by the bank. Did you get it? (say it back)", expect: ["ישר", "שמאלה", "הבנק"], model: "יָשָׁר, וְשְׂמֹאלָה לְיַד הַבַּנְק.", modelg: "Straight, and left by the bank.", hint: "Repeat: ישר ... שמאלה ..." },
+      { bot: "לֵךְ יָשָׁר וְתִפְנֶה שְׂמֹאלָה לְיַד הַבַּנְק. הֵבַנְתָּ?", botg: "Go straight and turn left by the bank. Did you get it? (say it back)", expect: ["ישר", "שמאלה", "הבנק"], model: "יָשָׁר, וּשְׂמֹאלָה לְיַד הַבַּנְק.", modelg: "Straight, and left by the bank.", hint: "Repeat: ישר ... שמאלה ..." },
       { bot: "בְּדִיּוּק. זֶה בְּעֵרֶךְ עֶשֶׂר דַּקּוֹת. אַתָּה נוֹסֵעַ לְתֵל אָבִיב?", botg: "Exactly. It's about ten minutes. Are you going to Tel Aviv?", expect: ["כן", "לא", "נוסע", "תל אביב", "חיפה"], model: "כֵּן, אֲנִי נוֹסֵעַ לְתֵל אָבִיב.", modelg: "Yes, I'm going to Tel Aviv.", hint: "כן, אני נוסע ל..." },
       { bot: "בְּהַצְלָחָה! לְהִתְרָאוֹת.", botg: "Good luck! Bye.", expect: ["תודה", "להתראות"], model: "תּוֹדָה רַבָּה! לְהִתְרָאוֹת.", modelg: "Thanks a lot! Bye.", hint: "תודה ... להתראות" }
     ] },
   { id: "he_d4", title: "At the doctor", setting: "You hurt your knee at hockey. Describe it in the past tense.", level: "A2",
     turns: [
       { bot: "שָׁלוֹם, מָה הַבְּעָיָה?", botg: "Hello, what's the problem?", expect: ["כואב(ת)?", "ה?ברך", "פצעתי", "נפלתי"], model: "כּוֹאֶבֶת לִי הַבֶּרֶךְ.", modelg: "My knee hurts.", hint: "כואב לי ה... / פצעתי את ה..." },
-      { bot: "מָתַי זֶה קָרָה?", botg: "When did it happen?", expect: ["אתמול", "לפני", "באימון", "במשחק", "ביום"], model: "אֶתְמוֹל, בָּאִמּוּן הוֹקִי.", modelg: "Yesterday, at hockey practice.", hint: "אתמול / לפני ... / באימון" },
+      { bot: "מָתַי זֶה קָרָה?", botg: "When did it happen?", expect: ["אתמול", "לפני", "באימון", "במשחק", "ביום"], model: "אֶתְמוֹל, בְּאִמּוּן הוֹקִי.", modelg: "Yesterday, at hockey practice.", hint: "אתמול / לפני ... / באימון" },
       { bot: "אַתָּה יָכוֹל לָלֶכֶת?", botg: "Can you walk?", expect: ["כן", "לא", "קצת", "יכול"], model: "כֵּן, אֲבָל קָשֶׁה.", modelg: "Yes, but it's hard.", hint: "כן / לא / קצת" },
       { bot: "קַח אֶת הַתְּרוּפָה פַּעֲמַיִם בְּיוֹם וְתָנוּחַ שָׁבוּעַ. בְּסֵדֶר?", botg: "Take the medicine twice a day and rest a week. OK?", expect: ["בסדר", "תודה", "כן"], model: "בְּסֵדֶר, תּוֹדָה רַבָּה.", modelg: "OK, thanks a lot.", hint: "בסדר, תודה" }
     ] },
@@ -153,7 +153,7 @@ var HE_DIALOGUES = [
 /* ---- graded readers (modern) ---- */
 var HE_READINGS = [
   { id: "he_r1", title: "הַמִּשְׁפָּחָה שֶׁלִּי", level: "A1", text: [
-      "קוֹרְאִים לִי שָׂרָה וַאֲנִי בַּת עֶשְׂרִים. אֲנִי גָּרָה בְּחֵיפָה עִם הַמִּשְׁפָּחָה שֶׁלִּי. אֲנַחְנוּ חָמֵשׁ: אִמָּא, אַבָּא, אָח, אָחוֹת וַאֲנִי.",
+      "קוֹרְאִים לִי שָׂרָה וַאֲנִי בַּת עֶשְׂרִים. אֲנִי גָּרָה בְּחֵיפָה עִם הַמִּשְׁפָּחָה שֶׁלִּי. אֲנַחְנוּ חֲמִשָּׁה: אִמָּא, אַבָּא, אָח, אָחוֹת וַאֲנִי.",
       "הָאָח שֶׁלִּי, יוֹנָתָן, בֶּן עֶשְׂרִים וְשָׁלוֹשׁ. הוּא מְשַׂחֵק הוֹקִי. הָאָחוֹת שֶׁלִּי, לִיאַת, בַּת חֲמֵשׁ עֶשְׂרֵה וְהִיא לוֹמֶדֶת בְּבֵית סֵפֶר. אִמָּא עוֹבֶדֶת בְּבֵית חוֹלִים וְאַבָּא מוֹרֶה.",
       "יֵשׁ לָנוּ גַּם כֶּלֶב. קוֹרְאִים לוֹ מַקְס. הוּא זָקֵן אֲבָל שָׂמֵחַ. בְּשַׁבָּת אֲנַחְנוּ אוֹכְלִים אֲרוּחַת עֶרֶב בְּיַחַד."
     ], gloss: [["בַּת עֶשְׂרִים", "twenty years old (f.)"], ["בֶּן", "aged (m.) / son"], ["בְּיַחַד", "together"]],
@@ -161,7 +161,7 @@ var HE_READINGS = [
   { id: "he_r2", title: "יוֹם בְּתֵל אָבִיב", level: "A2", text: [
       "אֶתְמוֹל נָסַעְתִּי לְתֵל אָבִיב בָּרַכֶּבֶת. הַנְּסִיעָה לָקְחָה בְּעֵרֶךְ שָׁעָה. הִגַּעְתִּי בְּעֶשֶׂר וְהָלַכְתִּי יָשָׁר לַשּׁוּק, לְשׁוּק הַכַּרְמֶל.",
       "בַּשּׁוּק יֵשׁ הַרְבֵּה אֲנָשִׁים, פֵּרוֹת, יְרָקוֹת וְתַבְלִינִים. שָׁתִיתִי מִיץ רִמּוֹנִים וְאָכַלְתִּי פָלָאפֶל. אַחַר כָּךְ הָלַכְתִּי לַיָּם. הַיָּם הָיָה חַם וְהַשֶּׁמֶשׁ זָרְחָה.",
-      "בָּעֶרֶב יָשַׁבְתִּי בְּבֵית קָפֶה בְּרְחוֹב דִּיזֶנְגוֹף וְקָרָאתִי סֵפֶר. בְּתֵשַׁע חָזַרְתִּי הַבַּיְתָה, עָיֵף אֲבָל מְרֻצֶּה."
+      "בָּעֶרֶב יָשַׁבְתִּי בְּבֵית קָפֶה בִּרְחוֹב דִּיזֶנְגוֹף וְקָרָאתִי סֵפֶר. בְּתֵשַׁע חָזַרְתִּי הַבַּיְתָה, עָיֵף אֲבָל מְרֻצֶּה."
     ], gloss: [["נְסִיעָה", "journey"], ["הִגַּעְתִּי", "I arrived"], ["שׁוּק", "market"], ["תַּבְלִינִים", "spices"], ["רִמּוֹנִים", "pomegranates"], ["זָרְחָה", "shone"], ["חָזַרְתִּי", "I returned"]],
     qs: [{ q: "אֵיךְ הוּא נָסַע לְתֵל אָבִיב?", options: ["בִּמְכוֹנִית", "בָּרַכֶּבֶת", "בְּאוֹטוֹבּוּס", "בְּמָטוֹס"], answer: "בָּרַכֶּבֶת" }, { q: "מָה הוּא שָׁתָה בַּשּׁוּק?", options: ["קָפֶה", "מַיִם", "מִיץ רִמּוֹנִים", "תֵּה"], answer: "מִיץ רִמּוֹנִים" }, { q: "מָה הוּא עָשָׂה בָּעֶרֶב?", options: ["הָלַךְ לַיָּם", "קָרָא סֵפֶר בְּבֵית קָפֶה", "אָכַל פָלָאפֶל", "יָשַׁן"], answer: "קָרָא סֵפֶר בְּבֵית קָפֶה" }] },
   { id: "he_r3", title: "שַׁבָּת בְּיִשְׂרָאֵל", level: "B1", text: [
@@ -187,7 +187,7 @@ var HE_DICTATION = [
 var HE_WRITING = [
   ["I am tired.", ["אני עייף.", "אני עייפה."], "A1"], ["Where do you live?", ["איפה אתה גר?", "איפה את גרה?"], "A1"], ["I don't understand.", ["אני לא מבין.", "אני לא מבינה."], "A1"], ["We have a dog.", ["יש לנו כלב."], "A1"],
   ["Today I'm playing hockey.", ["היום אני משחק הוקי.", "אני משחק הוקי היום."], "A2"], ["The book is on the table.", ["הספר על השולחן.", "הספר נמצא על השולחן."], "A2"], ["Can you help me?", ["אתה יכול לעזור לי?", "את יכולה לעזור לי?"], "A2"], ["She bought a new car.", ["היא קנתה מכונית חדשה."], "A2"],
-  ["I know that he isn't coming.", ["אני יודע שהוא לא בא.", "אני יודעת שהוא לא בא."], "B1"], ["We have lived here for three years.", ["אנחנו גרים פה שלוש שנים.", "אנחנו גרים כאן שלוש שנים.", "אנחנו גרים פה כבר שלוש שנים."], "B1"], ["If it rains, we'll stay home.", ["אם ירד גשם, נישאר בבית.", "אם ירד גשם נישאר בבית."], "B1"], ["Yesterday I was at the rink all day.", ["אתמול הייתי במגרש כל היום.", "אתמול הייתי בחלקה כל היום."], "B1"],
+  ["I know that he isn't coming.", ["אני יודע שהוא לא בא.", "אני יודעת שהוא לא בא."], "B1"], ["We have lived here for three years.", ["אנחנו גרים פה שלוש שנים.", "אנחנו גרים כאן שלוש שנים.", "אנחנו גרים פה כבר שלוש שנים."], "B1"], ["If it rains, we'll stay home.", ["אם ירד גשם, נישאר בבית.", "אם ירד גשם נישאר בבית."], "B1"], ["Yesterday I was at the rink all day.", ["אתמול הייתי במגרש כל היום.", "אתמול הייתי במשטח ההחלקה כל היום."], "B1"],
   ["Hebrew is spoken in Israel.", ["בישראל מדברים עברית.", "מדברים עברית בישראל."], "B2"], ["Although we lost, I was proud of the team.", ["למרות שהפסדנו, הייתי גאה בקבוצה.", "למרות שהפסדנו הייתי גאה בקבוצה."], "B2"], ["I would rather train in the morning.", ["אני מעדיף להתאמן בבוקר.", "אני מעדיפה להתאמן בבוקר."], "B2"], ["The game was cancelled because of the weather.", ["המשחק בוטל בגלל מזג האוויר."], "B2"]
 ];
 
@@ -217,14 +217,14 @@ var BH_VOCAB = {
     ["שָׁמַע", "shama", "he heard / obeyed", "verb", "שְׁמַע = hear! (imperative)", "שְׁמַע יִשְׂרָאֵל", "Hear, O Israel"],
     ["דָּבָר", "davar", "word; thing", "n", "דְּבָרִים (pl.)", "דְּבַר יְהוָה", "the word of the LORD"],
     ["אֶרֶץ", "erets", "earth / land", "n", "f.; הָאָרֶץ", "הָאָרֶץ", "the earth"],
-    ["שָׁמַיִם", "shamayim", "heavens / sky", "n", "dual form", "הַשָּׁמַיִם", "the heavens"],
+    ["שָׁמַיִם", "shamayim", "heavens / sky", "n", "plural; the -ayim ending only looks dual", "הַשָּׁמַיִם", "the heavens"],
     ["יוֹם", "yom", "day", "n", "יָמִים (pl.)", "יוֹם אֶחָד", "day one"],
     ["מֶלֶךְ", "melech", "king", "n", "מְלָכִים (pl.)", "מֶלֶךְ יִשְׂרָאֵל", "king of Israel"],
     ["אִישׁ", "ish", "man; each", "n", "אֲנָשִׁים (pl.)", "הָאִישׁ", "the man"],
     ["בֵּן", "ben", "son", "n", "בָּנִים (pl.); בֶּן־ in construct", "בֶּן־אָדָם", "son of man"],
     ["עַם", "am", "people / nation", "n", "עַמִּים (pl.)", "עַמִּי", "my people"],
     ["בַּיִת", "bayit", "house", "n", "בֵּית־ in construct", "בֵּית יְהוָה", "the house of the LORD"],
-    ["אָב", "av", "father", "n", "אָבוֹת (pl.)", "אֲבִי", "my father"],
+    ["אָב", "av", "father", "n", "אָבוֹת (pl.)", "אָבִי", "my father"],
     ["יָד", "yad", "hand; power", "n", "f.", "בְּיַד", "by the hand of"],
     ["לֵב", "lev", "heart; mind", "n", "לֵבָב also", "בְּכָל־לְבָבְךָ", "with all your heart"],
     ["כֹּל", "kol", "all / every", "n", "כָּל־ in construct", "כָּל־הָאָרֶץ", "all the earth"],
@@ -250,7 +250,7 @@ var BH_VOCAB = {
     ["עִיר", "ir", "city", "n", "f.; עָרִים (pl.)", "הָעִיר", "the city"],
     ["דֶּרֶךְ", "derech", "way / road", "n", "", "דֶּרֶךְ", "way"],
     ["נֶפֶשׁ", "nefesh", "soul / life / person", "n", "f.", "נַפְשִׁי", "my soul"],
-    ["מַיִם", "mayim", "water", "n", "dual form", "עַל־פְּנֵי הַמָּיִם", "over the face of the waters"],
+    ["מַיִם", "mayim", "water", "n", "plural; the -ayim ending only looks dual", "עַל־פְּנֵי הַמָּיִם", "over the face of the waters"],
     ["אוֹר", "or", "light", "n", "", "יְהִי אוֹר", "let there be light"],
     ["חֹשֶׁךְ", "choshech", "darkness", "n", "", "וְחֹשֶׁךְ", "and darkness"],
     ["רוּחַ", "ru'ach", "wind / spirit / breath", "n", "f.", "רוּחַ אֱלֹהִים", "the spirit of God"],
@@ -320,8 +320,8 @@ var BH_TEXTS = [
     { v: 1, text: "בְּרֵאשִׁית בָּרָא אֱלֹהִים אֵת הַשָּׁמַיִם וְאֵת הָאָרֶץ׃", words: [["בְּרֵאשִׁית", "in (the) beginning"], ["בָּרָא", "created"], ["אֱלֹהִים", "God"], ["אֵת", "(object marker)"], ["הַשָּׁמַיִם", "the heavens"], ["וְאֵת", "and (obj.)"], ["הָאָרֶץ", "the earth"]], gloss: "In the beginning God created the heavens and the earth." },
     { v: 2, text: "וְהָאָרֶץ הָיְתָה תֹהוּ וָבֹהוּ וְחֹשֶׁךְ עַל־פְּנֵי תְהוֹם וְרוּחַ אֱלֹהִים מְרַחֶפֶת עַל־פְּנֵי הַמָּיִם׃", words: [["וְהָאָרֶץ", "and the earth"], ["הָיְתָה", "was"], ["תֹהוּ וָבֹהוּ", "formless and empty"], ["וְחֹשֶׁךְ", "and darkness"], ["עַל־פְּנֵי", "upon the face of"], ["תְהוֹם", "the deep"], ["וְרוּחַ אֱלֹהִים", "and the spirit of God"], ["מְרַחֶפֶת", "hovering"], ["עַל־פְּנֵי הַמָּיִם", "over the face of the waters"]], gloss: "And the earth was formless and empty, and darkness was over the face of the deep, and the spirit of God was hovering over the face of the waters." },
     { v: 3, text: "וַיֹּאמֶר אֱלֹהִים יְהִי אוֹר וַיְהִי־אוֹר׃", words: [["וַיֹּאמֶר", "and he said"], ["אֱלֹהִים", "God"], ["יְהִי", "let there be"], ["אוֹר", "light"], ["וַיְהִי־אוֹר", "and there was light"]], gloss: "And God said, Let there be light; and there was light." },
-    { v: 4, text: "וַיַּרְא אֱלֹהִים אֶת־הָאוֹר כִּי־טוֹב וַיַּבְדֵּל אֱלֹהִים בֵּין הָאוֹר וּבֵין הַחֹשֶׁךְ׃", words: [["וַיַּרְא", "and he saw"], ["אֶת־הָאוֹר", "the light"], ["כִּי־טוֹב", "that (it was) good"], ["וַיַּבְדֵּל", "and he separated"], ["בֵּין", "between"], ["הָאוֹר", "the light"], ["וּבֵין", "and between"], ["הַחֹשֶׁךְ", "the darkness"]], gloss: "And God saw the light, that it was good; and God separated the light from the darkness." },
-    { v: 5, text: "וַיִּקְרָא אֱלֹהִים לָאוֹר יוֹם וְלַחֹשֶׁךְ קָרָא לָיְלָה וַיְהִי־עֶרֶב וַיְהִי־בֹקֶר יוֹם אֶחָד׃", words: [["וַיִּקְרָא", "and he called"], ["לָאוֹר", "to the light"], ["יוֹם", "Day"], ["וְלַחֹשֶׁךְ", "and to the darkness"], ["קָרָא", "he called"], ["לָיְלָה", "Night"], ["וַיְהִי־עֶרֶב", "and there was evening"], ["וַיְהִי־בֹקֶר", "and there was morning"], ["יוֹם אֶחָד", "day one"]], gloss: "And God called the light Day, and the darkness he called Night. And there was evening and there was morning, day one." }
+    { v: 4, text: "וַיַּרְא אֱלֹהִים אֶת־הָאוֹר כִּי־טוֹב וַיַּבְדֵּל אֱלֹהִים בֵּין הָאוֹר וּבֵין הַחֹשֶׁךְ׃", words: [["וַיַּרְא", "and he saw"], ["אֱלֹהִים", "God"], ["אֶת־הָאוֹר", "the light"], ["כִּי־טוֹב", "that (it was) good"], ["וַיַּבְדֵּל", "and he separated"], ["אֱלֹהִים", "God"], ["בֵּין", "between"], ["הָאוֹר", "the light"], ["וּבֵין", "and between"], ["הַחֹשֶׁךְ", "the darkness"]], gloss: "And God saw the light, that it was good; and God separated the light from the darkness." },
+    { v: 5, text: "וַיִּקְרָא אֱלֹהִים לָאוֹר יוֹם וְלַחֹשֶׁךְ קָרָא לָיְלָה וַיְהִי־עֶרֶב וַיְהִי־בֹקֶר יוֹם אֶחָד׃", words: [["וַיִּקְרָא", "and he called"], ["אֱלֹהִים", "God"], ["לָאוֹר", "to the light"], ["יוֹם", "Day"], ["וְלַחֹשֶׁךְ", "and to the darkness"], ["קָרָא", "he called"], ["לָיְלָה", "Night"], ["וַיְהִי־עֶרֶב", "and there was evening"], ["וַיְהִי־בֹקֶר", "and there was morning"], ["יוֹם אֶחָד", "day one"]], gloss: "And God called the light Day, and the darkness he called Night. And there was evening and there was morning, day one." }
   ] },
   { id: "ps23", title: "Psalm 23:1–4", ref: "תְּהִלִּים כג", verses: [
     { v: 1, text: "מִזְמוֹר לְדָוִד יְהוָה רֹעִי לֹא אֶחְסָר׃", words: [["מִזְמוֹר", "a psalm"], ["לְדָוִד", "of David"], ["יְהוָה", "the LORD"], ["רֹעִי", "(is) my shepherd"], ["לֹא", "not"], ["אֶחְסָר", "I shall lack"]], gloss: "A psalm of David. The LORD is my shepherd; I shall not want." },
