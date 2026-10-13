@@ -648,9 +648,9 @@
             return {
               q: R`A club's members play chess (${A} members), go (${B} members), and bridge (${C} members); ${AB} play both chess and go, ${AC} both chess and bridge, ${BC} both go and bridge, and ${tri} play all three. How many members play <b>exactly one</b> of the three games?`,
               answer: ans, kind: "count",
-              sol: R`<div class="sol-step">A member in exactly two games is counted twice by the three totals and once by one pairwise total; a member in all three is counted 3 times and 3 times. The identity that isolates "exactly one" is:</div>
+              sol: R`<div class="sol-step">A member in exactly two games is counted twice by the three totals and once by one pairwise total; a member in all three is counted 3 times by the totals and 3 times by the pairwise totals. The identity that isolates "exactly one" is:</div>
                    <div class="sol-step">$$\begin{aligned}N_1 &= |A| + |B| + |C| - 2(|A \cap B| + |A \cap C| + |B \cap C|) + 3|A \cap B \cap C|\\ &= ${A + B + C} - 2(${AB + AC + BC}) + 3(${tri}) = ${ans}\end{aligned}$$</div>
-                   <div class="sol-step">Equivalently, subtract the overlaps region by region: chess only ${only[0]}, go only ${only[1]}, bridge only ${only[2]}.</div>`,
+                   <div class="sol-step">Equivalently, subtract the overlaps region by region: chess only ${only[0]}, go only ${only[1]}, bridge only ${only[2]}, and \(${only[0]} + ${only[1]} + ${only[2]} = ${ans}\).</div>`,
             };
           },
         },
@@ -1072,7 +1072,7 @@
     {
       when: R`some members must be on the committee, or must be left off`,
       use: R`Fix them first, then choose the rest`,
-      why: R`A forced member is not a choice: reduce both \(n\) and \(k\) by one and carry on.`,
+      why: R`A forced member is not a choice: a required member reduces both \(n\) and \(k\) by one; a banned member reduces only \(n\).`,
     },
     {
       when: R`"equally likely", "at random", "fair", and the outcomes are finite`,

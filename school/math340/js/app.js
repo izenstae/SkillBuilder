@@ -22,6 +22,24 @@ const App = (() => {
           throwOnError: false,
         });
       } catch (e) { /* keep raw TeX visible rather than crash */ }
+      glueTrailingPunctuation(el);
+    }
+  }
+  /* The browser may break a line between inline maths and the comma or full
+   * stop after it, leaving ", CDF jumps." starting a line. Bind the
+   * punctuation to the maths so they wrap together. */
+  function glueTrailingPunctuation(el) {
+    for (const k of el.querySelectorAll(".katex")) {
+      if (k.closest(".katex-display") || k.parentNode.classList.contains("katex-glue")) continue;
+      const next = k.nextSibling;
+      if (!next || next.nodeType !== 3) continue;
+      const m = /^[,.;:!?)\]]+/.exec(next.nodeValue);
+      if (!m) continue;
+      next.nodeValue = next.nodeValue.slice(m[0].length);
+      const glue = document.createElement("span");
+      glue.className = "katex-glue";
+      k.parentNode.insertBefore(glue, k);
+      glue.append(k, m[0]);
     }
   }
 

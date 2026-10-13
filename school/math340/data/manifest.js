@@ -165,7 +165,7 @@ window.MATH340 = {
     plural(n, one, many) { return n === 1 ? one : (many != null ? many : one + "s"); },
     // Reduced fraction as LaTeX, e.g. fracTex(6, 8) -> "\frac{3}{4}".
     fracTex(n, d) {
-      const g = this.gcd(n, d) || 1;
+      const g = (this.gcd(n, d) || 1) * (d < 0 ? -1 : 1);   // keep the sign on top
       const num = n / g, den = d / g;
       return den === 1 ? String(num) : `\\frac{${num}}{${den}}`;
     },
