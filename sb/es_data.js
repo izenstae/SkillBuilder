@@ -3,7 +3,8 @@
    Vocabulary in frequency-ordered sets, paradigm tables, word-order
    and pronunciation data, dialogues, graded readers, dictation and
    writing. Row: [word, gloss, part of speech, forms, example, example gloss]
-   Latin American pronunciation is the default (seseo); the voseo of
+   Latin American pronunciation is the default (seseo; speech uses es-MX,
+   falling back to any Spanish voice); the voseo of
    Argentina and the vosotros of Spain are noted where they matter.
    ============================================================ */
 
@@ -188,7 +189,7 @@ var ES_VOCAB = {
     ["cerrar", "to close", "verb", "cierro, cierras… (e→ie)", "La tienda cierra a las ocho.", "The shop closes at eight."],
     ["ropa", "clothes", "n", "la ropa (singular)", "Ropa nueva.", "New clothes."],
     ["zapato", "shoe", "n", "los zapatos", "Quítate los zapatos.", "Take off your shoes."],
-    ["chaqueta", "jacket", "n", "la chaqueta; el abrigo = coat", "Una chaqueta caliente.", "A warm jacket."],
+    ["chaqueta", "jacket", "n", "la chaqueta; el abrigo = coat", "Una chaqueta abrigada.", "A warm jacket."],
     ["camiseta", "T-shirt / jersey", "n", "la camiseta", "Mi camiseta de hockey.", "My hockey jersey."],
     ["pantalones", "trousers", "n", "los pantalones", "Pantalones azules.", "Blue trousers."],
     ["bolso", "bag", "n", "el bolso; la mochila = backpack", "¿Dónde está mi bolso?", "Where is my bag?"],
@@ -322,7 +323,7 @@ var ES_VOCAB = {
     ["esperar", "to hope", "verb", "espero que + subjunctive", "Espero que sí.", "I hope so."],
     ["creer", "to believe / think", "verb", "creo que…", "Creo que sí.", "I think so."],
     ["quizás", "maybe", "adv", "tal vez, a lo mejor", "Quizás mañana.", "Maybe tomorrow."],
-    ["seguro", "sure / safe", "adj", "seguramente = probably", "Seguro que sí.", "Surely yes."],
+    ["seguro", "sure / safe", "adj", "seguramente = probably", "Seguro que sí.", "Of course. / I'm sure of it."],
     ["de verdad", "really", "adv", "¿de verdad? = really?", "¿De verdad?", "Really?"],
     ["en realidad", "actually", "adv", "", "En realidad es bueno.", "Actually it's good."],
     ["desafortunadamente", "unfortunately", "adv", "por desgracia", "Desafortunadamente no.", "Unfortunately not."],
@@ -369,7 +370,7 @@ var ES_VOCAB = {
     ["noticias", "news", "n", "las noticias", "¿Viste las noticias?", "Did you see the news?"],
     ["periódico", "newspaper", "n", "el periódico; el diario", "Leo el periódico.", "I read the paper."],
     ["gobierno", "government", "n", "el gobierno", "El gobierno decide.", "The government decides."],
-    ["elecciones", "election", "n", "las elecciones", "Las elecciones son en noviembre.", "The elections are in November."],
+    ["elecciones", "elections", "n", "las elecciones", "Las elecciones son en noviembre.", "The elections are in November."],
     ["votar", "to vote", "verb", "regular -ar", "Voto el domingo.", "I vote on Sunday."],
     ["ley", "law", "n", "la ley, las leyes", "Es la ley.", "It's the law."],
     ["impuesto", "tax", "n", "el impuesto", "Impuestos altos.", "High taxes."],
@@ -596,35 +597,35 @@ var ES_DIALOGUES = [
     turns: [
       { bot: "¡Hola! Me llamo Lucía. ¿Cómo te llamas?", botg: "Hi! My name is Lucía. What's your name?", expect: ["me llamo", "mi nombre", "^(yo )?soy "], model: "¡Hola! Me llamo Erik.", modelg: "Hi! My name is Erik.", hint: "Me llamo ... (My name is ...)" },
       { bot: "¡Mucho gusto! ¿De dónde eres?", botg: "Nice to meet you! Where are you from?", expect: ["soy de", "de canad[aá]", "canadiense", "vengo de"], model: "Soy de Canadá.", modelg: "I'm from Canada.", hint: "Soy de ... " },
-      { bot: "¡Qué bien! ¿Vives aquí ahora?", botg: "Great! Do you live here now?", expect: ["^s[ií]", "^no", "vivo"], model: "Sí, vivo aquí ahora.", modelg: "Yes, I live here now.", hint: "Sí / No, vivo ..." },
-      { bot: "¿Juegas al hockey?", botg: "Do you play hockey?", expect: ["s[ií]", "juego"], reject: ["no"], model: "Sí, juego al hockey.", modelg: "Yes, I play hockey.", hint: "Sí, juego al ..." },
+      { bot: "¡Qué bien! ¿Vives aquí ahora?", botg: "Great! Do you live here now?", expect: ["^s[ií]( |$)", "^no( |$)", "vivo"], model: "Sí, vivo aquí ahora.", modelg: "Yes, I live here now.", hint: "Sí / No, vivo ..." },
+      { bot: "¿Juegas al hockey?", botg: "Do you play hockey?", expect: ["(^| )s[ií]( |$)", "juego"], reject: ["^no( |$)", "no juego"], model: "Sí, juego al hockey.", modelg: "Yes, I play hockey.", hint: "Sí, juego al ..." },
       { bot: "¡Perfecto! Nos vemos en el entrenamiento. ¡Adiós!", botg: "Perfect! See you at practice. Bye!", expect: ["adi[oó]s", "hasta", "nos vemos", "chao"], model: "¡Adiós, hasta luego!", modelg: "Bye, see you later!", hint: "Adiós / Hasta luego / Nos vemos" }
     ] },
   { id: "es_d2", title: "At the café", setting: "Order a coffee and something to eat, then pay.", level: "A1",
     turns: [
-      { bot: "¡Hola! ¿Qué desea?", botg: "Hi! What would you like?", expect: ["caf[eé]", "t[eé]", "quiero", "por favor", "me pone"], model: "Un café con leche, por favor.", modelg: "A coffee with milk, please.", hint: "Un café, por favor / Quiero ..." },
-      { bot: "¿Quiere algo de comer también?", botg: "Would you like something to eat too?", expect: ["s[ií]", "no", "tostada", "croissant", "bocadillo", "gracias"], model: "Sí, una tostada, por favor.", modelg: "Yes, a piece of toast, please.", hint: "Sí, un/una ... por favor / No, gracias" },
+      { bot: "¡Hola! ¿Qué desea?", botg: "Hi! What would you like?", expect: ["caf[eé]", "(^| )t[eé]( |$)", "quiero", "por favor", "me pone"], model: "Un café con leche, por favor.", modelg: "A coffee with milk, please.", hint: "Un café, por favor / Quiero ..." },
+      { bot: "¿Quiere algo de comer también?", botg: "Would you like something to eat too?", expect: ["(^| )s[ií]( |$)", "no", "tostada", "croissant", "bocadillo", "gracias"], model: "Sí, una tostada, por favor.", modelg: "Yes, a piece of toast, please.", hint: "Sí, un/una ... por favor / No, gracias" },
       { bot: "Son cuatro euros con cincuenta. ¿Con tarjeta o en efectivo?", botg: "That's four fifty. Card or cash?", expect: ["tarjeta", "efectivo"], model: "Con tarjeta, por favor.", modelg: "By card, please.", hint: "Con tarjeta / En efectivo" },
-      { bot: "Aquí tiene. ¿Quiere el recibo?", botg: "Here you go. Do you want the receipt?", expect: ["s[ií]", "no", "gracias"], model: "No, gracias.", modelg: "No, thanks.", hint: "No, gracias / Sí, por favor" }
+      { bot: "Aquí tiene. ¿Quiere el recibo?", botg: "Here you go. Do you want the receipt?", expect: ["(^| )s[ií]( |$)", "no", "gracias"], model: "No, gracias.", modelg: "No, thanks.", hint: "No, gracias / Sí, por favor" }
     ] },
   { id: "es_d3", title: "Asking the way", setting: "You are lost in Barcelona and need the train station.", level: "A2",
     turns: [
       { bot: "Hola, ¿puedo ayudarle?", botg: "Hello, can I help you?", expect: ["d[oó]nde est[aá]", "estaci[oó]n", "busco", "c[oó]mo (llego|voy)"], model: "Sí, ¿dónde está la estación de tren?", modelg: "Yes, where is the train station?", hint: "¿Dónde está ...? / ¿Cómo llego a ...?" },
       { bot: "Siga todo recto y gire a la izquierda en el banco. ¿Entendido?", botg: "Go straight ahead and turn left at the bank. Got it? (say it back)", expect: ["recto", "izquierda", "banco"], model: "Todo recto y a la izquierda en el banco.", modelg: "Straight ahead and left at the bank.", hint: "Repeat: todo recto ... izquierda ..." },
-      { bot: "Exacto. Son unos diez minutos. ¿Va a Madrid?", botg: "Exactly. About ten minutes. Are you going to Madrid?", expect: ["s[ií]", "no", "voy a", "madrid", "sevilla"], model: "Sí, voy a Madrid.", modelg: "Yes, I'm going to Madrid.", hint: "Sí, voy a ..." },
+      { bot: "Exacto. Son unos diez minutos. ¿Va a Madrid?", botg: "Exactly. About ten minutes. Are you going to Madrid?", expect: ["(^| )s[ií]( |$)", "no", "voy a", "madrid", "sevilla"], model: "Sí, voy a Madrid.", modelg: "Yes, I'm going to Madrid.", hint: "Sí, voy a ..." },
       { bot: "¡Buen viaje! Adiós.", botg: "Have a good trip! Bye.", expect: ["gracias", "adi[oó]s"], model: "¡Muchas gracias! Adiós.", modelg: "Thanks a lot! Bye.", hint: "Gracias ... adiós" }
     ] },
   { id: "es_d4", title: "At the doctor", setting: "You hurt your knee at hockey. Say what happened in the past tense.", level: "A2",
     turns: [
       { bot: "Buenos días, ¿qué le pasa?", botg: "Good morning, what's wrong?", expect: ["me duele", "rodilla", "me lesion[eé]", "me ca[ií]"], model: "Me duele la rodilla.", modelg: "My knee hurts.", hint: "Me duele ... / Me lesioné ..." },
       { bot: "Entiendo. ¿Cuándo pasó?", botg: "I see. When did it happen?", expect: ["ayer", "anoche", "hace", "en el entrenamiento", "el (lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bado|domingo)"], model: "Ayer, en el entrenamiento de hockey.", modelg: "Yesterday, at hockey practice.", hint: "Ayer / Hace ... / En el entrenamiento" },
-      { bot: "¿Puede caminar?", botg: "Can you walk?", expect: ["s[ií]", "no", "un poco", "puedo"], model: "Sí, pero me cuesta.", modelg: "Yes, but it's hard.", hint: "Sí / No / Un poco" },
-      { bot: "Tome este medicamento dos veces al día y descanse una semana. ¿De acuerdo?", botg: "Take this medicine twice a day and rest a week. OK?", expect: ["de acuerdo", "vale", "gracias", "s[ií]"], model: "De acuerdo, muchas gracias.", modelg: "OK, thanks a lot.", hint: "De acuerdo / Vale, gracias" }
+      { bot: "¿Puede caminar?", botg: "Can you walk?", expect: ["(^| )s[ií]( |$)", "no", "un poco", "puedo"], model: "Sí, pero me cuesta.", modelg: "Yes, but it's hard.", hint: "Sí / No / Un poco" },
+      { bot: "Tome este medicamento dos veces al día y descanse una semana. ¿De acuerdo?", botg: "Take this medicine twice a day and rest a week. OK?", expect: ["de acuerdo", "vale", "gracias", "(^| )s[ií]( |$)"], model: "De acuerdo, muchas gracias.", modelg: "OK, thanks a lot.", hint: "De acuerdo / Vale, gracias" }
     ] },
   { id: "es_d5", title: "Talking about the game", setting: "A friend asks about last night's game. Preterite and opinions.", level: "B1",
     turns: [
       { bot: "¿Qué tal el partido de ayer?", botg: "How was the game yesterday?", expect: ["ganamos", "perdimos", "fue", "empatamos"], model: "¡Ganamos tres a dos!", modelg: "We won 3–2!", hint: "Ganamos / Perdimos / Fue ..." },
-      { bot: "¡Enhorabuena! ¿Marcaste algún gol?", botg: "Congratulations! Did you score a goal?", expect: ["s[ií]", "no", "gol", "marqu[eé]", "asistencia"], model: "Marqué un gol y di una asistencia.", modelg: "I scored a goal and gave an assist.", hint: "Marqué ... / No, pero ..." },
+      { bot: "¡Enhorabuena! ¿Marcaste algún gol?", botg: "Congratulations! Did you score a goal?", expect: ["(^| )s[ií]( |$)", "no", "gol", "marqu[eé]", "asistencia"], model: "Marqué un gol y di una asistencia.", modelg: "I scored a goal and gave an assist.", hint: "Marqué ... / No, pero ..." },
       { bot: "¿Qué fue lo más difícil?", botg: "What was the hardest part?", expect: ["lo m[aá]s dif[ií]cil", "fue", "tercer", "cansados", "r[aá]pidos"], model: "Lo más difícil fue el tercer período; estábamos cansados.", modelg: "The hardest was the third period; we were tired.", hint: "Lo más difícil fue ..." },
       { bot: "¿Cuándo es el próximo partido?", botg: "When's the next game?", expect: ["el (lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bado|domingo)", "pr[oó]xim", "ma[nñ]ana", "semana"], model: "El sábado, fuera de casa.", modelg: "On Saturday, away.", hint: "El ... / La semana que viene" },
       { bot: "Iré a verlo. ¡Suerte!", botg: "I'll come and watch. Good luck!", expect: ["gracias", "genial", "qu[eé] bien"], model: "¡Gracias, qué bien!", modelg: "Thanks, great!", hint: "Gracias ..." }

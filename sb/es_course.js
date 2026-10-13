@@ -48,8 +48,8 @@
   add(vocabLesson("es_v1", "The first thirty", "Pronouns, greetings, ser and estar", "The words in every sentence, with the two verbs 'to be' that organise Spanish.",
     "Frequency decides the order: the hundred most common words cover about half of what is said. Two of them are 'to be': ser for what things are (identity, origin, time) and estar for where and how they are (location, state). The lesson on ser and estar comes in stage 2; for now learn both sets of forms.",
     [{ t: "rule", x: "yo · tú · él / ella / usted · nosotros · vosotros · ellos / ellas / ustedes\nsoy · eres · es · somos · sois · son   (ser)\nestoy · estás · está · estamos · estáis · están   (estar)", note: "Subject pronouns are usually dropped: the verb ending says who. Usted (formal you) takes the él/ella forms." }]));
-  add(vocabLesson("es_v2", "Thirty verbs", "The core verbs and their present forms", "The verbs of nine sentences in ten, with their irregular yo forms and stem changes listed.",
-    "Spanish verbs change for every person, so each verb is six forms; the regular patterns (stage 2) make most of them free. The thirty here include the irregulars you cannot avoid: ir, hacer, decir, tener, poder, querer, saber. Learn the yo form with the infinitive.",
+  add(vocabLesson("es_v2", "Thirty-one verbs", "The core verbs and their present forms", "The verbs of nine sentences in ten, with their irregular yo forms and stem changes listed.",
+    "Spanish verbs change for every person, so each verb is six forms; the regular patterns (stage 2) make most of them free. The thirty-one here include the irregulars you cannot avoid: ir, hacer, decir, tener, poder, querer, saber. Learn the yo form with the infinitive.",
     [{ t: "rule", x: "-ar: hablo hablas habla hablamos habláis hablan\n-er: como comes come comemos coméis comen\n-ir: vivo vives vive vivimos vivís viven", note: "Vosotros (informal you plural) is used in Spain; Latin America uses ustedes with the ellos forms." }]));
   add({ id: "es_num", mode: "esnum", pass: 7, of: 10, title: "Numbers and the clock", sub: "0 to 1,000, the time", gist: "Numbers are the one piece of vocabulary you cannot look up in a conversation. Drill them to reflex.",
     blocks: [
@@ -121,7 +121,7 @@
   add(vocabLesson("es_v10", "Feelings and opinions", "Feliz, triste, creo que", "How you feel and what you think, with the hedges.", "Feelings take estar (estoy contento) or tener (tengo miedo). Opinions: creo que, pienso que, me parece que + indicative; no creo que + subjunctive, which is stage 4."));
   add(vocabLesson("es_v11", "Nature and weather", "Seasons, animals, the sky", "The weather is 'hace': hace frío, hace sol, hace viento.", "Weather uses hacer (hace calor), hay (hay nubes), and impersonal verbs (llueve, nieva). Tener frío is a person being cold; hace frío is the weather; está frío is a thing."));
   add(vocabLesson("es_v12", "Society and news", "Politics, money, the world", "The front page of El País, which is where B1 reading begins.", "Greek -ma nouns are masculine despite the -a: el problema, el sistema, el clima, el idioma, el programa. A list worth memorising as a chant."));
-  add(vocabLesson("es_v13", "Connectors", "Porque, aunque, sin embargo, todavía", "The words that join sentences into arguments.", "Some connectors decide the mood of the clause after them: porque, ya que, mientras + indicative; para que, antes de que, a menos que + subjunctive; aunque with either, by meaning (stage 4)."));
+  add(vocabLesson("es_v13", "Connectors", "Porque, aunque, sin embargo, todavía", "The words that join sentences into arguments.", "Some connectors decide the mood of the clause after them: porque, ya que + indicative; mientras + indicative for what is happening, + subjunctive for the future or hypothetical (mientras vivas); para que, antes de que, a menos que + subjunctive; aunque with either, by meaning (stage 4)."));
   add(vocabLesson("es_v14", "Idioms and the words that make you sound Spanish", "Vale, venga, echar de menos, ojalá", "Thirty expressions a textbook never teaches.", "Vale and venga are Spain; Latin America says bueno, dale, órale (Mexico), listo. Ojalá (from Arabic 'God willing') takes the subjunctive and expresses every wish you have."));
 
   /* ---------------- stage 4: tenses and moods ---------------- */
@@ -201,7 +201,7 @@
   ];
 
   function pick(a, rnd) { return a[((rnd || Math.random)() * a.length) | 0]; }
-  function tts(text, caps) { return caps && caps.tts ? { text: text, lang: "es-ES" } : null; }
+  function tts(text, caps) { return caps && caps.tts ? { text: text, lang: LG_LANG.es.code } : null; }
   var DRILLS = {
     essound: { name: "Sound rules", target: 6, gen: function (ctx) {
       var row = pick(ES_SOUNDS, ctx.rnd), opts = lgOptions(row[1], ES_SOUND_RULES, 3, ctx.rnd, "es");
@@ -214,7 +214,7 @@
     } },
     espair: { name: "Minimal pairs", target: 6, gen: function (ctx) {
       var p = pick(ES_PAIRS, ctx.rnd), which = ctx.rnd() < 0.5 ? 0 : 1, word = p[which], expl = ["<b>" + p[0] + "</b> / <b>" + p[1] + "</b>: " + p[2]];
-      if (ctx.caps && ctx.caps.tts) return { kind: "choice", question: "Listen. Which word did you hear?", options: [p[0], p[1]], answer: word, target: 6, explain: expl, speak: { text: word, lang: "es-ES" }, hideText: true };
+      if (ctx.caps && ctx.caps.tts) return { kind: "choice", question: "Listen. Which word did you hear?", options: [p[0], p[1]], answer: word, target: 6, explain: expl, speak: { text: word, lang: LG_LANG.es.code }, hideText: true };
       var m = p[2].split(" / ");
       return { kind: "choice", question: "Which spelling means <b>" + (m[which] || p[2]) + "</b>?", options: [p[0], p[1]], answer: word, target: 6, explain: expl };
     } },
