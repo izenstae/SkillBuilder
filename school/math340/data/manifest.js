@@ -117,6 +117,9 @@ window.MATH340 = {
     factorial(n) { let r = 1; for (let i = 2; i <= n; i++) r *= i; return r; },
     perm(n, k) { let r = 1; for (let i = 0; i < k; i++) r *= (n - i); return r; },
     choose(n, k) {
+      // Defined here for whole numbers only; a fractional argument is a bug in
+      // the caller, and silently truncating it would print a wrong answer.
+      if (!Number.isInteger(n) || !Number.isInteger(k)) throw new RangeError(`choose(${n}, ${k}): arguments must be integers`);
       if (k < 0 || k > n) return 0;
       k = Math.min(k, n - k);
       // Exact integer arithmetic: in floating point the partial products overflow
@@ -128,11 +131,18 @@ window.MATH340 = {
       return Number(r);
     },
     gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { [a, b] = [b, a % b]; } return a; },
-    lcm(a, b) { return a * b / this.gcd(a, b); },
-    round(x, d) { const p = Math.pow(10, d); return Math.round(x * p) / p; },
+    lcm(a, b) { return a === 0 || b === 0 ? 0 : Math.abs(a * b) / this.gcd(a, b); },
+    /* Round half away from zero to d places. Shifting the decimal point in the
+     * string form (1.005 -> "1.005e2") avoids the binary error of x * 10^d, so
+     * round(1.005, 2) is 1.01, not 1. */
+    round(x, d = 0) {
+      if (!Number.isFinite(x)) return x;
+      const shift = (v, by) => { const [m, e] = String(v).split("e"); return Number(`${m}e${Number(e || 0) + by}`); };
+      return Math.sign(x) * shift(Math.round(shift(Math.abs(x), d)), -d);
+    },
     fmt(x, d = 4) {
       if (Number.isInteger(x)) return String(x);
-      return String(Math.round(x * Math.pow(10, d)) / Math.pow(10, d));
+      return String(this.round(x, d));
     },
     /* Plain text into HTML: for labels that were typed, imported or synced
      * rather than authored in the data files. */
@@ -165,6 +175,7 @@ window.MATH340 = {
     plural(n, one, many) { return n === 1 ? one : (many != null ? many : one + "s"); },
     // Reduced fraction as LaTeX, e.g. fracTex(6, 8) -> "\frac{3}{4}".
     fracTex(n, d) {
+      if (d === 0) throw new RangeError(`fracTex(${n}, 0): zero denominator`);
       const g = (this.gcd(n, d) || 1) * (d < 0 ? -1 : 1);   // keep the sign on top
       const num = n / g, den = d / g;
       return den === 1 ? String(num) : `\\frac{${num}}{${den}}`;

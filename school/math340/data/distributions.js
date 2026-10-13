@@ -46,7 +46,7 @@
     {
       name: "Hypergeometric", params: R`\text{HGeom}(w, b, n)`, type: "discrete",
       story: "Number of white balls when drawing n balls without replacement from an urn with w white and b black balls.",
-      support: R`k \in \{0, 1, \dots, n\}`,
+      support: R`k \in \{\max(0, n - b), \dots, \min(w, n)\}`,
       pmf: R`P(X = k) = \dfrac{\binom{w}{k}\binom{b}{n-k}}{\binom{w+b}{n}}`,
       mean: R`\mu = \dfrac{nw}{w + b}`, variance: R`\left(\dfrac{w + b - n}{w + b - 1}\right) n \dfrac{\mu}{n}\left(1 - \dfrac{\mu}{n}\right)`, mgf: R`\text{(messy)}`,
     },

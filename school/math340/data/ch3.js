@@ -66,7 +66,7 @@
     {
       id: "c3-cdf-props", tag: "Theorem 3.6.3",
       front: R`What three properties does every CDF \(F\) have?`,
-      back: R`1. <b>Increasing:</b> \(x_1 \le x_2 \Rightarrow F(x_1) \le F(x_2)\).<br>2. <b>Right-continuous:</b> at each jump, \(F\) takes the <em>upper</em> value (the dot is filled on the right piece).<br>3. <b>Limits:</b> \(F(x) \to 0\) as \(x \to -\infty\) and \(F(x) \to 1\) as \(x \to \infty\).`,
+      back: R`1. <b>Non-decreasing</b> (increasing in the weak sense): \(x_1 \le x_2 \Rightarrow F(x_1) \le F(x_2)\).<br>2. <b>Right-continuous:</b> at each jump, \(F\) takes the <em>upper</em> value (the dot is filled on the right piece).<br>3. <b>Limits:</b> \(F(x) \to 0\) as \(x \to -\infty\) and \(F(x) \to 1\) as \(x \to \infty\).`,
     },
     {
       id: "c3-cdf-interval", tag: "Proposition",
@@ -260,7 +260,7 @@
 
     /* ---- Section 3.8: independence of random variables ---- */
     {
-      id: "c3-indep-rv", tag: "Definition 3.8.1",
+      id: "c3-indep-rv", tag: "Definition 3.8.1 (PMF form)",
       front: R`When are two discrete random variables \(X\) and \(Y\) <em>independent</em>?`,
       back: R`When the joint PMF factors for <b>every</b> pair of values: $$P(X = x,\ Y = y) = P(X = x)\,P(Y = y) \quad \text{for all } x, y.$$ One pair factoring is not enough — a single pair that fails is enough to make them dependent.`,
     },
@@ -313,7 +313,7 @@
 
     /* ---- C3 full deck: independence of r.v.s, in full ---- */
     {
-      id: "c3-indep-cdf", tag: "Definition 3.8.1",
+      id: "c3-indep-cdf", tag: "Definition 3.8.1 (CDF form)",
       front: R`State the general (CDF) definition of independence of two r.v.s, and its discrete equivalent.`,
       back: R`\(X\) and \(Y\) are independent if $$P(X \le x,\ Y \le y) = P(X \le x)\,P(Y \le y) \quad \text{for all } x, y \in \mathbb{R}.$$ For discrete r.v.s this is equivalent to the joint PMF factoring: \(P(X = x, Y = y) = P(X = x)P(Y = y)\) for all \(x, y\) in the supports. The CDF form also covers continuous r.v.s, which have no PMF.`,
     },
@@ -396,6 +396,7 @@
       const n = U.randInt(6, 12);
       return { p: m / t, n, setup: R`On a basketball court you take ${n} free throws. Assume you make ${m} out of every ${t} free throws you attempt, independently from shot to shot.`,
         X: "the number of free throws you make", succ: "free throws you make", fail: "free throws you miss",
+        given: k => R`you made exactly ${k} of the ${n} free throws`, first: R`your <b>first</b> free throw went in`,
         pWhy: R`\(p = ${m}/${t} = ${U.fmt(m / t, 2)}\)` };
     },
     () => {
@@ -403,6 +404,7 @@
       const n = U.randInt(6, 12);
       return { p: 1 / c, n, setup: R`A student guesses blindly on all ${n} questions of a multiple-choice quiz. Each question has ${c} options, exactly one of them correct.`,
         X: "the number of questions answered correctly", succ: "correct answers", fail: "wrong answers",
+        given: k => R`exactly ${k} of the ${n} answers were correct`, first: R`the <b>first</b> question was answered correctly`,
         pWhy: R`\(p = 1/${c} = ${U.fmt(1 / c, 2)}\)` };
     },
     () => {
@@ -410,6 +412,7 @@
       const n = U.randInt(6, 12);
       return { p, n, setup: R`A packet contains ${n} seeds. Each seed germinates with probability ${p}, independently of the others.`,
         X: "the number of seeds that germinate", succ: "seeds that germinate", fail: "seeds that fail to germinate",
+        given: k => R`exactly ${k} of the ${n} seeds germinated`, first: R`one <b>particular</b> seed (say, the one you planted first) germinated`,
         pWhy: R`\(p = ${p}\)` };
     },
     () => {
@@ -417,6 +420,7 @@
       const n = U.randInt(8, 15);
       return { p, n, setup: R`A machine produces items that are defective with probability ${p}, independently. A quality inspector examines the next ${n} items off the line.`,
         X: "the number of defective items", succ: "defective items", fail: "non-defective items",
+        given: k => R`exactly ${k} of the ${n} items were defective`, first: R`the <b>first</b> item inspected was defective`,
         pWhy: R`\(p = ${p}\)` };
     },
     () => {
@@ -424,6 +428,7 @@
       const n = U.randInt(6, 12);
       return { p, n, setup: R`In a certain city ${Math.round(p * 100)}% of voters support a ballot measure. A pollster phones ${n} voters chosen independently at random (the city is large).`,
         X: "the number of supporters reached", succ: "supporters", fail: "non-supporters",
+        given: k => R`exactly ${k} of the ${n} voters phoned support the measure`, first: R`the <b>first</b> voter phoned is a supporter`,
         pWhy: R`\(p = ${p}\)` };
     },
   ];
@@ -601,7 +606,9 @@
               answer: ans, kind: "prob",
               sol: R`<div class="sol-step">Don't sum the infinite tail. Ask what the event <em>means</em>: ${strict ? R`\(X > ${k}\)` : R`\(X \ge ${k}\)`} says the first ${e} shots all miss.</div>
                    <div class="sol-step">$$P(X ${strict ? ">" : R`\ge`} ${k}) = (1 - ${p})^{${e}} = (${U.fmt(1 - p, 2)})^{${e}} \approx ${U.fmt(ans)}$$</div>
-                   <div class="sol-step">Mind the endpoint: \(X \ge ${k}\) is \(X > ${k - 1}\), so it needs only ${k - 1} misses, not ${k}.</div>`,
+                   <div class="sol-step">${strict
+                     ? R`Mind the endpoint: \(X > ${k}\) means shot ${k} also missed, so it needs ${k} misses. (\(X \ge ${k}\) would need only ${k - 1}.)`
+                     : R`Mind the endpoint: \(X \ge ${k}\) is \(X > ${k - 1}\), so it needs only ${k - 1} misses, not ${k}.`}</div>`,
             };
           },
         },
@@ -763,7 +770,7 @@
             const ans = ask === "c" ? 1 / tot : f(k) / tot;
             return {
               q: R`A random variable \(X\) has PMF \(p_X(x) = ${fTex}\) for \(x = 1, 2, \dots, ${n}\) (and \(0\) otherwise), where \(c\) is a constant. ${ask === "c" ? R`Find \(c\).` : R`Find \(P(X = ${k})\).`}`,
-              answer: ans, kind: "prob",
+              answer: ans, kind: ask === "c" ? "num" : "prob",   // c is a constant, not a probability
               sol: R`<div class="sol-step">The only thing that pins down \(c\) is that a PMF <b>sums to 1</b>.</div>
                    <div class="sol-step">$$\sum_{x=1}^{${n}} p_X(x) = c\,(${Array.from({ length: n }, (_, i) => f(i + 1)).join(" + ")}) = ${tot}c = 1 \quad\Longrightarrow\quad c = \frac{1}{${tot}}$$</div>
                    ${ask === "c" ? "" : R`<div class="sol-step">$$P(X = ${k}) = \frac{${f(k)}}{${tot}} \approx ${U.fmt(ans)}$$</div>`}`,
@@ -820,7 +827,7 @@
               q: R`A discrete random variable \(X\) has CDF ${C.tex} Find \(P(X = ${C.xs[i]})\).`,
               answer: ans, kind: "prob",
               sol: R`<div class="sol-step">\(P(X = x)\) is the <b>size of the jump</b> of \(F\) at \(x\): \(F(x) - F(x^-)\).</div>
-                   <div class="sol-step">$$P(X = ${C.xs[i]}) = F(${C.xs[i]}) - F(${C.xs[i]}^-) = ${hund(C.F[i])} - ${hund(C.Fleft(i))} = ${hund(C.ps[i])}$$</div>`,
+                   <div class="sol-step">$$P(X = ${C.xs[i]}) = F(${C.xs[i]}) - F({${C.xs[i]}}^-) = ${hund(C.F[i])} - ${hund(C.Fleft(i))} = ${hund(C.ps[i])}$$</div>`,
             };
           },
         },
@@ -828,7 +835,7 @@
           name: "Is there a jump here?",
           make() {
             const C = stepCdf();
-            // a point strictly between two jumps, or a jump point, 50/50
+            // a jump point about 35% of the time, otherwise a point strictly between two jumps
             const onJump = Math.random() < 0.35;
             let x, ans;
             if (onJump) {
@@ -874,9 +881,9 @@
             if (form === 0 && i === 0 && j === C.k - 1) form = 1;  // the whole support would give 1
             // [lower F, upper F, symbol, explanation]
             const cfg = [
-              [C.Fleft(i), C.F[j], R`${a} \le X \le ${b}`, R`Including \(${a}\) means subtracting \(F(${a}^-)\), the value just <em>before</em> the jump at \(${a}\).`],
-              [C.F[i], C.Fleft(j), R`${a} < X < ${b}`, R`Excluding \(${b}\) means using \(F(${b}^-)\), the value just <em>before</em> the jump at \(${b}\).`],
-              [C.Fleft(i), C.Fleft(j), R`${a} \le X < ${b}`, R`Include \(${a}\): subtract \(F(${a}^-)\). Exclude \(${b}\): use \(F(${b}^-)\).`],
+              [C.Fleft(i), C.F[j], R`${a} \le X \le ${b}`, R`Including \(${a}\) means subtracting \(F({${a}}^-)\), the value just <em>before</em> the jump at \(${a}\).`],
+              [C.F[i], C.Fleft(j), R`${a} < X < ${b}`, R`Excluding \(${b}\) means using \(F({${b}}^-)\), the value just <em>before</em> the jump at \(${b}\).`],
+              [C.Fleft(i), C.Fleft(j), R`${a} \le X < ${b}`, R`Include \(${a}\): subtract \(F({${a}}^-)\). Exclude \(${b}\): use \(F({${b}}^-)\).`],
             ][form];
             const ans = (cfg[1] - cfg[0]) / 100;
             return {
@@ -1190,7 +1197,7 @@
             const k = U.randInt(2, c.n - 1);
             const ans = k / c.n;
             return {
-              q: R`${c.setup} Given that there were exactly ${k} ${c.succ} in total, what is the probability that the <b>first</b> trial was one of them?`,
+              q: R`${c.setup} Given that ${c.given(k)}, what is the probability that ${c.first}?`,
               answer: ans, kind: "prob",
               sol: R`<div class="sol-step">Given \(X = ${k}\), every arrangement of ${k} successes among ${c.n} trials has the same probability \(p^{${k}}q^{${c.n - k}}\) (with \(q = 1 - p\)), so all \(\binom{${c.n}}{${k}}\) arrangements are <b>equally likely</b> and \(p\) drops out.</div>
                    <div class="sol-step">$$P(\text{trial 1 success} \mid X = ${k}) = \frac{p \cdot \binom{${c.n - 1}}{${k - 1}} p^{${k - 1}}q^{${c.n - k}}}{\binom{${c.n}}{${k}} p^{${k}} q^{${c.n - k}}} = \frac{\binom{${c.n - 1}}{${k - 1}}}{\binom{${c.n}}{${k}}} = \frac{${k}}{${c.n}} \approx ${U.fmt(ans)}$$</div>`,
@@ -1891,7 +1898,7 @@
               q: R`On average ${lam} ${c.what} per ${c.per}. Let \(X\) be the number of ${c.evt} in the next ${c.per}. Find \(P(X = ${k})\).`,
               answer: ans, kind: "prob",
               sol: R`<div class="sol-step">A count of events in a fixed interval at a steady rate: \(X \sim \text{Pois}(\lambda)\) with \(\lambda = ${lam}\), the expected count in <em>one ${c.per}</em>.</div>
-                   <div class="sol-step">$$P(X = ${k}) = \frac{e^{-${lam}}\,${lam}^{${k}}}{${k}!} \approx ${U.fmt(ans)}$$</div>`,
+                   <div class="sol-step">$$P(X = ${k}) = \frac{e^{-${lam}}\,{${lam}}^{${k}}}{${k}!} \approx ${U.fmt(ans)}$$</div>`,
             };
           }),
         },
@@ -1905,7 +1912,7 @@
             return {
               q: R`On average ${lam} ${c.what} per ${c.per}. Find the probability of <b>at most ${k}</b> ${c.evt} in a given ${c.per}.`,
               answer: ans, kind: "prob",
-              sol: R`<div class="sol-step">\(X \sim \text{Pois}(${lam})\). "At most ${k}" is the CDF value \(F(${k}) = \sum_{j=0}^{${k}} e^{-${lam}}${lam}^j / j!\).</div>
+              sol: R`<div class="sol-step">\(X \sim \text{Pois}(${lam})\). "At most ${k}" is the CDF value \(F(${k}) = \sum_{j=0}^{${k}} e^{-${lam}}{${lam}}^j / j!\).</div>
                    <div class="sol-step">$$P(X \le ${k}) = ${terms.join(" + ")} \approx ${U.fmt(ans)}$$</div>
                    <div class="sol-step">Don't forget the \(j = 0\) term, \(e^{-${lam}}\): zero events is a possible value.</div>`,
             };
@@ -1971,7 +1978,7 @@
               q: R`A factory ships ${n} items; each is defective with probability ${p}, independently. Using the <b>Poisson approximation</b>, estimate the probability that exactly ${k} items are defective.`,
               answer: ans, kind: "prob", tol: Math.max(0.002, Math.abs(ans - exact) + 0.0006),
               sol: R`<div class="sol-step">Exactly, \(X \sim \text{Bin}(${n}, ${p})\): many trials, each a rare event. Then \(X\) is approximately \(\text{Pois}(\lambda)\) with \(\lambda = np = ${n} \times ${p} = ${U.fmt(lam)}\).</div>
-                   <div class="sol-step">$$P(X = ${k}) \approx \frac{e^{-${U.fmt(lam)}}\,${U.fmt(lam)}^{${k}}}{${k}!} \approx ${U.fmt(ans)}$$</div>
+                   <div class="sol-step">$$P(X = ${k}) \approx \frac{e^{-${U.fmt(lam)}}\,{${U.fmt(lam)}}^{${k}}}{${k}!} \approx ${U.fmt(ans)}$$</div>
                    <div class="sol-step">The exact Binomial value is \(${U.fmt(exact)}\) — the approximation is good because \(n\) is large and \(p\) is small.</div>`,
             };
           }),
@@ -2000,8 +2007,8 @@
               q: R`For each \(n\), let \(X_n \sim \text{Bin}\left(n, \frac{${lam}}{n}\right)\). Find \(\displaystyle\lim_{n \to \infty} P(X_n = ${k})\).`,
               answer: ans, kind: "prob",
               sol: R`<div class="sol-step">\(np = ${lam}\) stays fixed while \(n \to \infty\) and \(p \to 0\): this is exactly the setting where the Binomial PMF converges to the Poisson PMF with \(\lambda = ${lam}\).</div>
-                   <div class="sol-step">$$P(X_n = ${k}) = \frac{${lam}^{${k}}}{${k}!}\left[\frac{n(n-1)\cdots(n-${k}+1)}{n^{${k}}}\right]\left(1 - \frac{${lam}}{n}\right)^{n}\left(1 - \frac{${lam}}{n}\right)^{-${k}}$$ The bracket \(\to 1\), \(\left(1 - \frac{${lam}}{n}\right)^{n} \to e^{-${lam}}\), and the last factor \(\to 1\).</div>
-                   <div class="sol-step">$$\lim_{n \to \infty} P(X_n = ${k}) = \frac{e^{-${lam}}\,${lam}^{${k}}}{${k}!} \approx ${U.fmt(ans)}$$</div>`,
+                   <div class="sol-step">$$P(X_n = ${k}) = \frac{{${lam}}^{${k}}}{${k}!}\left[\frac{n(n-1)\cdots(n-${k}+1)}{n^{${k}}}\right]\left(1 - \frac{${lam}}{n}\right)^{n}\left(1 - \frac{${lam}}{n}\right)^{-${k}}$$ The bracket \(\to 1\), \(\left(1 - \frac{${lam}}{n}\right)^{n} \to e^{-${lam}}\), and the last factor \(\to 1\).</div>
+                   <div class="sol-step">$$\lim_{n \to \infty} P(X_n = ${k}) = \frac{e^{-${lam}}\,{${lam}}^{${k}}}{${k}!} \approx ${U.fmt(ans)}$$</div>`,
             };
           },
         },
@@ -2060,6 +2067,10 @@
               xs.forEach((x, i) => ys.forEach((y, j) => { (groups[x * y] = groups[x * y] || []).push([i, j]); }));
               const multi = Object.keys(groups).filter(k => groups[k].length >= 2);
               if (multi.length) { v = Number(U.pick(multi)); break; }
+            }
+            if (v === undefined) {   // deterministic fallback: 6 = 1·6 = 2·3 = 3·2
+              xs = [1, 2, 3]; ys = [2, 3, 6]; v = 6;
+              groups = { 6: [[0, 2], [1, 1], [2, 0]] };
             }
             px = pmfHundredths(3, 10); py = pmfHundredths(3, 10);
             const pairs = groups[v];
@@ -2230,7 +2241,7 @@
     {
       when: R`an urn, but "with replacement", "put back", or a population so large it doesn't matter`,
       use: R`Binomial with \(p = \frac{w}{w+b}\)`,
-      why: R`With replacement the urn is unchanged before every draw, so the draws are independent with constant \(p\). That is what separates Binomial from Hypergeometric.`,
+      why: R`With replacement the urn is unchanged before every draw, so the draws are independent with constant \(p\). That is what separates Binomial from Hypergeometric. Without replacement from a huge population the draws are only nearly independent, so the Binomial is then an <em>approximation</em> to the exact Hypergeometric.`,
     },
     {
       when: R`"chosen at random" from a finite list, with nothing to tell the items apart`,

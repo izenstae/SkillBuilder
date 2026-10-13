@@ -235,7 +235,7 @@
               answer: ans, kind: "num", tol: 0.05,
               sol: R`<div class="sol-step">Independence means \(P(${t.rowE} \cap ${t.colE}) = P(${t.rowE})P(${t.colE})\). Writing each as a count over \(${n}\):</div>
                    <div class="sol-step">$$\frac{\text{cell}}{${n}} = \frac{${a + b}}{${n}} \cdot \frac{${a + c}}{${n}} \quad\Longrightarrow\quad \text{cell} = \frac{${a + b} \times ${a + c}}{${n}} = ${U.fmt(ans, 3)}$$</div>
-                   <div class="sol-step">The observed count is ${a}, so the events are ${Math.abs(a - ans) < 0.5 ? "essentially independent here" : `<b>not</b> independent (the cell is ${a > ans ? "larger" : "smaller"} than independence would predict)`}. This "row total × column total ÷ grand total" is the expected-count formula behind the chi-square test.</div>`,
+                   <div class="sol-step">The observed count is ${a}, so the events are ${Math.abs(a - ans) < 1e-9 ? "exactly independent here" : `<b>not</b> independent: the cell is ${a > ans ? "larger" : "smaller"} than independence would predict${Math.abs(a - ans) < 0.5 ? " (only slightly, but independence requires exact equality)" : ""}`}. This "row total × column total ÷ grand total" is the expected-count formula behind the chi-square test.</div>`,
             };
           },
         },
@@ -598,7 +598,7 @@
               q: R`You have one fair coin and one biased coin that lands Heads with probability ${pH}. You pick one of the two at random and flip it ${n} times; it lands Heads all ${n} times. Given this, what is the probability you picked the <b>fair</b> coin?`,
               answer: ans, kind: "prob",
               sol: R`<div class="sol-step">Let \(F\) = picked fair coin, \(A\) = all ${n} flips Heads. Prior: \(P(F) = P(F^c) = 1/2\).</div>
-                   <div class="sol-step">Likelihoods: \(P(A \mid F) = (1/2)^{${n}} = ${U.fmt(pDataFair, 5)}\), \(P(A \mid F^c) = ${pH}^{${n}} = ${U.fmt(pDataBias, 5)}\).</div>
+                   <div class="sol-step">Likelihoods: \(P(A \mid F) = (1/2)^{${n}} = ${U.fmt(pDataFair, 5)}\), \(P(A \mid F^c) = {${pH}}^{${n}} = ${U.fmt(pDataBias, 5)}\).</div>
                    <div class="sol-step">$$P(F \mid A) = \frac{P(A \mid F)P(F)}{P(A \mid F)P(F) + P(A \mid F^c)P(F^c)} = \frac{${U.fmt(pDataFair, 5)}}{${U.fmt(pDataFair, 5)} + ${U.fmt(pDataBias, 5)}} \approx ${U.fmt(ans)}$$</div>
                    <div class="sol-step">The equal priors cancel, so this reduces to comparing the two likelihoods.</div>`,
             };
@@ -828,8 +828,8 @@
               q: R`A server cluster has ${n} identical machines, each up (independently) with probability ${p}. The service stays online as long as <b>at least 2</b> machines are up. What is the probability the service is online?`,
               answer: ans, kind: "prob",
               sol: R`<div class="sol-step">Split into the disjoint cases "exactly 2 up" and "all 3 up".</div>
-                   <div class="sol-step">Exactly 2: choose which machine is down (\(\binom{3}{2} = 3\) ways), each case with probability \(${p}^2(1-${p})\): $$3 \times ${U.fmt(p * p, 4)} \times ${U.fmt(q, 2)} = ${U.fmt(3 * p * p * q, 5)}$$</div>
-                   <div class="sol-step">All 3: \(${p}^3 = ${U.fmt(p * p * p, 5)}\).</div>
+                   <div class="sol-step">Exactly 2: choose which machine is down (\(\binom{3}{2} = 3\) ways), each case with probability \({${p}}^2(1-${p})\): $$3 \times ${U.fmt(p * p, 4)} \times ${U.fmt(q, 2)} = ${U.fmt(3 * p * p * q, 5)}$$</div>
+                   <div class="sol-step">All 3: \({${p}}^3 = ${U.fmt(p * p * p, 5)}\).</div>
                    <div class="sol-step">$$P = ${U.fmt(3 * p * p * q, 5)} + ${U.fmt(p * p * p, 5)} \approx ${U.fmt(ans, 5)}$$ (This is a Binomial probability — Chapter 3 gives it a name.)</div>`,
             };
           },
@@ -927,7 +927,7 @@
               q: R`A student applies to ${n} scholarships. Each application succeeds independently with probability ${p}. What is the probability of winning <b>at least one</b> scholarship?`,
               answer: ans, kind: "prob",
               sol: R`<div class="sol-step">Complement: all ${n} applications fail. By independence these multiply:</div>
-                   <div class="sol-step">$$P(\text{none}) = (1 - ${p})^{${n}} = ${U.fmt(1 - p)}^{${n}} = ${U.fmt(Math.pow(1 - p, n), 6)}$$</div>
+                   <div class="sol-step">$$P(\text{none}) = (1 - ${p})^{${n}} = {${U.fmt(1 - p)}}^{${n}} = ${U.fmt(Math.pow(1 - p, n), 6)}$$</div>
                    <div class="sol-step">$$P(\text{at least one}) = 1 - ${U.fmt(Math.pow(1 - p, n), 6)} \approx ${U.fmt(ans, 5)}$$</div>
                    <div class="sol-step">Adding \(${n} \times ${p} = ${U.fmt(n * p, 3)}\) instead would double-count the overlaps (and can exceed 1).</div>`,
             };
@@ -1102,13 +1102,15 @@
             const indep = Math.random() < 0.5;
             const actual = indep ? U.round(pa * pb, 6) : U.round(pa * pb + U.pick([-1, 1]) * U.randInt(5, 12) / 100, 6);
             const clamped = Math.min(Math.max(actual, 0.01), Math.min(pa, pb));
-            const ans = U.round(pa * pb, 6);
+            const prod = U.round(pa * pb, 6);
+            const ans = U.round(clamped - prod, 6);
             return {
-              q: R`For events \(A\) and \(B\), \(P(A) = ${pa}\), \(P(B) = ${pb}\), and \(P(A \cap B) = ${U.fmt(clamped, 4)}\). Compute the value \(P(A)P(B)\) that the intersection <b>would</b> have if the events were independent.`,
-              answer: ans, kind: "prob",
+              q: R`For events \(A\) and \(B\), \(P(A) = ${pa}\), \(P(B) = ${pb}\), and \(P(A \cap B) = ${U.fmt(clamped, 4)}\). Test the definition of independence: compute \(P(A \cap B) - P(A)P(B)\). (It is \(0\) exactly when \(A\) and \(B\) are independent; the answer may be negative.)`,
+              answer: ans, kind: "num",
               sol: R`<div class="sol-step">Independence is the statement \(P(A \cap B) = P(A)P(B)\) — so compute the right-hand side and compare.</div>
-                   <div class="sol-step">$$P(A)P(B) = ${pa} \times ${pb} = ${U.fmt(ans, 5)}$$</div>
-                   <div class="sol-step">The actual intersection is \(${U.fmt(clamped, 4)}\), so the events are <b>${Math.abs(clamped - ans) < 1e-9 ? "independent" : "not independent"}</b>.${Math.abs(clamped - ans) < 1e-9 ? "" : clamped > ans ? " The overlap is larger than independence predicts: the events are positively associated." : " The overlap is smaller than independence predicts: the events are negatively associated."}</div>
+                   <div class="sol-step">$$P(A)P(B) = ${pa} \times ${pb} = ${U.fmt(prod, 5)}$$</div>
+                   <div class="sol-step">$$P(A \cap B) - P(A)P(B) = ${U.fmt(clamped, 4)} - ${U.fmt(prod, 5)} = ${U.fmt(ans, 5)}$$</div>
+                   <div class="sol-step">${Math.abs(ans) < 1e-9 ? "The difference is 0" : "The difference is not 0"}, so the events are <b>${Math.abs(ans) < 1e-9 ? "independent" : "not independent"}</b>.${Math.abs(ans) < 1e-9 ? "" : ans > 0 ? " The overlap is larger than independence predicts: the events are positively associated." : " The overlap is smaller than independence predicts: the events are negatively associated."}</div>
                    <div class="sol-step">Independence is a <em>numerical coincidence</em> between three probabilities, not something you can read off the story.</div>`,
             };
           },
@@ -1167,7 +1169,7 @@
             return {
               q: R`A mother carries a gene with probability \(${mn}/${md}\). If she carries it, each of her two children independently inherits a trait with probability ${h}; if not, each independently has it with probability ${g}. Given that the <b>elder</b> child has the trait, what is the probability the <b>younger</b> one does?`,
               answer: ans, kind: "prob",
-              sol: R`<div class="sol-step">Given the mother's status the children are independent, so condition on it (\(M\) = carrier): $$P(\text{elder}) = ${h}\cdot ${U.fmt(m)} + ${g}\cdot ${U.fmt(1 - m)} = ${U.fmt(pE)}, \qquad P(\text{both}) = ${h}^2 \cdot ${U.fmt(m)} + ${g}^2 \cdot ${U.fmt(1 - m)} = ${U.fmt(pEY)}$$</div>
+              sol: R`<div class="sol-step">Given the mother's status the children are independent, so condition on it (\(M\) = carrier): $$P(\text{elder}) = ${h}\cdot ${U.fmt(m)} + ${g}\cdot ${U.fmt(1 - m)} = ${U.fmt(pE)}, \qquad P(\text{both}) = {${h}}^2 \cdot ${U.fmt(m)} + {${g}}^2 \cdot ${U.fmt(1 - m)} = ${U.fmt(pEY)}$$</div>
                    <div class="sol-step">$$P(\text{younger} \mid \text{elder}) = \frac{${U.fmt(pEY)}}{${U.fmt(pE)}} \approx ${U.fmt(ans)}$$</div>
                    <div class="sol-step">Compare \(P(\text{younger}) = ${U.fmt(pE)}\): the elder's trait is evidence the mother is a carrier, which raises the younger's chance. Conditionally independent given \(M\), but <b>not</b> independent.</div>`,
             };
@@ -1375,7 +1377,7 @@
           name: "Given specificity: required sensitivity",
           make() {
             const prev = U.pick([0.02, 0.05, 0.1]);
-            // choose spec so that the threshold lands strictly inside (0, 1)
+            // choose spec so that the threshold lands in [0, 1): spec = 1 gives exactly 0
             const specs = [1, 0.999, 0.998, 0.995, 0.99, 0.98].filter(sp => (1 - prev) * (1 - sp) < prev);
             const spec = U.pick(specs);
             const ans = (1 - prev) * (1 - spec) / prev;
@@ -1398,8 +1400,8 @@
             return {
               q: R`A disease has prevalence ${prev}. A test has sensitivity ${sens} and false-positive rate ${fpr}. A patient tests positive, then is retested and is positive again. Assuming the results are conditionally independent given disease status, find \(P(D \mid \text{both positive})\).`,
               answer: ans, kind: "prob",
-              sol: R`<div class="sol-step">Conditional independence given \(D\) (and given \(D^c\)) lets the likelihoods multiply: \(P(++ \mid D) = ${sens}^2\), \(P(++ \mid D^c) = ${fpr}^2\).</div>
-                   <div class="sol-step">$$P(D \mid ++) = \frac{${sens}^2(${prev})}{${sens}^2(${prev}) + ${fpr}^2(${U.fmt(1 - prev)})} \approx ${U.fmt(ans)}$$</div>
+              sol: R`<div class="sol-step">Conditional independence given \(D\) (and given \(D^c\)) lets the likelihoods multiply: \(P(++ \mid D) = {${sens}}^2\), \(P(++ \mid D^c) = {${fpr}}^2\).</div>
+                   <div class="sol-step">$$P(D \mid ++) = \frac{{${sens}}^2(${prev})}{{${sens}}^2(${prev}) + {${fpr}}^2(${U.fmt(1 - prev)})} \approx ${U.fmt(ans)}$$</div>
                    <div class="sol-step">Sequentially: after one positive \(P(D \mid +) \approx ${U.fmt(one)}\); use that as the new prior and update again — same answer. One positive leaves plenty of doubt; the second does most of the work.</div>`,
             };
           },
