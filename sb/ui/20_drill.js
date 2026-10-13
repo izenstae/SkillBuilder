@@ -92,7 +92,7 @@ function buildControls() {
   var c = $("controls"); c.innerHTML = ""; $("hint").textContent = "";
   if (q.kind === "choice") {
     var box = el("div", "opts" + (q.rtl ? " rtl" : ""));
-    q.options.forEach(function (o, i) { var b = btn(esc(o) + (i < 9 ? "<kbd>" + (i + 1) + "</kbd>" : ""), "", function () { submit(o); }); box.appendChild(b); });
+    q.options.forEach(function (o, i) { var b = btn(esc(o) + (i < 9 ? "<kbd>" + (i + 1) + "</kbd>" : ""), "", function () { submit(o); }); if (q.rtl) b.dir = "auto"; box.appendChild(b); });
     c.appendChild(box); $("hint").textContent = "Keys 1–" + Math.min(9, q.options.length) + " choose.";
   } else if (q.kind === "text" || q.kind === "num") {
     var wrap = el("div", "entry"), inp = el("input"); inp.type = "text"; inp.id = "inp"; inp.autocomplete = "off"; inp.autocapitalize = "off"; inp.spellcheck = false;

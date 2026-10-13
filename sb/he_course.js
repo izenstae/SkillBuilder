@@ -112,7 +112,7 @@
   add({ id: "he_yesh", mode: "heprep", pass: 7, of: 10, title: "Yesh, ein and the little prepositions", sub: "I have = there is to me", gist: "Hebrew has no verb 'to have'. יֵשׁ לִי is 'there is to me', and the preposition takes a pronoun suffix. The suffix set is the key to half the grammar.",
     blocks: [
       { t: "p", x: "A pronoun after a preposition becomes a suffix on the preposition: לְ + אֲנִי = לִי, שֶׁל + אַתָּה = שֶׁלְּךָ, אֶת + הוּא = אוֹתוֹ. The same ten suffixes recur on nouns (my, your…) and on verbs (me, you…), so this table is worth more than its size." },
-      { t: "tbl", head: ["", "me", "you (m.)", "him", "her", "us", "them"], rows: HE_PREP.rows.map(function (r) { return [r[0] + " (" + r[7] + ")", r[1], r[2], r[3], r[4], r[5], r[6]]; }), rtl: true },
+      { t: "tbl", head: ["", "me", "you (m.)", "him", "her", "us", "them"], rows: HE_PREP.rows.map(function (r) { return [r[0] + "<span class='tgl'>" + r[7] + "</span>", r[1], r[2], r[3], r[4], r[5], r[6]]; }), rtl: true },
       { t: "rule", x: "יֵשׁ לִי כֶּלֶב = I have a dog\nאֵין לִי זְמַן = I have no time\nיֵשׁ לָהּ / יֵשׁ לָהֶם", note: "In the past and future, 'to be' appears: הָיָה לִי (I had), יִהְיֶה לִי (I will have)." },
       { t: "key", x: "Suffixes: -i, -cha, -o, -a, -nu, -hem. Yesh li, ein li. Shel + suffix for 'my, your': ha-sefer sheli." },
       { t: "how", drill: "Prepositions", ask: "Give the preposition with the pronoun attached.", steps: ["Take the preposition's base.", "Add the suffix for the person.", "Some bases change: עַל → עָלַי, מִן → מִמֶּנִּי."], tip: "Point at things and say שֶׁלִּי, שֶׁלְּךָ, שֶׁלּוֹ. Possession is the most frequent use of the suffixes." }

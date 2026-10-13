@@ -144,7 +144,7 @@ function lgWordQ(item, box, pool, caps, rnd) {
   }
   if (kind === "listen") {
     var useEx = item.ex && rnd() < 0.5;
-    return Object.assign(base, { kind: "text", question: "Listen, then type what you heard" + (useEx ? " (the whole sentence)." : "."), answer: useEx ? item.ex : item.w, accept: [useEx ? item.ex : item.w], target: useEx ? 20 : 10, type: "listen", speak: { text: useEx ? item.ex : item.w, lang: L.code }, hideText: true, keyboard: item.lang });
+    return Object.assign(base, { kind: "text", question: "Listen, then type what you heard" + (useEx ? " (the whole sentence)." : "."), answer: useEx ? item.ex : item.w, accept: useEx ? [item.ex] : [item.w].concat(item.alt || []), target: useEx ? 20 : 10, type: "listen", speak: { text: useEx ? item.ex : item.w, lang: L.code }, hideText: true, keyboard: item.lang });
   }
   /* speak: say the word; the device listens, or you grade yourself */
   return Object.assign(base, { kind: "speak", question: "Say the " + L.name + " for <b>" + item.g + "</b> out loud.", answer: item.w, accept: [item.w].concat(item.alt || []), target: 8, type: "speak", listen: { lang: L.code }, speak: null, speakAfter: caps.tts ? { text: item.w, lang: L.code } : null });
