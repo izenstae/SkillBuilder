@@ -71,7 +71,7 @@
     {
       id: "c3-cdf-interval", tag: "Proposition",
       front: R`Express \(P(a < X \le b)\) and \(P(X > a)\) in terms of the CDF \(F\).`,
-      back: R`$$P(a < X \le b) = F(b) - F(a), \qquad P(X > a) = 1 - F(a).$$ The endpoints matter: \(\le\) on the right and \(<\) on the left is exactly what \(F(b) - F(a)\) counts. For an integer-valued \(X\), \(P(a \le X \le b) = F(b) - F(a - 1)\).`,
+      back: R`$$P(a < X \le b) = F(b) - F(a), \qquad P(X > a) = 1 - F(a).$$ The endpoints matter: \(\le\) on the right and \(<\) on the left is exactly what \(F(b) - F(a)\) counts. For an integer-valued \(X\) and integer \(a\), \(P(a \le X \le b) = F(b) - F(a - 1)\).`,
     },
     {
       id: "c3-cdf-jump", tag: "CDF ↔ PMF",
@@ -101,7 +101,7 @@
     {
       id: "c3-binom-exp", tag: "Binomial experiment",
       front: R`List the four conditions for a <em>binomial experiment</em>.`,
-      back: R`1. A <b>fixed number</b> of trials, \(n\).<br>2. Each trial has exactly <b>two outcomes</b>, success or failure.<br>3. The trials are <b>independent</b>.<br>4. The success probability \(p\) is the <b>same</b> on every trial.<br>If any fails (e.g. drawing without replacement breaks 3 and 4), \(X\) is not Binomial.`,
+      back: R`1. A <b>fixed number</b> of trials, \(n\).<br>2. Each trial has exactly <b>two outcomes</b>, success or failure.<br>3. The trials are <b>independent</b>.<br>4. The success probability \(p\) is the <b>same</b> on every trial.<br>If any fails (e.g. drawing without replacement breaks 3: each draw's success chance depends on what was drawn before), \(X\) is not Binomial.`,
     },
     {
       id: "c3-binom-def", tag: "Definition 3.3.3",
@@ -146,7 +146,7 @@
     {
       id: "c3-bin-vs-hgeom", tag: "Binomial vs. Hypergeometric",
       front: R`An urn has \(w\) white and \(b\) black balls; draw \(n\). When is the number of white balls Binomial, and when is it Hypergeometric?`,
-      back: R`<b>With replacement</b> ⇒ independent draws with constant \(p = \frac{w}{w + b}\) ⇒ \(\text{Bin}\left(n, \frac{w}{w+b}\right)\).<br><b>Without replacement</b> ⇒ dependent draws, and the success probability changes from draw to draw ⇒ \(\text{HGeom}(w, b, n)\).<br>Both count successes in \(n\) trials.`,
+      back: R`<b>With replacement</b> ⇒ independent draws with constant \(p = \frac{w}{w + b}\) ⇒ \(\text{Bin}\left(n, \frac{w}{w+b}\right)\).<br><b>Without replacement</b> ⇒ dependent draws: the success probability <em>given the earlier draws</em> changes ⇒ \(\text{HGeom}(w, b, n)\).<br>Both count successes in \(n\) trials.`,
     },
     {
       id: "c3-waiting", tag: "Example · waiting time",
@@ -267,7 +267,7 @@
     {
       id: "c3-iid", tag: "Definition · i.i.d.",
       front: R`What does <em>i.i.d.</em> mean, and which half of it does each word carry?`,
-      back: R`<b>Independent and identically distributed.</b> <em>Independent</em>: the joint PMF factors. <em>Identically distributed</em>: each has the same PMF. The two are separate claims — draws without replacement are identically distributed but <b>not</b> independent, and \(X\) with \(2X\) are dependent and not identically distributed.`,
+      back: R`<b>Independent and identically distributed.</b> <em>Independent</em>: the joint PMF factors. <em>Identically distributed</em>: each has the same PMF. The two are separate claims — draws without replacement are identically distributed but <b>not</b> independent, and a non-constant \(X\) with \(2X\) are dependent and not identically distributed.`,
     },
     {
       id: "c3-indicator-alg", tag: "Indicator algebra",
@@ -303,7 +303,7 @@
     {
       id: "c3-rv-vs-dist", tag: "Common error",
       front: R`\(X\) has PMF \(p_X\). Is the PMF of \(2X\) equal to \(2p_X(x)\)? And if \(X_1, X_2\) are i.i.d. copies of \(X\), is \(X_1 + X_2\) the same as \(2X\)?`,
-      back: R`<b>No to both.</b> \(2p_X\) sums to 2, so it is not a PMF at all. Doubling moves the <em>values</em>, not the probabilities: \(P(2X = 2x) = P(X = x)\).<br>\(X_1 + X_2\) is not \(2X\) either. \(2X\) is always even, but \(X_1 + X_2\) can be odd. Multiplying a random variable by 2 is a different operation from adding two independent copies of it.`,
+      back: R`<b>No to both.</b> \(2p_X\) sums to 2, so it is not a PMF at all. Doubling moves the <em>values</em>, not the probabilities: \(P(2X = 2x) = P(X = x)\).<br>\(X_1 + X_2\) is not \(2X\) either. For \(X \sim \text{Bern}(1/2)\), \(2X\) is always \(0\) or \(2\), but \(X_1 + X_2\) can equal \(1\). Multiplying a random variable by 2 is a different operation from adding two independent copies of it.`,
     },
     {
       id: "c3-same-dist", tag: "Common error",
@@ -972,18 +972,18 @@
           name: "Estimate p from a record",
           make() {
             const c = U.pick([
-              { W: U.randInt(50, 100), L: U.randInt(40, 100), unit: "games", win: "win", lose: "lose", who: "A baseball team" },
-              { W: U.randInt(20, 60), L: U.randInt(10, 50), unit: "matches", win: "win", lose: "lose", who: "A tennis player" },
-              { W: U.randInt(30, 90), L: U.randInt(5, 40), unit: "launches", win: "succeed", lose: "fail", who: "A rocket programme" },
+              { W: U.randInt(50, 100), L: U.randInt(40, 100), unit: "games", one: "game", win: "win", wins: "wins", losses: "losses", who: "A baseball team" },
+              { W: U.randInt(20, 60), L: U.randInt(10, 50), unit: "matches", one: "match", win: "win", wins: "wins", losses: "losses", who: "A tennis player" },
+              { W: U.randInt(30, 90), L: U.randInt(5, 40), unit: "launches", one: "launch", win: "success", wins: "successes", losses: "failures", who: "A rocket programme" },
             ]);
             const T = c.W + c.L;
             const askZero = Math.random() < 0.6;
             const ans = askZero ? c.L / T : c.W / T;
             return {
-              q: R`${c.who} has a record of ${c.W}–${c.L} (${c.W} ${c.win}s, ${c.L} losses, in ${T} ${c.unit}). Assume every ${c.unit.replace(/s$/, "")} has the same chance of a ${c.win} and that the ${c.unit} are independent. Let \(X = 1\) if the next one is a ${c.win} and \(X = 0\) otherwise. Using the record to estimate the parameter, find \(P(X = ${askZero ? 0 : 1})\).`,
+              q: R`${c.who} has a record of ${c.W}–${c.L} (${c.W} ${c.wins}, ${c.L} ${c.losses}, in ${T} ${c.unit}). Assume every ${c.one} has the same chance of a ${c.win} and that the ${c.unit} are independent. Let \(X = 1\) if the next one is a ${c.win} and \(X = 0\) otherwise. Using the record to estimate the parameter, find \(P(X = ${askZero ? 0 : 1})\).`,
               answer: ans, kind: "prob",
               sol: R`<div class="sol-step">\(X \sim \text{Bern}(p)\). The record does not <em>give</em> \(p\); it estimates it, and only under the two assumptions stated (constant \(p\), independent trials).</div>
-                   <div class="sol-step">$$p \approx \frac{\text{${c.win}s}}{\text{total}} = \frac{${c.W}}{${c.W} + ${c.L}} = ${U.fracTex(c.W, T)} \approx ${U.fmt(c.W / T, 4)}$$</div>
+                   <div class="sol-step">$$p \approx \frac{\text{${c.wins}}}{\text{total}} = \frac{${c.W}}{${c.W} + ${c.L}} = ${U.fracTex(c.W, T)} \approx ${U.fmt(c.W / T, 4)}$$</div>
                    <div class="sol-step">${askZero ? R`$$P(X = 0) = 1 - p = \frac{${c.L}}{${T}} = ${U.fracTex(c.L, T)} \approx ${U.fmt(ans, 4)}$$` : R`$$P(X = 1) = p = ${U.fracTex(c.W, T)} \approx ${U.fmt(ans, 4)}$$`}</div>`,
             };
           },
@@ -992,16 +992,16 @@
           name: "From one trial to a series (Binomial)",
           make: sane(() => {
             const c = U.pick([
-              { W: U.randInt(50, 100), L: U.randInt(40, 100), unit: "games", win: "win", who: "A baseball team" },
-              { W: U.randInt(20, 60), L: U.randInt(10, 50), unit: "matches", win: "win", who: "A tennis player" },
+              { W: U.randInt(50, 100), L: U.randInt(40, 100), unit: "games", one: "game", win: "win", who: "A baseball team" },
+              { W: U.randInt(20, 60), L: U.randInt(10, 50), unit: "matches", one: "match", win: "win", who: "A tennis player" },
             ]);
             const T = c.W + c.L, p = c.W / T;
             const n = U.randInt(4, 12), k = U.randInt(1, n - 1);
             const ans = binPmf(n, k, p);
             return {
-              q: R`${c.who} has a record of ${c.W}–${c.L}. Treat each ${c.unit.replace(/s$/, "")} as an independent Bernoulli trial whose success probability is estimated from the record. They now play a series of ${n} ${c.unit}. What is the probability that they ${c.win} exactly ${k} of them?`,
+              q: R`${c.who} has a record of ${c.W}–${c.L}. Treat each ${c.one} as an independent Bernoulli trial whose success probability is estimated from the record. They now play a series of ${n} ${c.unit}. What is the probability that they ${c.win} exactly ${k} of them?`,
               answer: ans, kind: "prob",
-              sol: R`<div class="sol-step">Each ${c.unit.replace(/s$/, "")} is one \(\text{Bern}(p)\) trial with \(p \approx ${c.W}/${T} \approx ${U.fmt(p, 4)}\). A fixed number \(n = ${n}\) of independent trials with the same \(p\): the <b>number of ${c.win}s</b> is Binomial.</div>
+              sol: R`<div class="sol-step">Each ${c.one} is one \(\text{Bern}(p)\) trial with \(p \approx ${c.W}/${T} \approx ${U.fmt(p, 4)}\). A fixed number \(n = ${n}\) of independent trials with the same \(p\): the <b>number of ${c.win}s</b> is Binomial.</div>
                    <div class="sol-step">$$X \sim \text{Bin}(${n}, ${U.fmt(p, 4)}), \qquad P(X = ${k}) = \binom{${n}}{${k}}(${U.fmt(p, 4)})^{${k}}(${U.fmt(1 - p, 4)})^{${n - k}} \approx ${U.fmt(ans, 5)}$$</div>
                    <div class="sol-step">Bernoulli is the one-trial case: \(\text{Bin}(1, p) = \text{Bern}(p)\), and a sum of \(n\) i.i.d. Bernoullis is \(\text{Bin}(n, p)\).</div>`,
             };
@@ -1192,7 +1192,7 @@
             return {
               q: R`${c.setup} Given that there were exactly ${k} ${c.succ} in total, what is the probability that the <b>first</b> trial was one of them?`,
               answer: ans, kind: "prob",
-              sol: R`<div class="sol-step">Given \(X = ${k}\), every arrangement of ${k} successes among ${c.n} trials has the same probability \(p^{${k}}q^{${c.n - k}}\), so all \(\binom{${c.n}}{${k}}\) arrangements are <b>equally likely</b> and \(p\) drops out.</div>
+              sol: R`<div class="sol-step">Given \(X = ${k}\), every arrangement of ${k} successes among ${c.n} trials has the same probability \(p^{${k}}q^{${c.n - k}}\) (with \(q = 1 - p\)), so all \(\binom{${c.n}}{${k}}\) arrangements are <b>equally likely</b> and \(p\) drops out.</div>
                    <div class="sol-step">$$P(\text{trial 1 success} \mid X = ${k}) = \frac{p \cdot \binom{${c.n - 1}}{${k - 1}} p^{${k - 1}}q^{${c.n - k}}}{\binom{${c.n}}{${k}} p^{${k}} q^{${c.n - k}}} = \frac{\binom{${c.n - 1}}{${k - 1}}}{\binom{${c.n}}{${k}}} = \frac{${k}}{${c.n}} \approx ${U.fmt(ans)}$$</div>`,
             };
           }),
@@ -1358,7 +1358,7 @@
             return {
               q: R`Let \(X\) be the ${c.unit} when ${c.what.replace("\\(N\\)", "\\(" + N + "\\)")}. Find \(P(X = ${k})\).`,
               answer: ans, kind: "prob",
-              sol: R`<div class="sol-step">"At random" over a finite list with nothing to distinguish its members means \(X \sim \text{DUnif}(\{1, \dots, ${N}\})\): every value is equally likely.</div>
+              sol: R`<div class="sol-step">"At random" over a finite list with nothing to distinguish its members means \(X \sim \text{DUnif}(C)\) with \(C = \{1, \dots, ${N}\}\): every value is equally likely.</div>
                    <div class="sol-step">$$P(X = ${k}) = \frac{1}{|C|} = \frac{1}{${N}} \approx ${U.fmt(ans, 5)}$$</div>
                    <div class="sol-step">The particular value ${k} is irrelevant — under a uniform distribution every value in the support has the same probability.</div>`,
             };
@@ -1759,11 +1759,12 @@
           make: sane(function () {
             const c = U.pick(GEOM_CTX)();
             const n = U.randInt(3, 10);
+            const nth = n === 3 ? "3rd" : n + "th";
             const ans = Math.pow(1 - c.p, n - 1) * c.p;
             return {
-              q: R`${c.setup} What is the probability that the <b>${n}th</b> ${c.trial} is the first ${c.succ}?`,
+              q: R`${c.setup} What is the probability that the <b>${nth}</b> ${c.trial} is the first ${c.succ}?`,
               answer: ans, kind: "prob",
-              sol: R`<div class="sol-step">Let \(X \sim \text{Geom}(${pT(c)})\) be the number of ${c.fails} <em>before</em> the first ${c.succ}. "The ${n}th ${c.trial} is the first ${c.succ}" means exactly \(${n - 1}\) ${c.fails} come first, i.e. \(X = ${n - 1}\) — not \(X = ${n}\).</div>
+              sol: R`<div class="sol-step">Let \(X \sim \text{Geom}(${pT(c)})\) be the number of ${c.fails} <em>before</em> the first ${c.succ}. "The ${nth} ${c.trial} is the first ${c.succ}" means exactly \(${n - 1}\) ${c.fails} come first, i.e. \(X = ${n - 1}\) — not \(X = ${n}\).</div>
                    <div class="sol-step">$$P(X = ${n - 1}) = q^{${n - 1}}p = \left(${qT(c)}\right)^{${n - 1}}\left(${pT(c)}\right) \approx ${U.fmt(ans)}$$</div>`,
             };
           }, 0.005),
@@ -2224,7 +2225,7 @@
     {
       when: R`two kinds of object, a sample drawn <b>without replacement</b> (committee, hand of cards, lot inspection, tagged animals)`,
       use: R`\(\text{HGeom}(w, b, n)\): \(\binom{w}{k}\binom{b}{n-k} / \binom{w+b}{n}\)`,
-      why: R`The draws are dependent and the success chance changes. Check the support \(\max(0, n-b) \le k \le \min(n, w)\) before computing.`,
+      why: R`The draws are dependent: the success chance given the earlier draws changes. Check the support \(\max(0, n-b) \le k \le \min(n, w)\) before computing.`,
     },
     {
       when: R`an urn, but "with replacement", "put back", or a population so large it doesn't matter`,
