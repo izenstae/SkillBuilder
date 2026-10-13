@@ -782,8 +782,8 @@ button.act.call,button.act.fold{font-size:15px}
 .tstat span{font-family:var(--sans); letter-spacing:.08em}
 @media(max-width:760px){ .tstats.h5{grid-template-columns:repeat(3,1fr)} .tstats.h5 .tstat:nth-child(n+4){grid-column:span 1} }
 @media(max-width:420px){ .tstats.h5{grid-template-columns:repeat(2,1fr)} }
-.hgrid{display:grid; grid-template-columns:1fr 1fr; gap:16px}
-@media(max-width:760px){ .hgrid{grid-template-columns:1fr} }
+.hgrid{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:16px}
+@media(max-width:760px){ .hgrid{grid-template-columns:minmax(0,1fr)} }
 .pstage{display:flex; gap:12px; align-items:flex-start; margin-bottom:12px}
 .pstage b{display:block; font-size:16px; margin-bottom:2px}
 .pstage div span{font-size:13px; color:var(--dim); line-height:1.45}
@@ -954,9 +954,9 @@ table.tbl{font-size:14px}
 .libsearch span{font-size:12.5px; color:var(--faint); white-space:nowrap}
 .libh{font-size:13px; letter-spacing:.12em; text-transform:uppercase; color:var(--dim); font-weight:600; margin:22px 0 10px}
 .libh:first-child{margin-top:0}
-.fxgrid{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+.fxgrid{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:12px}
 .fxgrid .fx{margin:0}
-@media(max-width:760px){ .fxgrid{grid-template-columns:1fr} }
+@media(max-width:760px){ .fxgrid{grid-template-columns:minmax(0,1fr)} }
 .gletter{font-size:13px; font-weight:700; color:var(--gold); margin:18px 0 6px; padding-bottom:4px; border-bottom:1px solid var(--line)}
 .gitem{display:grid; grid-template-columns:minmax(150px, 220px) 1fr auto; gap:6px 16px; padding:10px 0; border-bottom:1px solid var(--line); align-items:baseline}
 .gitem b{font-size:14.5px}
