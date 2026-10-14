@@ -1425,7 +1425,7 @@ function classifyPreflop(h, v) {
 
   if (hr[0] === vr[0] && hr[1] === vr[1]) return "The same two ranks: close to 50/50, and the pot is often split." + (hs !== vs ? " The suited one is worth a couple of points more." : "");
   var shared = (hr[0] === vr[0] || hr[0] === vr[1] || hr[1] === vr[0] || hr[1] === vr[1]);
-  if (shared) return "Domination: sharing a card with the worse kicker is about 26/74." + suitNote;
+  if (shared) return "Domination: sharing a card, the better kicker wins roughly 70/30, usually 65 to 77% (closer when the kickers are next to each other)." + suitNote;
   if (hr[1] > vr[0] || vr[1] > hr[0]) return "Two overcards against two undercards: about 63/37 for the higher hand." + suitNote;
   return "Interlocked unpaired hands: usually 55/45 to 60/40 toward the stronger top card." + suitNote;
 }
@@ -2939,7 +2939,7 @@ function genCombos() {
       lines: [["Hand class", t]],
       question: "How many combinations exist?",
       kind: "number", unit: "", answer: n, tol: 0.5,
-      bar: { fill: 100 * n / 16, tick: null, fillLabel: n + " of the 16 that a rank pair can hold", tickLabel: "" },
+      bar: { fill: 100 * n / 16, tick: null, fillLabel: t.length === 2 ? n + " (a pocket pair, against 16 for two unpaired ranks)" : n + " of the 16 that two unpaired ranks can make", tickLabel: "" },
       math: [
         t.length === 2 ? "A pocket pair: choose 2 of the 4 suits. C(4,2) = 6." :
         (t[2] === "s" ? "Suited: one combo per suit. 4." : "Offsuit: 4 x 4 minus the 4 suited ones = 12."),
@@ -4651,6 +4651,9 @@ function coachBet(g, A, to, rng) {
   /* with no responders (everyone else all in) the bet is just a call-like investment */
   var base = allInOpps.map(function (q) { return g.ranges[q.i]; });
   var heroAllIn = hero.stack - add <= 0.001;
+  /* chips no one can match come back: cap the called amount at the deepest opponent's final bet */
+  var heroTo = c.players[g.hero].bet, allInTop = allInOpps.reduce(function (a, q) { return Math.max(a, q.bet); }, 0);
+  function uncalled(oppTop) { return Math.max(0, heroTo - Math.max(oppTop, allInTop)); }
   var pOne = 0;                                  /* P(exactly one continues); the re-raise parts are inside it */
   resp.forEach(function (r, k) {
     var pOnly = (1 - r.pFold) * resp.reduce(function (a, o, j) { return j === k ? a : a * o.pFold; }, 1);
@@ -4660,8 +4663,9 @@ function coachBet(g, A, to, rng) {
     var canRe = r.pRaise > 0.02 && !heroAllIn && r.reTo > toNow + 0.001;
     var eq = equityVs(hero.cards, h.board, base.concat([canRe ? r.callW : r.cont]), 600, rng);
     var R = coachR(h.street, A.ip, heroAllIn || r.callAmt >= t.players[r.seat].stack - 0.001);
-    var final = potAfter + r.callAmt;
-    var v = R * eq * final - add;
+    var ex = uncalled(r.oppBet + r.callAmt);
+    var final = potAfter + r.callAmt - ex;
+    var v = R * eq * final - (add - ex);
     if (canRe) {
       /* they re-raise: you fold (losing what you put in) or call the rest, whichever is better */
       var extra = Math.min(r.reTo - toNow, heroLeft);
@@ -4681,14 +4685,16 @@ function coachBet(g, A, to, rng) {
   var pMulti = Math.max(0, 1 - pAll - pOne);
   if (pMulti > 1e-3) {
     var eqm = equityVs(hero.cards, h.board, base.concat(resp.map(function (r) { return r.cont; })), 600, rng);
-    var finalM = potAfter + resp.reduce(function (a, r) { return a + r.callAmt; }, 0);
-    var vm = coachR(h.street, A.ip, heroAllIn) * eqm * finalM - add;
+    var exM = uncalled(resp.reduce(function (a, r) { return Math.max(a, r.oppBet + r.callAmt); }, 0));
+    var finalM = potAfter + resp.reduce(function (a, r) { return a + r.callAmt; }, 0) - exM;
+    var vm = coachR(h.street, A.ip, heroAllIn) * eqm * finalM - (add - exM);
     ev += pMulti * vm;
     parts.push({ what: "two or more continue", p: pMulti, eq: eqm, value: vm });
   }
   if (!resp.length) {
     var eq0 = equityVs(hero.cards, h.board, base, 600, rng);
-    ev = eq0 * (potAfter) - add; parts = [{ what: "showdown", p: 1, eq: eq0, value: ev }];
+    var ex0 = uncalled(0);
+    ev = eq0 * (potAfter - ex0) - (add - ex0); parts = [{ what: "showdown", p: 1, eq: eq0, value: ev }];
   }
   return { ev: ev, add: add, pAllFold: resp.length ? pAll : 0, responders: resp.map(function (r) { return { seat: r.seat, name: r.name, style: r.style, pFold: r.pFold, eqCalled: r.eqCalled, reraise: r.reraise || null }; }), parts: parts };
 }
@@ -6185,7 +6191,7 @@ var LESSONS_1 = [
   gist: "Two numbers, one comparison. This is the whole of Stage 1.",
   blocks: [
     { t:"p", x:"You have a price from lesson one and an equity from lesson two. The decision is just putting them next to each other." },
-    { t:"rule", x:"equity > price   ->   call\nequity < price   ->   fold", note:"There is no third option and no judgement involved. If you are ahead of the price you call, even with a hand you dislike, even when you will lose most of the time." },
+    { t:"rule", x:"equity > price   ->   call\nequity &lt; price   ->   fold", note:"There is no third option and no judgement involved. If you are ahead of the price you call, even with a hand you dislike, even when you will lose most of the time." },
     { t:"p", x:"That last part is what people cannot swallow. A correct call can lose two times out of three. It is still correct, because you were not paying for a win, you were paying for a share, and you got the share cheap. The losses are already in the price." },
     { t:"ex", title:"Worked example",
       cards:{ hero:["9h","8h"], villain:["As","Kd"], board:["Ah","7h","2c"] },
@@ -6319,7 +6325,7 @@ var LESSONS_1 = [
     { t:"how", drill:"Preflop equity", ask:"All in preflop. What is your equity?",
       steps:[
         "You see two hands and no board. First name the shape: pair over pair, pair versus two overcards, pair versus one over, dominated, or two overs versus two unders.",
-        "Read off the anchor for that shape: 80/20 pair over pair, 55/45 pair versus two overs, 70/30 pair versus one over, 74/26 dominated, ~63/37 two overs versus two unders, 93/7 for a pair against a hand it dominates like AA vs AK.",
+        "Read off the anchor for that shape: 80/20 pair over pair, 55/45 pair versus two overs, 70/30 pair versus one over, ~70/30 dominated (shared card, better kicker), ~63/37 two overs versus two unders, 93/7 for a pair against a hand it dominates like AA vs AK.",
         "Nudge it: +3 points for suited, +2 for connected. Then enter your side. You are graded within 4 points."
       ],
       tip:"Decide who is the favourite before you attach any number. Getting the direction right, that the pair or the dominating hand is ahead, is most of the score. The exact decimal never matters." }
@@ -6438,7 +6444,7 @@ var LESSONS_0 = [
   blocks: [
     { t:"p", x:"Money goes in across four rounds. Two players post forced bets called blinds so there is something to fight over, then the hand unfolds in streets." },
     { t:"tbl", head:["Street","Cards visible","What happens"], rows:[
-      ["Preflop","Your 2","Everyone acts once. Most hands end here."],
+      ["Preflop","Your 2","Bet, raise or fold before any board card. Most hands end here."],
       ["Flop","Your 2 + 3","The shape of the hand is decided."],
       ["Turn","Your 2 + 4","Bets get big. Draws get expensive."],
       ["River","Your 2 + 5","No more cards. Pure value or pure bluff."]
@@ -6990,7 +6996,7 @@ var LESSONS_5 = [
 
 var READING = [
   { g:"Start here", items:[
-    ["The Mathematics of Poker", "Chen and Ankenman. Chen was a quant at Susquehanna. Derives toy games from first principles and builds to real spots. Written for you specifically.", "https://www.pokerbooks.lt/books/en/The_Mathematics_of_Poker.pdf"],
+    ["The Mathematics of Poker", "Chen and Ankenman. Chen was a quant at Susquehanna. Derives toy games from first principles and builds to real spots. Written for you specifically.", "https://www.conjelco.com/"],
     ["Play Optimal Poker 1 and 2", "Brokos. The same equilibrium intuition through toy games, without the machinery. Read alongside Chen."],
     ["Modern Poker Theory", "Acevedo. Solver output organised into heuristics you can actually carry to a table."]
   ]},
@@ -7236,10 +7242,10 @@ var L_SPR = {
     { t:"p", x:"How much a hand is worth depends on how much money can still go in. Top pair in a pot with little behind is a monster; the same top pair with a huge stack behind is a bluff catcher. The number that captures this is the stack-to-pot ratio." },
     { t:"rule", x:"SPR = effective stack behind / pot on the flop", note:"Effective stack is the smaller of the two stacks, because that is all that can be won. Measure it after the preflop betting." },
     { t:"tbl", head:["SPR","Typical pot","Hands happy to get it all in"], rows:[
-      ["under 3","3-bet and 4-bet pots","Top pair and overpairs"],
-      ["3 to 6","3-bet pots","Top pair good kicker, two pair+"],
-      ["6 to 13","single-raised pots at 100 bb","Two pair, sets, strong draws"],
-      ["over 13","limped or deep pots","Sets and better; nut draws"]
+      ["under 3","4-bet pots (about 1.5)","Top pair and overpairs"],
+      ["3 to 6","3-bet pots (about 4 to 5)","Top pair good kicker, two pair+"],
+      ["6 to 12","multiway or big-open raised pots","Two pair, sets, strong draws"],
+      ["over 12","heads-up single-raised pots at 100 bb (13 to 18), limped pots","Sets and better; nut draws"]
     ], caption:"A rule of thumb in the spirit of Acevedo's commitment thresholds, not a law. The idea is that you should decide how far to go with a hand before the flop, from the SPR, not in the middle of a raise war." },
     { t:"ex", title:"Worked example",
       facts:[["Stacks","100 bb"],["Preflop","CO opens 2.5 bb, BTN calls, blinds fold"]],
@@ -7256,7 +7262,7 @@ var L_SPR = {
         "Subtract what each player put in preflop from the effective stack.",
         "Divide the stack behind by the pot."
       ],
-      tip:"Single-raised pots at 100 bb are SPR 13 to 16. 3-bet pots are 4 to 5. 4-bet pots are about 1." }
+      tip:"Heads-up single-raised pots at 100 bb are SPR 13 to 18, about 15 for a 2.5 bb open. 3-bet pots are 4 to 5. 4-bet pots are about 1.5." }
   ]
 };
 
@@ -7311,7 +7317,7 @@ var L_EQR = {
       steps:[
         "Raw equity 28% beats the 25% price. On pot odds alone, this is a call.",
         "Realised equity: 0.8 × 28% = 22.4%.",
-        "22.4% < 25%: fold. Equivalently, you need 25% / 0.8 = 31% raw equity."
+        "22.4% &lt; 25%: fold. Equivalently, you need 25% / 0.8 = 31% raw equity."
       ],
       bar:{ fill:22.4, tick:25, fillLabel:"realised 22.4%", tickLabel:"price 25%" },
       punch:"This is why the big blind can defend wide against a button open but the small blind, out of position against everyone, should mostly 3-bet or fold." },
@@ -7371,7 +7377,7 @@ var L_GEO = {
       ["4","400%","100%","54%"],
       ["6.5","650%","137%","71%"],
       ["13","1,300%","210%","100%"]
-    ], caption:"At SPR 13, a normal single-raised pot at 100 bb, three pot-size bets exactly get it in. At SPR 4, two pot-size bets do." },
+    ], caption:"At SPR 13, the low end of a heads-up single-raised pot at 100 bb (13 to 18), three pot-size bets exactly get it in. At SPR 4, a 3-bet pot, two pot-size bets do." },
     { t:"ex", title:"Worked example",
       facts:[["Pot on the flop","10 bb"],["Stack behind","90 bb"],["Streets","3"]],
       steps:[

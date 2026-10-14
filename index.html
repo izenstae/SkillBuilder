@@ -1245,6 +1245,8 @@ function lgOptions(answer, pool, k, rnd, lang) {
 }
 /* accepted answers: "a / b" or "a; b" in a gloss means either is fine */
 function lgSplit(g) { return String(g || "").split(/\s*[\/;]\s*|\s+or\s+/).map(function (x) { return x.trim(); }).filter(Boolean); }
+/* leading words a typed answer may drop, applied in order ("to the" -> ""): English glosses, plus each language's own articles */
+var LG_ARTICLES = { en: [/^(to|the|a|an) /, /^(the|a|an) /], sv: [/^(to|the|a|an|att|en|ett) /, /^(the|a|an) /], he: [/^(to|the|a|an) /, /^(the|a|an) /], es: [/^(el|la|los|las) /] };
 function lgMatch(said, answers, lang) {
   var s = lgNorm(said, lang);
   if (!s) return false;
@@ -1254,8 +1256,10 @@ function lgMatch(said, answers, lang) {
   return all.some(function (a) {
     var n = lgNorm(a, lang);
     if (n === s) return true;
-    /* articles and "to" are optional in English glosses */
-    var loose = function (x) { return x.replace(/^(to|the|a|an|att|en|ett) /, "").replace(/^(the|a|an) /, ""); };
+    /* a leading article (and the infinitive marker) is optional, per language: in Spanish "en" and "a" are prepositions
+       (en casa is not casa) and un/una can carry meaning (un poco is not poco), so only el/la/los/las drop */
+    var art = LG_ARTICLES[lang] || LG_ARTICLES.en;
+    var loose = function (x) { return art.reduce(function (y, r) { return y.replace(r, ""); }, x); };
     return loose(n) === loose(s);
   });
 }
@@ -1288,7 +1292,7 @@ function lgPickOthers(item, pool, k, rnd) {
   for (var i = 0; i < src.length && out.length < k; i++) { var key = lgNorm(src[i].g); if (!used[key]) { used[key] = 1; out.push(src[i]); } }
   return out;
 }
-var LG_LANG = { sv: { name: "Swedish", code: "sv-SE", rtl: false }, he: { name: "Hebrew", code: "he-IL", rtl: true }, es: { name: "Spanish", code: "es-ES", rtl: false } };
+var LG_LANG = { sv: { name: "Swedish", code: "sv-SE", rtl: false }, he: { name: "Hebrew", code: "he-IL", rtl: true }, es: { name: "Spanish", code: "es-MX", rtl: false } };
 
 /* the word, as the learner should see it: Hebrew with points early, without later */
 function lgShow(item, box) { return item.lang === "he" && box >= 4 ? lgStrip(item.w) : item.w; }
@@ -1404,7 +1408,7 @@ function lgDialogueScore(sc, replies, lang) {
 /* ---- the level model: CEFR from what you can do ----
    words: known (box >= 3) and automatic (box >= 5); grammar: lessons passed / total;
    use: average scores 0..1 in conversation, reading, listening, writing (null if none);
-   hours: logged hours of study and immersion; need: the FSI estimate to professional fluency */
+   hours: logged hours of study and immersion; need: the FSI estimate to professional working proficiency (ILR 3, roughly C1) */
 var LG_CEFR = [
   { min: 0,  name: "A0", about: "Starting out. Sounds, the first hundred words." },
   { min: 10, name: "A1", about: "Breakthrough. Simple phrases, introduce yourself, ask and answer basic questions." },
@@ -2426,7 +2430,7 @@ var METHOD = [
     body: "Robert Bjork's term for conditions that slow learning in the moment and improve it in the long run: spacing, testing, interleaving, generating an answer rather than reading it, varying the conditions. Vocabulary here hardens on purpose as a word climbs: pick the meaning, then the word, then type it, then type it into a sentence, then hear it and type it, then say it. The point is not to make it unpleasant; it is that fluent-feeling study is a poor predictor of what you will remember.",
     src: "Bjork, 1994; Bjork & Bjork, 2011; Soderstrom & Bjork, Perspectives on Psychological Science 2015." },
   { id: "feedback", title: "Immediate, specific feedback", one: "A miss shows the working, drops the skill a box, and asks again two questions later.",
-    body: "Feedback works best when it is prompt, explains the error, and is followed by another attempt (Hattie & Timperley 2007; the hint ladder in the Math 340 tool is the same idea). Every drill here shows the full solution after a miss, names the rule it comes from, and re-asks the question while the explanation is fresh. The confidence prompt after each answer, borrowed from calibration research, exposes the errors you were sure about, which are the ones that cost most.",
+    body: "Feedback's effect varies widely; Hattie & Timperley (2007) found it helps most when it tells you how to close the gap on the task and the process, not just right or wrong, and that timing matters less than that: immediate feedback tends to help while a skill is being acquired, delayed feedback can help on harder, process-level work. Following it with another attempt is what turns it into learning (the hint ladder in the Math 340 tool is the same idea). Every drill here shows the full solution after a miss, names the rule it comes from, and re-asks the question while the explanation is fresh. The confidence prompt after each answer, borrowed from calibration research, exposes the errors you were sure about, which are the ones that cost most.",
     src: "Hattie & Timperley, Review of Educational Research 2007; Butler, Karpicke & Roediger 2008." },
   { id: "cap", title: "The daily cap and sleep", one: "A budget per day from your calendar, lower on hockey days, nothing after the sleep cutoff.",
     body: "Memories consolidate during sleep (Walker; Rasch & Born 2013): a learned skill tested the next morning after sleep beats one tested the same evening. Learning past fatigue adds little and crowds the schedule a week later, when it all comes due. The planner takes a cap you set, lowers it on days with hockey or five-plus hours of class, keeps 10% of it unallocated, and places nothing after the cutoff. Fifteen minutes a day for a year beats a weekend a month, because the gaps are where the memory forms.",
@@ -2704,16 +2708,18 @@ function hsCanon(x) {
 
 /* ============================================================
    QUANT: the timed games quant-firm applicants practise on, with
-   the same settings as the sites, not an easier ladder:
-     arithmetic  Zetamac's default game (also OpenQuant's Arithmetic):
+   the same settings as the practice sites, not an easier ladder:
+     arithmetic  Zetamac's default game (other practice sites run
+                 similar drills):
                  (2 to 100) + (2 to 100), subtraction as addition in
                  reverse, (2 to 12) × (2 to 100), division as
                  multiplication in reverse, 120 seconds. A right answer
                  is taken the moment it is typed; there is no Enter and
                  no skipping.
-     optiver     the Optiver 80 in 8: 80 multiple-choice questions in
-                 8 minutes, four options, integers, decimals, fractions
-                 and missing operands, +1 right, −1 wrong
+     optiver     the Optiver 80 in 8 as commonly reported by
+                 applicants: 80 questions in 8 minutes, +1 right, −1
+                 wrong; here four options, integers, decimals, fractions
+                 and missing operands
      sequences   the next term, at the difficulty of the firms' number
                  logic tests
      estimate, percent, odds   warm-ups for the rest of a screen
@@ -2729,7 +2735,7 @@ var QT_GAMES = [
     about: "(2–100) + (2–100), − in reverse, (2–12) × (2–100), ÷ in reverse",
     set: { add: [2, 100], mulA: [2, 12], mulB: [2, 100] } },
   { id: "optiver", name: "Optiver 80 in 8", secs: 480, ver: 10, target: 60, mc: true, count: 80,
-    blurb: "80 multiple-choice questions in 8 minutes: integers, decimals, fractions, missing operands. +1 right, −1 wrong.",
+    blurb: "The format applicants commonly report: 80 questions in 8 minutes, +1 right, −1 wrong. Here as four-option multiple choice: integers, decimals, fractions, missing operands.",
     about: "4 options, keys 1–4 or click, no calculator" },
   { id: "sequences", name: "Sequences", secs: 120, ver: 10, target: 16, exact: true,
     blurb: "What comes next? Ratios, powers, second differences, alternating and interleaved rules, primes.",
@@ -2768,6 +2774,8 @@ function qtSprint(T, rnd) {
   return { q: (e * f) + " ÷ " + e, a: f, kind: "÷", expl: (e * f) + " ÷ " + e + " = " + f };
 }
 var QT_PRIMES = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103];
+var QT_POLY_KINDS = { squares: 1, diff2: 1, sqPlus: 1 };
+function qtDiff(a) { return a.slice(1).map(function (x, i) { return x - a[i]; }); }
 function qtSequence(T, rnd) {
   var kind = qtPick(rnd, T.kinds), s = [], n = 5, i, expl, next, cur;
   if (kind === "geo") { var r = qtPick(rnd, [3, -2, 4, -3, 5]), g1 = qtInt(rnd, 1, 7); for (i = 0; i <= n; i++) s.push(g1 * Math.pow(r, i)); expl = "ratio " + r; }
@@ -2780,6 +2788,9 @@ function qtSequence(T, rnd) {
   else if (kind === "mulAdd") { var mm = qtPick(rnd, [2, 3, -2]), c = qtInt(rnd, -7, 7) || 1; cur = qtInt(rnd, 1, 9); for (i = 0; i <= n; i++) { s.push(cur); cur = cur * mm + c; } expl = "each term × " + mm + (c < 0 ? " − " + (-c) : " + " + c); }
   else { var k1 = qtInt(rnd, 1, 9), c2 = qtPick(rnd, [-3, -2, -1, 1, 2, 3]), lin = qtInt(rnd, 0, 1); for (i = 0; i <= n; i++) { var kk = k1 + i; s.push(kk * kk + lin * kk + c2); } expl = "n² " + (lin ? "+ n " : "") + (c2 < 0 ? "− " + (-c2) : "+ " + c2) + " for n = " + k1 + ", " + (k1 + 1) + ", …"; }
   next = s[n]; s = s.slice(0, n);
+  /* five shown terms with a zero fourth difference also fit a cubic (6, 10, 16, 26, 42 has constant third differences),
+     so the answer would be ambiguous: redraw the same kind. The polynomial kinds are meant to be read that way. */
+  if (n === 5 && !QT_POLY_KINDS[kind] && qtDiff(qtDiff(qtDiff(qtDiff(s))))[0] === 0) return qtSequence({ kinds: [kind] }, rnd);
   return { q: s.join(", ") + ", ?", a: next, kind: kind, expl: expl + " → " + next };
 }
 function qtEstimate(T, rnd) {
@@ -2896,10 +2907,10 @@ function qtLevel(S) {
   return { score: score, name: L.name, about: "Across the games: how your median run compares with its target.", index: ix, count: QT_LEVELS.length, next: nx, toNext: nx ? (score - L.min) / (nx.min - L.min) : 1, detail: detail };
 }
 var QT_PLAN = [
-  { title: "How it works", body: "The games use the same settings as the sites firms point applicants to. Arithmetic is Zetamac's default game: (2–100) + (2–100), subtraction as addition in reverse, (2–12) × (2–100), division as multiplication in reverse, two minutes, and a right answer moves on the moment it is typed, with no Enter and no skipping. The Optiver game is the 80 in 8: 80 multiple-choice questions in eight minutes, +1 for right and −1 for wrong. There is nothing to lose here: no XP penalty, no streak, no place in the daily budget." },
-  { title: "The plan", body: "One game a day before the first real session, Zetamac most often: it is the one interviews test and the one that transfers to the others. Once a week play the full 80 in 8. Once a week, look at the history chart and the per-operation breakdown and pick the weak operation for an extra run." },
+  { title: "How it works", body: "The games follow the practice sites and the formats applicants report. Arithmetic is Zetamac's default game: (2–100) + (2–100), subtraction as addition in reverse, (2–12) × (2–100), division as multiplication in reverse, two minutes, and a right answer moves on the moment it is typed, with no Enter and no skipping. The Optiver game follows the commonly reported 80 in 8: 80 questions in eight minutes, +1 for right and −1 for wrong; here each has four options, which may not match the real test. There is nothing to lose here: no XP penalty, no streak, no place in the daily budget." },
+  { title: "The plan", body: "One game a day before the first real session, Zetamac most often: it is the most widely practised of these games and the one that transfers to the others. Once a week play the full 80 in 8. Once a week, look at the history chart and the per-operation breakdown and pick the weak operation for an extra run." },
   { title: "Techniques, in the order to learn them", body: "Addition: left to right, tens first, say the running total. Subtraction: add up from the smaller number (47 to 50 is 3, to 83 is 36). Multiplication: break one factor (7 × 86 = 7 × 80 + 7 × 6), squares near 50 and 100, the difference of squares (48 × 52 = 2500 − 4). Division: find the quotient's first digit, multiply back, subtract. Decimals: count the decimal places, multiply as integers, put them back; for 0.078 ÷ 0.006 move both points until the divisor is whole (78 ÷ 6). Fractions: common denominator, then reduce. Sequences: check differences, then ratios, then second differences, then the odd and even places separately." },
-  { title: "Targets", body: "Zetamac default in two minutes: 45–55 is a baseline, 60 is the target here, 70+ is what top trading firms like to see. Optiver 80 in 8: reported pass lines run from about 55 to 70 of 80 after the −1 penalties; the target here is 60." }
+  { title: "Targets", body: "Zetamac default in two minutes: the target here is 60. Applicants on forums often describe scores around 50 as decent and 70+ as strong, but firms do not publish cut-offs. Optiver 80 in 8: the target here is 60; pass lines are not published, and the numbers applicants report vary widely." }
 ];
 
 /* ============================================================
@@ -3195,19 +3206,22 @@ function chSan(s, m) {
   chUnmake(s);
   return str + (mate ? "#" : check ? "+" : "");
 }
+/* SAN in, the one legal move it names out, or null. Over-specified origins (Nbd2, Nb1d2) and a promotion without "=" are accepted;
+   a capture must say x, a promotion must name its piece, and anything that fits two legal moves (Nd2 with two knights, xd5 with two pawns) is rejected */
 function chParseSan(s, san) {
-  var want = san.replace(/[+#!?]/g, "").replace(/0/g, "O");
-  var ms = chLegal(s);
-  for (var i = 0; i < ms.length; i++) {
-    var got = chSan(s, ms[i]).replace(/[+#]/g, "");
-    if (got === want) return ms[i];
+  var want = san.replace(/[+#!?\s]/g, "").replace(/0/g, "O"), ms = chLegal(s);
+  if (want === "O-O" || want === "O-O-O") {
+    var cs = ms.filter(function (m) { return m.flag === "castle" && (want === "O-O") === (m.to > m.from); });
+    return cs.length === 1 ? cs[0] : null;
   }
-  /* lenient: pawn capture without the file, promotion without "=" */
-  for (i = 0; i < ms.length; i++) {
-    got = chSan(s, ms[i]).replace(/[+#]/g, "").replace("=", "");
-    if (got === want.replace("=", "") || got.replace(/^[a-h]x/, "x") === want) return ms[i];
-  }
-  return null;
+  var p = /^([NBRQK]?)([a-h]?)([1-8]?)(x?)([a-h][1-8])(?:=?([NBRQ]))?$/.exec(want);
+  if (!p) return null;
+  var kind = p[1] ? CH_LETTER.indexOf(p[1]) : CH_P, to = chIdx(p[5]), promo = p[6] ? CH_LETTER.indexOf(p[6]) : 0;
+  var hits = ms.filter(function (m) {
+    return m.flag !== "castle" && Math.abs(m.piece) === kind && m.to === to && Math.abs(m.promo) === promo && !!m.cap === !!p[4] &&
+      (!p[2] || CH_FILES[chFile(m.from)] === p[2]) && (!p[3] || String(chRank(m.from) + 1) === p[3]);
+  });
+  return hits.length === 1 ? hits[0] : null;
 }
 function chMoveName(m) { return chName(m.from) + chName(m.to) + (m.promo ? CH_LETTER[Math.abs(m.promo)].toLowerCase() : ""); }
 function chFindMove(s, from, to, promo) {
@@ -3296,7 +3310,7 @@ function chEval(s) {
     var v = CH_VAL[kind] + CH_PST[kind === CH_K && endgame ? 7 : kind][chPstIdx(i, side)];
     score += side * v;
   }
-  /* a small bonus for mobility keeps the pieces active */
+  /* no mobility term: activity comes only from the piece-square tables above */
   return s.side > 0 ? score : -score;
 }
 
@@ -3689,17 +3703,39 @@ CH_DRILLS.chmate2 = { name: "Mate in two", target: 40, gen: function (ctx) {
     explain: ["<b>" + sans[0] + "</b>" + (sans.length > 1 ? " (also " + sans.slice(1).join(", ") + ")" : "") + "." + (found.note ? " " + found.note : " Every reply allows mate next move."), "Mate in two: find a forcing first move (check, capture or threat) after which every reply allows mate in one. Calculate the opponent's every option, not just the obvious one."] };
 } };
 
+/* the depth-3 verdict re-checked deeper: every accepted move searched to CH_BEST_DEEP plies, and every other move proven at least CH_BEST_MARGIN worse with a null-window search; a budget overrun counts as a failure */
+var CH_BEST_DEEP = 5, CH_BEST_MARGIN = 150, CH_BEST_LIMIT = 120000;
+function chdBestHolds(s, sc, accept) {
+  var v = Infinity, i, r, cx, w;
+  for (i = 0; i < sc.length; i++) {
+    if (accept.indexOf(sc[i].san) < 0) continue;
+    chMake(s, sc[i].move); r = chLegal(s).length ? chSearch(s, CH_BEST_DEEP - 1, CH_BEST_LIMIT) : null; chUnmake(s);
+    if (!r || r.depth < CH_BEST_DEEP - 1) return false;
+    v = Math.min(v, -r.score);
+  }
+  var bound = v - CH_BEST_MARGIN;
+  for (i = 0; i < sc.length; i++) {
+    if (accept.indexOf(sc[i].san) >= 0) continue;
+    chMake(s, sc[i].move);
+    cx = { nodes: 0, limit: CH_BEST_LIMIT, aborted: false, best: null, pvFirst: null };
+    w = chLegal(s).length ? -chAlphaBeta(s, CH_BEST_DEEP - 1, -bound - 1, -bound, cx, 1) : (chInCheck(s) ? CH_MATE : 0);
+    chUnmake(s);
+    if (cx.aborted || w > bound) return false;
+  }
+  return true;
+}
 CH_DRILLS.chbest = { name: "Best move", target: 30, gen: function (ctx) {
   var rnd = chdRnd(ctx), found = null;
+  var acceptOf = function (sc) { return sc.filter(function (x) { return sc[0].score - x.score <= 30; }).map(function (x) { return x.san; }); };
   for (var t = 0; t < 40 && !found; t++) {
     var s = chRandomPosition(16 + ((rnd() * 40) | 0), rnd);
     var st = chStatus(s); if (st === "checkmate" || st === "stalemate") continue;
     var sc = chScoreMoves(s, 3, 60000);
-    if (sc.length >= 4 && sc[0].score - sc[1].score >= 250 && sc[0].score < CH_MATE - 50 && Math.abs(sc[0].score) < 1500) found = { s: s, sc: sc };
+    if (sc.length >= 4 && sc[0].score - sc[1].score >= 250 && sc[0].score < CH_MATE - 50 && Math.abs(sc[0].score) < 1500 && chdBestHolds(s, sc, acceptOf(sc))) found = { s: s, sc: sc };
   }
   if (!found) { var s2 = chFromFen("4k3/8/8/3q4/8/8/8/3RK3 w - - 0 1"); found = { s: s2, sc: chScoreMoves(s2, 3, 60000) }; }
   var S = found.s, top = found.sc[0], second = found.sc[1];
-  var accept = found.sc.filter(function (x) { return top.score - x.score <= 30; }).map(function (x) { return x.san; });
+  var accept = acceptOf(found.sc);
   return { kind: "move", question: chdSide(S) + " to move. <b>Find the best move.</b> There is one clearly best; the engine graded every option.", answer: top.san, accept: accept, target: 30, board: chdPos(S), elo: 1300,
     explain: ["<b>" + top.san + "</b>, worth about " + (top.score / 100).toFixed(1) + " pawns; the next best, " + second.san + ", is worth " + (second.score / 100).toFixed(1) + ".", "Method: list the checks, captures and threats for both sides first (CCT). The best move is usually among them, and the ones you did not consider are the ones that lose games."] };
 } };
@@ -3892,7 +3928,7 @@ function chlPuzzle(L, elo, ok) {
   add({ id: "ch_pieces", mode: "chmove", pass: 8, of: 10, title: "How the pieces move", sub: "Six pieces, six rules", gist: "Rook along lines, bishop along diagonals, queen both, knight in an L over anything, king one step, pawn forward and captures sideways.",
     blocks: [
       { t: "tbl", head: ["Piece", "Moves", "Notes"], rows: [["King ♔", "one square in any direction", "may never move into check; castles once"], ["Queen ♕", "any distance along a rank, file or diagonal", "the strongest piece, worth about nine pawns"], ["Rook ♖", "any distance along a rank or file", "two rooks on the seventh rank are a classic win"], ["Bishop ♗", "any distance along a diagonal", "stays on its colour forever; the pair covers both"], ["Knight ♘", "two squares one way, one square sideways", "jumps over pieces; always lands on the other colour"], ["Pawn ♙", "one square forward, two from its start; captures one square diagonally forward", "promotes on the last rank; en passant"]] },
-      board("8/8/8/3N4/8/8/8/8 w - - 0 1", "A knight on d5 reaches eight squares: b4, b6, c3, c7, e3, e7, f4, f6. On the rim it reaches four at most. 'A knight on the rim is dim.'", { mark: ["b4", "b6", "c3", "c7", "e3", "e7", "f4", "f6"] }),
+      board("k7/8/8/3N4/8/8/8/7K w - - 0 1", "A knight on d5 reaches eight squares: b4, b6, c3, c7, e3, e7, f4, f6. On the rim it reaches four at most. 'A knight on the rim is dim.'", { mark: ["b4", "b6", "c3", "c7", "e3", "e7", "f4", "f6"] }),
       { t: "rule", x: "sliders (Q R B) stop at the first piece in the way; they capture an enemy there, never pass it\nthe knight ignores everything in between", note: "A piece 'attacks' every square it could move to, including squares it could capture on. The pawn is the exception: it attacks diagonally but moves straight." },
       { t: "p", x: "Three special moves. Castling: the king moves two squares toward a rook and the rook jumps over it, allowed only if neither has moved, nothing is between them, and the king is not in check, does not pass through check, and does not land in check. En passant: a pawn that has just moved two squares can be captured by an enemy pawn beside it as if it had moved one, on that move only. Promotion: a pawn reaching the last rank becomes a queen, rook, bishop or knight, your choice, usually a queen." },
       { t: "key", x: "Q R B slide and stop at the first piece. N jumps, two-and-one, to the other colour. K one step, never into check. Pawns forward one (two at first), capture diagonally, promote at the end." },
@@ -3902,7 +3938,7 @@ function chlPuzzle(L, elo, ok) {
     blocks: [
       { t: "p", x: "When your king is attacked you are in check and must get out of it at once, in one of three ways: move the king, capture the checking piece, or block the line (not possible against a knight or a pawn, or a double check). If none works, it is checkmate and you have lost." },
       board("6k1/5ppp/8/8/8/8/8/R5K1 w - - 0 1", "Ra8 is checkmate: the rook checks along the eighth rank, the king's own pawns take away f7, g7, h7, and nothing can block or capture. The back-rank mate."),
-      { t: "rule", x: "check: king attacked → move, capture, or block\ncheckmate: in check, no escape → game over\nstalemate: not in check, no legal move → draw", note: "Other draws: threefold repetition of the position, fifty moves without a capture or pawn move, insufficient material (king and a minor piece cannot mate), and agreement." },
+      { t: "rule", x: "check: king attacked → move, capture, or block\ncheckmate: in check, no escape → game over\nstalemate: not in check, no legal move → draw", note: "Other draws: threefold repetition of the position, fifty moves by each side without a capture or pawn move, insufficient material (king and a minor piece cannot mate), and agreement. Here, as on most online sites, repetition and the fifty-move rule end the game automatically; over the board a player must claim them, and they become automatic only at fivefold repetition or seventy-five moves." },
       board("7k/5Q2/6K1/8/8/8/8/8 b - - 0 1", "Black to move: not in check, and no legal move. Stalemate, a draw, with a queen up. The queen must leave the king one square until the last moment."),
       { t: "warn", x: "A double check (two pieces checking at once, usually from a discovered attack) can only be met by a king move. It is the most forcing move in chess." },
       { t: "key", x: "Out of check by move, capture or block. No escape = mate. No move and no check = stalemate = draw. Check your opponent's legal moves before you cage the king." },
@@ -4133,13 +4169,13 @@ function chlPuzzle(L, elo, ok) {
   book({ id: "ch_bk_chernev", title: "Logical Chess: Move by Move", sub: "Irving Chernev · start here", gist: "Thirty-three master games with every move explained, so you see why a plain developing move is right as well as why the sacrifice works. The bridge from knowing the rules to knowing what to do.",
     quiz: [
       { q: "What sets Logical Chess apart from other game collections", options: ["Every move of every game is explained, not only the critical ones", "It has no diagrams", "It covers only endgames", "It is an opening repertoire"], answer: "Every move of every game is explained, not only the critical ones", explain: "Most annotators skip the 'obvious' moves. Beginners need exactly those moves explained." },
-      { q: "How many games are in the book", options: ["Thirty-three", "Ten", "One hundred", "Five hundred"], answer: "Thirty-three", explain: "Kingside attacks first, then games from queen's pawn openings." },
+      { q: "How many games are in the book", options: ["Thirty-three", "Ten", "One hundred", "Five hundred"], answer: "Thirty-three", explain: "Thirty-three complete master games, each annotated move by move." },
       { q: "The ideas Chernev repeats most are", options: ["Develop quickly, fight for the centre, castle, and attack where you are stronger", "Grab material whenever you can", "Move the queen out early", "Keep all pawns on their starting squares"], answer: "Develop quickly, fight for the centre, castle, and attack where you are stronger", explain: "Opening principles turned into plans, shown move after move in real games." },
       { q: "Chernev's sample games are mostly", options: ["Model wins by masters that show principles in action", "Computer games", "His own blitz games", "Composed studies"], answer: "Model wins by masters that show principles in action", explain: "Clean wins, chosen so the logic shows." },
       { q: "The best way to study it is", options: ["Play through each game on a board and guess the next move before reading the note", "Read it without a board", "Memorise the games", "Skip the notes"], answer: "Play through each game on a board and guess the next move before reading the note", explain: "Guess the move, then read the note. Each one is a small test with the answer right there." }
     ],
     blocks: [
-      { t: "p", x: "Chernev takes thirty-three master games and explains every move, including the quiet ones annotators usually skip: why the knight goes to f3 and not h3, why castle now, why this pawn and not that one. The first half is kingside attacks; the second, games from queen's pawn openings. The principles (centre, development, king safety, attack where you have more) stop being slogans and become reasons for actual moves." },
+      { t: "p", x: "Chernev takes thirty-three master games and explains every move, including the quiet ones annotators usually skip: why the knight goes to f3 and not h3, why castle now, why this pawn and not that one. The principles (centre, development, king safety, attack where you have more) stop being slogans and become reasons for actual moves." },
       { t: "rule", x: "for every move ask: does it develop, take the centre, protect the king, or start a plan?\nguess the master's move, then read why", note: "Use a real board or the lichess analysis board. Play each game twice: once guessing, once reading quickly to see the whole plan." },
       { t: "key", x: "Thirty-three games, every move explained. Guess each move, then read the note. Principles become plans." }
     ] });
@@ -4166,7 +4202,7 @@ function chlPuzzle(L, elo, ok) {
       { q: "The Lucena and Philidor positions are", options: ["The basic win and the basic draw in rook and pawn against rook", "Two openings", "Queen endings", "Mating patterns with knights"], answer: "The basic win and the basic draw in rook and pawn against rook", explain: "Lucena: build a bridge and win. Philidor: rook on the third rank, then checks from behind, and draw." }
     ],
     blocks: [
-      { t: "p", x: "Silman sorts the endgame by rating: a beginner's section (the basic mates, the square of the pawn), then class E, D, C, B and A, then expert and master. Each section is what a player at that level actually meets and needs to know. His instruction is to master everything up to your own class and stop there, coming back as your rating rises. It is the endgame book you keep for years and read one section at a time." },
+      { t: "p", x: "Silman sorts the endgame by rating: a section for beginners that starts with the basic mates, then class E, D, C, B and A, then expert and master. Each section is what a player at that level actually meets and needs to know. His instruction is to master everything up to your own class and stop there, coming back as your rating rises. It is the endgame book you keep for years and read one section at a time." },
       { t: "rule", x: "read to your class, master it, stop\nbasic mates → square and opposition → key squares → Lucena and Philidor → the rest", note: "The Endgames stage here (ch_kq, ch_square, ch_opp, ch_rook) covers roughly the first several sections. When those are passed, the next section in Silman is the next thing to study." },
       { t: "key", x: "Endgames by rating class. Learn up to your level, then stop. Come back as you climb." }
     ] });
@@ -4619,7 +4655,7 @@ var SV_VOCAB = {
     ["hjärta", "heart", "n", "ett hjärta, hjärtat, hjärtan, hjärtana", "Hjärtat slår.", "The heart beats."],
     ["rygg", "back", "n", "en rygg, ryggen, ryggar", "Ont i ryggen.", "Back pain."],
     ["hår", "hair", "n", "ett hår, håret", "Blont hår.", "Blond hair."],
-    ["ont", "pain / hurts", "adj", "ha ont i = have pain in", "Jag har ont i knät.", "My knee hurts."],
+    ["ont", "pain / hurts", "n", "no forms; ha ont i = have pain in, göra ont = to hurt (Det gör ont.)", "Jag har ont i knät.", "My knee hurts."],
     ["sjuk", "ill / sick", "adj", "sjuk, sjukt, sjuka", "Jag är sjuk idag.", "I'm sick today."],
     ["frisk", "healthy / well", "adj", "frisk, friskt, friska", "Han är frisk igen.", "He's well again."],
     ["trött", "tired", "adj", "trött, trött, trötta", "Jag är så trött.", "I'm so tired."],
@@ -4979,7 +5015,7 @@ var SV_READINGS = [
     ], gloss: [["personer", "people"], ["tillsammans", "together"], ["går i skolan", "goes to school"]],
     qs: [{ q: "Hur många personer är de i familjen?", options: ["Tre", "Fyra", "Fem", "Sex"], answer: "Fem" }, { q: "Vad gör pappa?", options: ["Han är lärare", "Han spelar hockey", "Han arbetar på sjukhus", "Han går i skolan"], answer: "Han är lärare" }, { q: "Vad heter hunden?", options: ["Jonas", "Max", "Lina", "Sara"], answer: "Max" }] },
   { id: "sv_r2", title: "En dag i Stockholm", level: "A2", text: [
-      "Igår åkte jag till Stockholm med tåget. Resan tog ungefär fyrtio minuter. Jag kom fram klockan tio och gick direkt till Gamla stan.",
+      "Jag heter Emma. Igår åkte jag till Stockholm med tåget. Resan tog ungefär fyrtio minuter. Jag kom fram klockan tio och gick direkt till Gamla stan.",
       "I Gamla stan finns det många små gator och gamla hus. Jag drack kaffe på ett litet kafé och åt en kanelbulle. Sedan gick jag till Kungliga slottet. Det var mycket folk där.",
       "På eftermiddagen tog jag båten till Djurgården och besökte Vasamuseet. Skeppet Vasa sjönk år 1628 och bärgades 1961. Det var fantastiskt att se. På kvällen åkte jag hem, trött men nöjd."
     ], gloss: [["kom fram", "arrived"], ["slottet", "the palace"], ["folk", "people"], ["skeppet", "the ship"], ["sjönk", "sank"], ["bärgades", "was raised"]],
@@ -5056,7 +5092,7 @@ var SV_WRITING = [
   add({ id: "sv_alpha", mode: "svletter", pass: 7, of: 10, title: "The nine vowels", sub: "Why Swedish sounds the way it does",
     gist: "Swedish has 29 letters and nine vowels, each with a long and a short version. Get these right first and everything after is spelled the way it sounds.",
     blocks: [
-      { t: "p", x: "Swedish spelling is honest: once you know what each letter does, you can read a word you have never seen and say it right. The whole difficulty sits in nine vowels, three of which do not exist in English, and in a handful of consonant rules. Train the ear first. The Foreign Service Institute, Pimsleur and every modern method agree on the order: sounds, then words, then grammar." },
+      { t: "p", x: "Swedish spelling is honest: once you know what each letter does, you can read a word you have never seen and say it right. The whole difficulty sits in nine vowels, three of which do not exist in English, and in a handful of consonant rules. Train the ear first. Most structured courses, Pimsleur among them, start the same way: sounds, then words, then grammar." },
       { t: "tbl", head: ["Letter", "Sound"], rows: SV_LETTERS },
       { t: "rule", x: "a vowel is LONG before one consonant, SHORT before two\nglas (glaas) vs glass (glass) · tak (taak) vs tack (tack)", note: "Length is phonemic: it changes the word. A long vowel is also tenser and often a different quality, so vit (white) and vitt (white, ett-form) differ in both length and colour." },
       { t: "p", x: "The three extra letters sort at the end of the alphabet: å, ä, ö. They are not decorated a's and o's. Å is the vowel of English 'more'; ä is the vowel of 'bed' or 'air'; ö is 'ea' in 'earn' with rounded lips. Y is the hardest for English speakers: say 'ee' and round your lips as if to whistle." },
@@ -5089,7 +5125,7 @@ var SV_WRITING = [
   add(vocabLesson("sv_v1", "The first thirty", "Pronouns, greetings, yes and no", "The words in every sentence: who, what, and the little ones that hold a conversation together.",
     "Frequency lists are brutal and useful: the hundred most common words of a language cover about half of everything said. Paul Nation's work on vocabulary shows the first 2,000 word families cover 80 to 90% of ordinary text, so the order you learn words in matters more than how many you know. These thirty are the top of the list. Learn them with their example sentences, not alone.",
     [{ t: "rule", x: "jag · du · han · hon · vi · ni · de\nmig · dig · honom · henne · oss · er · dem", note: "Subject forms, then object forms. 'De' and 'dem' are both pronounced 'dom' in speech." }]));
-  add(vocabLesson("sv_verbs", "Thirty verbs", "Doing, having, wanting", "The verbs you will use in nine sentences out of ten. Present tense is the same for every person, so 'jag går, du går, vi går'.",
+  add(vocabLesson("sv_verbs", "Thirty-two verbs", "Doing, having, wanting", "The verbs you will use in nine sentences out of ten. Present tense is the same for every person, so 'jag går, du går, vi går'.",
     "Swedish verbs do not change for person: one present-tense form for everyone. That makes the first verbs cheap to learn. The forms listed are infinitive, present, past and supine; for now use the present (the -r form) and add the rest when the tense lessons come.",
     [{ t: "rule", x: "jag går · du går · han går · vi går · ni går · de går", note: "No conjugation by person, ever. The energy that English spends on 'goes' Swedish spends on word order." }]));
   add({ id: "sv_num", mode: "svnum", pass: 7, of: 10, title: "Numbers and the clock", sub: "0 to 1,000, days, and telling the time",
@@ -5190,13 +5226,13 @@ var SV_WRITING = [
       { t: "key", x: "Preteritum for a finished time (igår). Perfekt (har + supine) for a link to now. Group 1: -ade / -at." },
       { t: "how", drill: "Tenses", ask: "Put the sentence in the past, the perfect, or the future.", steps: ["Find the verb and its group.", "Preteritum: the group's past ending. Perfekt: har + supine.", "Future: ska + infinitive, or kommer att + infinitive."], tip: "Strong verbs come in families: skriva/skrev/skrivit, driva/drev/drivit, bita/bet/bitit. Learn one, get five." }
     ] });
-  add({ id: "sv_mod", mode: "svtense", pass: 7, of: 10, title: "Future and modals", sub: "ska, kommer att, vill, kan, måste, bör", gist: "Future is 'ska' (intention) or 'kommer att' (prediction). Modals take a bare infinitive.",
+  add({ id: "sv_mod", mode: "svfut", pass: 7, of: 10, title: "Future and modals", sub: "ska, kommer att, vill, kan, måste, bör", gist: "Future is 'ska' (intention) or 'kommer att' (prediction). Modals take a bare infinitive.",
     blocks: [
       { t: "p", x: "Swedish has no future tense ending. 'Ska' expresses intention or plan: Jag ska åka till Stockholm. 'Kommer att' expresses prediction: Det kommer att regna. In speech the present tense with a time word is the most common future of all: Jag åker imorgon." },
       { t: "tbl", head: ["Modal", "Meaning", "Example"], rows: [["kan", "can, is able", "Jag kan simma."], ["vill", "wants to (never 'will'!)", "Jag vill äta."], ["ska", "shall, is going to", "Vi ska spela."], ["måste", "must", "Du måste komma."], ["får", "may, is allowed to", "Får jag fråga?"], ["bör / borde", "should / ought to", "Du borde sova."], ["behöver", "needs to", "Jag behöver inte gå."]] },
       { t: "rule", x: "modal + bare infinitive (no 'att')\nJag vill äta. · Vi måste gå. · Hon kan komma.", note: "'Vill' means want. 'Jag vill komma' is 'I want to come', not 'I will come'. The false friend costs everyone once." },
       { t: "key", x: "Ska = intention, kommer att = prediction, present + time word = everyday future. Modals take the bare infinitive." },
-      { t: "how", drill: "Tenses", ask: "Put the sentence in the future.", steps: ["ska and kommer att + infinitive are both accepted, except for a prediction like 'I will be tired', which takes kommer att.", "Watch the infinitive: no -r, and no 'att' after ska."], tip: "Listen for how rarely Swedes say 'ska': the present tense does most of the work." }
+      { t: "how", drill: "Future", ask: "Put the sentence in the future.", steps: ["ska and kommer att + infinitive are both accepted, except for a prediction like 'I will be tired', which takes kommer att.", "Watch the infinitive: no -r, and no 'att' after ska."], tip: "Listen for how rarely Swedes say 'ska': the present tense does most of the work." }
     ] });
   add({ id: "sv_biff", mode: "svbiff", pass: 7, of: 10, title: "Subordinate clauses and BIFF", sub: "I bisats kommer inte före det finita verbet", gist: "After att, om, eftersom, som and the rest, 'inte' moves in front of the verb. Swedish teachers call it BIFF.",
     blocks: [
@@ -5225,7 +5261,7 @@ var SV_WRITING = [
       { t: "p", x: "How to use it: read the partner's line (and listen, if a voice is installed), then type your reply, or speak it if the device can listen. The grader checks that your reply does what the turn asks: it is lenient about wording and strict about function. Then compare with the model answer and say it aloud. Repeat the scenario until you can do it without the hints, then without looking at the partner's text." },
       { t: "key", x: "A conversation a day. Say every model answer out loud three times. Shadow the partner's lines: repeat them half a second behind the voice." }
     ] });
-  add({ id: "sv_shadow", mode: "none", title: "Shadowing and the voice", sub: "Train the mouth, not just the eye", gist: "Shadowing: repeat native speech a half-second behind it, matching rhythm and melody. Twenty minutes a day is the single most effective pronunciation method known.",
+  add({ id: "sv_shadow", mode: "none", title: "Shadowing and the voice", sub: "Train the mouth, not just the eye", gist: "Shadowing: repeat native speech a half-second behind it, matching rhythm and melody. Twenty minutes a day is one of the most practical ways to improve pronunciation and rhythm on your own.",
     blocks: [
       { t: "p", x: "Alexander Arguelles' shadowing technique, now backed by a body of research on pronunciation and listening fluency, is simple: play natural speech and speak along with it, slightly behind, copying the melody rather than thinking about the words. Do it walking, at full voice. The app's listening drills and dialogues are shadowable if a Swedish voice is installed; for real speech, the sources below are free." },
       { t: "tbl", head: ["Source", "What it is"], rows: [["Sveriges Radio: Radio Sweden på lätt svenska", "News in slow, simple Swedish, daily. The best A2–B1 listening there is."], ["SVT Play: Nyheter på lätt svenska", "Short TV news in easy Swedish, with subtitles."], ["8 Sidor", "A newspaper written in plain Swedish, with audio."], ["UR Språkplay", "Swedish TV with learner subtitles and word lookup."], ["SVT Play, SR", "Everything else: dramas, podcasts, sport. Hockey commentary is excellent shadowing material because you know what is happening."]] },
@@ -5260,7 +5296,7 @@ var SV_WRITING = [
       { t: "p", x: "The honest picture. The US Foreign Service Institute, which has trained diplomats in Swedish for seventy years with the most intensive method ever run at scale (and is what people usually mean by 'the CIA method'), puts Swedish in its easiest category: about 600–750 classroom hours to professional working proficiency, roughly C1. That is with five hours of class a day plus homework. There is no shortcut around the hours; there are shortcuts around wasting them, and they are built into this course: spaced retrieval, speed gates, interleaving, output with feedback, and sounds before words before grammar." },
       { t: "tbl", head: ["Level", "What it looks like", "Hours (rough)", "What to do"], rows: [["A1–A2", "Survive: order, ask, introduce", "0–150", "This course's stages 0–5, daily reviews"], ["B1", "Hold a conversation, read easy news", "150–350", "Readers here, then 8 Sidor daily; one scripted dialogue a day; shadowing"], ["B2", "Fluent conversation, native TV with subtitles", "350–600", "An hour of native input a day (SVT, SR); write 100 words a day; a tutor or tandem partner twice a week"], ["C1", "Professional use, argue, read anything", "600–900", "Native input without subtitles, books, long-form podcasts; speak daily; study register and idiom"], ["C2", "Near-native nuance", "1000+", "Live in the language: read widely, write for real readers, get corrected by natives"]] },
       { t: "rule", x: "the level model = words known + grammar passed + applied skill + logged hours\nhours count toward 700, the FSI estimate", note: "Log every minute of real input and output on the Level page. The drills get you to B1; the log is what gets you past it, and the calendar schedules it like any other session." },
-      { t: "p", x: "Tandem speaking without immersion: find a Swede learning English (Tandem, HelloTalk, or the Swedish Hockey League's English-speaking fan forums) and trade thirty minutes each way, twice a week. Record yourself. Shadow the recording. It is the closest thing to immersion that exists outside Sweden, and the research on output and interaction says it is most of what immersion does anyway." },
+      { t: "p", x: "Tandem speaking without immersion: find a Swede learning English (Tandem, HelloTalk, or an online exchange community such as Reddit's language-exchange forums) and trade thirty minutes each way, twice a week. Record yourself. Shadow the recording. It is one of the closest things to immersion available outside Sweden, and research on output and interaction suggests it supplies much of what immersion does." },
       { t: "key", x: "After B1: an hour of native input a day, written output daily, spoken output twice a week with a native, everything logged. The calendar will hold you to it." }
     ] });
 
@@ -5279,6 +5315,13 @@ var SV_WRITING = [
   /* ---------------- drills ---------------- */
   function pick(a, rnd) { return a[((rnd || Math.random)() * a.length) | 0]; }
   function tts(text, caps) { return caps && caps.tts ? { text: text, lang: "sv-SE" } : null; }
+  /* k: 1 past, 2 perfect, 3 future */
+  function tenseQ(ctx, k) {
+    var r = pick(SV_TENSE, ctx.rnd), names = ["", "past (preteritum)", "perfect (perfekt)", "future"];
+    var acc = [r[k]]; if (k === 3) acc.push(r[3].replace(" ska ", " kommer att "));
+    return { kind: "text", question: "Put it in the <b>" + names[k] + "</b>: <b class='tw'>" + r[0] + "</b> <small>(" + r[4] + ")</small>", answer: r[k], accept: acc, target: 12,
+      explain: ["<b>" + r[k] + "</b>", "Present: " + r[0] + " · Past: " + r[1] + " · Perfect: " + r[2] + " · Future: " + r[3]], speakAfter: tts(r[k], ctx.caps) };
+  }
   var DRILLS = {
     svletter: { name: "Letters", target: 6, gen: function (ctx) {
       var row = pick(SV_LETTERS, ctx.rnd);
@@ -5319,12 +5362,8 @@ var SV_WRITING = [
       return { kind: "text", question: (ask === 1 ? "Make it a yes/no question: " : "Make it negative: ") + "<b class='tw'>" + r[0] + "</b> <small>(" + r[3] + ")</small>", answer: r[ask], accept: [r[ask]], target: 10,
         explain: ["<b>" + r[ask] + "</b>", ask === 1 ? "Question: the verb moves to the front, the subject follows." : "Negation: inte goes straight after the verb in a main clause."], speakAfter: tts(r[ask], ctx.caps) };
     } },
-    svtense: { name: "Tenses", target: 12, gen: function (ctx) {
-      var r = pick(SV_TENSE, ctx.rnd), k = 1 + ((ctx.rnd() * 3) | 0), names = ["", "past (preteritum)", "perfect (perfekt)", "future"];
-      var acc = [r[k]]; if (k === 3) acc.push(r[3].replace(" ska ", " kommer att "));
-      return { kind: "text", question: "Put it in the <b>" + names[k] + "</b>: <b class='tw'>" + r[0] + "</b> <small>(" + r[4] + ")</small>", answer: r[k], accept: acc, target: 12,
-        explain: ["<b>" + r[k] + "</b>", "Present: " + r[0] + " · Past: " + r[1] + " · Perfect: " + r[2] + " · Future: " + r[3]], speakAfter: tts(r[k], ctx.caps) };
-    } },
+    svtense: { name: "Tenses", target: 12, gen: function (ctx) { return tenseQ(ctx, 1 + ((ctx.rnd() * 3) | 0)); } },
+    svfut: { name: "Future", target: 12, gen: function (ctx) { return tenseQ(ctx, 3); } },
     svbiff: { name: "Clauses", target: 8, gen: function (ctx) {
       var r = pick(SV_BIFF, ctx.rnd), right = r[1];
       /* build the wrong version by swapping inte and the verb */
@@ -5398,7 +5437,7 @@ var SV_WRITING = [
     { g: "Past B2", items: [
       ["Pippi Långstrump, then Män som hatar kvinnor", "Astrid Lindgren for the first novel; Stieg Larsson once you can read a page without the dictionary."],
       ["SVT Play and SR Play", "Everything Swedish television and radio make, free, with subtitles. Hockey is on both."],
-      ["Swedex / TISUS", "The official Swedish proficiency tests, if you want a certificate to aim at."]
+      ["TISUS", "The official test of Swedish for university studies (roughly B2/C1), if you want a certificate to aim at."]
     ] }
   ];
 
@@ -5498,7 +5537,7 @@ var HE_VOCAB = {
     ["שְׁמוֹנֶה", "shmone", "eight (f.)", "num", "שְׁמוֹנָה (m.)", "שְׁמוֹנֶה שָׁעוֹת שֵׁנָה.", "Eight hours of sleep."],
     ["תֵּשַׁע", "tesha", "nine (f.)", "num", "תִּשְׁעָה (m.)", "תֵּשַׁע בָּעֶרֶב.", "Nine in the evening."],
     ["עֶשֶׂר", "eser", "ten (f.)", "num", "עֲשָׂרָה (m.)", "עֶשֶׂר דַּקּוֹת.", "Ten minutes."],
-    ["עֶשְׂרִים", "esrim", "twenty", "num", "", "עֶשְׂרִים שֶׁקֶל.", "Twenty shekels."],
+    ["עֶשְׂרִים", "esrim", "twenty", "num", "", "עֶשְׂרִים שְׁקָלִים.", "Twenty shekels."],
     ["מֵאָה", "me'a", "hundred", "num", "מָאתַיִם = two hundred", "מֵאָה אָחוּז.", "A hundred percent."],
     ["אֶלֶף", "elef", "thousand", "num", "אַלְפַּיִם = two thousand", "אֶלֶף תּוֹדוֹת.", "A thousand thanks."],
     ["שָׁעָה", "sha'a", "hour; o'clock", "n", "שָׁעוֹת (f.); מָה הַשָּׁעָה? = what time is it?", "מָה הַשָּׁעָה?", "What time is it?"],
@@ -5669,7 +5708,7 @@ var HE_VOCAB = {
     ["רוֹפֵא", "rofe", "doctor", "n", "רוֹפְאָה, רוֹפְאִים", "אֲנִי צָרִיךְ רוֹפֵא.", "I need a doctor."],
     ["שׁוֹטֵר", "shoter", "police officer", "n", "מִשְׁטָרָה = police", "תִּקְרָא לַמִּשְׁטָרָה!", "Call the police!"],
     ["טַבָּח", "tabach", "cook / chef", "n", "", "הַטַּבָּח מְבַשֵּׁל.", "The chef cooks."],
-    ["לִלְמֹד", "lilmod", "to study / learn", "verb", "", "אֲנִי לוֹמֵד לַמִּבְחָן.", "I'm studying for the test."],
+    ["צִיּוּן", "tsiyun", "grade / mark", "n", "צִיּוּנִים", "קִבַּלְתִּי צִיּוּן טוֹב בַּמִּבְחָן.", "I got a good grade on the test."],
     ["לְתַרְגֵּל", "letargel", "to practise", "verb", "מְתַרְגֵּל; תַּרְגִּיל = exercise", "לְתַרְגֵּל כָּל יוֹם.", "Practise every day."],
     ["טָעוּת", "ta'ut", "mistake", "n", "טָעֻיּוֹת (f.)", "כֻּלָּם עוֹשִׂים טָעֻיּוֹת.", "Everyone makes mistakes."],
     ["נָכוֹן", "nachon", "correct / right", "adj", "נְכוֹנָה", "נָכוֹן!", "Correct!"],
@@ -5925,10 +5964,10 @@ var HE_PAST = {
 var HE_FUTURE = {
   name: "Future tense", cols: ["infinitive", "I (אֲנִי)", "you (אַתָּה)", "he (הוּא)", "she (הִיא)", "we (אֲנַחְנוּ)", "they (הֵם)", "meaning"], ask: [1, 2, 3, 4, 5, 6], given: 0, gloss: 7, target: 10,
   q: "{w} ({g}): give the future tense for <b>{form}</b>.",
-  rule: { 1: "Future marks the person with a prefix: אֶ- (I), תִּ- (you m. / she), יִ- (he), נִ- (we), תִּ...וּ (you pl.), יִ...וּ (they). The same prefixes serve every binyan; only the vowels change.", 2: "You (m.) and she share the form תִּלְמַד; context tells them apart.", 3: "", 4: "", 5: "", 6: "They: יִ...וּ." },
+  rule: { 1: "Future marks the person with a prefix: אֶ- (I), תִּ- (you m. / she), יִ- (he), נִ- (we), תִּ...וּ (you pl.), יִ...וּ (they). The same prefixes serve every binyan; only the vowels change. Verbs like לֶאֱכֹל fold the prefix into the silent alef: אוֹכַל (ochal), also spelled אֹכַל; you will hear the colloquial אֶאֱכֹל, which is not standard.", 2: "You (m.) and she share the form תִּלְמַד; context tells them apart.", 3: "", 4: "", 5: "", 6: "They: יִ...וּ." },
   rows: [["לִלְמֹד", "אֶלְמַד", "תִּלְמַד", "יִלְמַד", "תִּלְמַד", "נִלְמַד", "יִלְמְדוּ", "learn"], ["לִכְתֹּב", "אֶכְתֹּב", "תִּכְתֹּב", "יִכְתֹּב", "תִּכְתֹּב", "נִכְתֹּב", "יִכְתְּבוּ", "write"],
     ["לִשְׁמֹר", "אֶשְׁמֹר", "תִּשְׁמֹר", "יִשְׁמֹר", "תִּשְׁמֹר", "נִשְׁמֹר", "יִשְׁמְרוּ", "guard / keep"], ["לִגְמֹר", "אֶגְמֹר", "תִּגְמֹר", "יִגְמֹר", "תִּגְמֹר", "נִגְמֹר", "יִגְמְרוּ", "finish"],
-    ["לֶאֱכֹל", "אֹכַל", "תֹּאכַל", "יֹאכַל", "תֹּאכַל", "נֹאכַל", "יֹאכְלוּ", "eat"], ["לָלֶכֶת", "אֵלֵךְ", "תֵּלֵךְ", "יֵלֵךְ", "תֵּלֵךְ", "נֵלֵךְ", "יֵלְכוּ", "go"],
+    ["לֶאֱכֹל", "אוֹכַל", "תֹּאכַל", "יֹאכַל", "תֹּאכַל", "נֹאכַל", "יֹאכְלוּ", "eat"], ["לָלֶכֶת", "אֵלֵךְ", "תֵּלֵךְ", "יֵלֵךְ", "תֵּלֵךְ", "נֵלֵךְ", "יֵלְכוּ", "go"],
     ["לִרְאוֹת", "אֶרְאֶה", "תִּרְאֶה", "יִרְאֶה", "תִּרְאֶה", "נִרְאֶה", "יִרְאוּ", "see"], ["לָבוֹא", "אָבוֹא", "תָּבוֹא", "יָבוֹא", "תָּבוֹא", "נָבוֹא", "יָבוֹאוּ", "come"],
     ["לָקוּם", "אָקוּם", "תָּקוּם", "יָקוּם", "תָּקוּם", "נָקוּם", "יָקוּמוּ", "get up"], ["לְדַבֵּר", "אֲדַבֵּר", "תְּדַבֵּר", "יְדַבֵּר", "תְּדַבֵּר", "נְדַבֵּר", "יְדַבְּרוּ", "speak"],
     ["לְשַׂחֵק", "אֲשַׂחֵק", "תְּשַׂחֵק", "יְשַׂחֵק", "תְּשַׂחֵק", "נְשַׂחֵק", "יְשַׂחֲקוּ", "play"], ["לְהַתְחִיל", "אַתְחִיל", "תַּתְחִיל", "יַתְחִיל", "תַּתְחִיל", "נַתְחִיל", "יַתְחִילוּ", "begin"],
@@ -6001,7 +6040,7 @@ var HE_DIALOGUES = [
     turns: [
       { bot: "שָׁלוֹם, מָה תִּרְצֶה?", botg: "Hello, what would you like?", expect: ["קפה", "תה", "אני רוצה", "בבקשה"], model: "קָפֶה הָפוּךְ, בְּבַקָּשָׁה.", modelg: "A latte, please.", hint: "קפה, בבקשה / אני רוצה ..." },
       { bot: "רוֹצֶה גַּם מַשֶּׁהוּ לֶאֱכֹל?", botg: "Want something to eat too?", expect: ["כן", "לא", "בורקס", "עוגה", "תודה"], model: "כֵּן, בּוּרֶקָס, בְּבַקָּשָׁה.", modelg: "Yes, a burekas, please.", hint: "כן, ... בבקשה / לא, תודה" },
-      { bot: "עֶשְׂרִים וּשְׁמוֹנֶה שֶׁקֶל. אַשְׁרַאי אוֹ מְזֻמָּן?", botg: "Twenty-eight shekels. Card or cash?", expect: ["אשראי", "מזומן", "כרטיס"], model: "אַשְׁרַאי, בְּבַקָּשָׁה.", modelg: "Card, please.", hint: "אשראי / מזומן" },
+      { bot: "עֶשְׂרִים וּשְׁמוֹנֶה שְׁקָלִים. אַשְׁרַאי אוֹ מְזֻמָּן?", botg: "Twenty-eight shekels. Card or cash?", expect: ["אשראי", "מזומן", "כרטיס"], model: "אַשְׁרַאי, בְּבַקָּשָׁה.", modelg: "Card, please.", hint: "אשראי / מזומן" },
       { bot: "בְּבַקָּשָׁה, בְּתֵאָבוֹן!", botg: "Here you go, enjoy!", expect: ["תודה"], model: "תּוֹדָה רַבָּה!", modelg: "Thanks a lot!", hint: "תודה ..." }
     ] },
   { id: "he_d3", title: "Asking the way", setting: "You are lost in Jerusalem and need the central bus station.", level: "A2",
@@ -6071,8 +6110,8 @@ var HE_WRITING = [
 
 /* ============================================================
    BIBLICAL HEBREW
-   The most frequent words of the Hebrew Bible (the top ~150 cover
-   roughly 60% of the running text), the Qal paradigms, and three
+   The most frequent words of the Hebrew Bible (a few hundred common
+   words make up most of the running text), the Qal paradigms, and three
    texts read word by word. Row: [word, translit, gloss, pos, forms/notes, example (a verse fragment), example gloss]
    ============================================================ */
 var BH_VOCAB = {
@@ -6259,7 +6298,7 @@ var BH_TEXTS = [
     blocks: [
       { t: "p", x: "The Tiberian masoretes who pointed the Bible around 900 CE distinguished vowel lengths that modern Israeli speech does not. For speaking today, you need five sounds: a, e, i, o, u. Two marks each for a and e, one or two for the rest. The marks sit under the consonant they follow (read consonant, then vowel) except cholam, which sits above and to the left, and shuruk, a dot inside a vav." },
       { t: "tbl", head: ["Mark (on א)", "Name", "Sound", "Say"], rows: HE_VOWELS.map(function (v) { return ["א" + v[0], v[1], v[2], v[3]]; }), rtl: true },
-      { t: "rule", x: "וֹ = o (cholam with vav) · וּ = u (shuruk) · ִי = i (chirik with yod)\nconsonant first, then its vowel: בָּ = ba, בִּ = bi, בּוֹ = bo", note: "Shva (two vertical dots) is either silent (end of a syllable) or a very short e (start of a word). Say 'shva' with the short e: שְׁמַע = shma." },
+      { t: "rule", x: "וֹ = o (cholam with vav) · וּ = u (shuruk) · ִי = i (chirik with yod)\nconsonant first, then its vowel: בָּ = ba, בִּ = bi, בּוֹ = bo", note: "Shva (two vertical dots) is silent at the end of a syllable. At the start of a word it is traditionally a very short e, but modern speech usually drops it: שְׁמַע = shma, שְׁוָא = shva. Keep the e where the cluster is hard to say: מְדַבֵּר = medaber." },
       { t: "ex", title: "Worked example", facts: [["Word", "שָׁלוֹם"], ["Letters", "ש ל ו ם"]], steps: ["שׁ with kamatz: sha.", "ל with cholam-vav: lo.", "ם final mem closes it: shalom."], punch: "Three syllables of thinking now, one glance in a month." },
       { t: "key", x: "Five sounds: a (patach, kamatz), e (segol, tsere), i (chirik), o (cholam), u (kubutz, shuruk). Shva: silent or a flick of e. Read consonant, then vowel." },
       { t: "how", drill: "Vowels", ask: "Which sound does this mark make?", steps: ["Find the mark under or above the letter.", "Name it, sound it."], tip: "Point at the marks in the first-words table and read each syllable aloud before the word." }
@@ -6419,7 +6458,7 @@ var BH_TEXTS = [
   add({ id: "bh_intro", mode: "none", title: "Biblical Hebrew: what changes", sub: "Same letters, older grammar", gist: "The Bible's Hebrew is the ancestor of modern Hebrew. Letters, roots and most words carry over; the verb system and the word order do not. Here is the map.",
     blocks: [
       { t: "p", x: "Modern Hebrew was rebuilt from Biblical and rabbinic Hebrew, so everything you have learned transfers: the alef-bet, the points, the roots, the binyanim, the suffixes, and most of the core vocabulary (אֱלֹהִים, מֶלֶךְ, בַּיִת, יוֹם, טוֹב). The differences are systematic and learnable in a few lessons." },
-      { t: "tbl", head: ["Feature", "Modern", "Biblical"], rows: [["Word order", "subject, verb, object", "verb, subject, object: וַיֹּאמֶר אֱלֹהִים (and said God)"], ["Tenses", "past, present, future", "perfect (complete) and imperfect (incomplete); time comes from context"], ["Narrative", "past tense", "vav-consecutive: וַיִּ- + imperfect = 'and then he…' (the backbone of every story)"], ["Pronunciation", "Israeli", "same letters; Biblical reading keeps ע, ח and vowel length (Tiberian or Sephardi tradition)"], ["Vocabulary", "~60,000 words", "~8,000 words; the top 150 cover 60% of the text, the top 1,000 about 90%"], ["Points", "rarely written", "always written, plus cantillation accents (te'amim) for chanting"]] },
+      { t: "tbl", head: ["Feature", "Modern", "Biblical"], rows: [["Word order", "subject, verb, object", "verb, subject, object: וַיֹּאמֶר אֱלֹהִים (and said God)"], ["Tenses", "past, present, future", "perfect (complete) and imperfect (incomplete); time comes from context"], ["Narrative", "past tense", "vav-consecutive: וַיִּ- + imperfect = 'and then he…' (the backbone of every story)"], ["Pronunciation", "Israeli", "same letters; Biblical reading keeps ע, ח and vowel length (Tiberian or Sephardi tradition)"], ["Vocabulary", "far larger, and still growing with new coinages and loanwords", "roughly 8,000 distinct words, many of them rare; a few hundred frequent words make up most of the text"], ["Points", "rarely written", "always written, plus cantillation accents (te'amim) for chanting"]] },
       { t: "rule", x: "qatal (perfect) = completed: שָׁמַר he kept\nyiqtol (imperfect) = incomplete: יִשְׁמֹר he will keep / keeps\nwayyiqtol (vav-consecutive) = past narrative: וַיִּשְׁמֹר and he kept", note: "The vav-consecutive is why the Bible's stories read as 'and… and… and…'. Each וַיִּ- is a new event in sequence." },
       { t: "key", x: "Verb first. Perfect and imperfect, not tenses. Vav-consecutive drives narrative. The words you know are mostly the same words." }
     ] });
@@ -6643,7 +6682,8 @@ var BH_TEXTS = [
    Vocabulary in frequency-ordered sets, paradigm tables, word-order
    and pronunciation data, dialogues, graded readers, dictation and
    writing. Row: [word, gloss, part of speech, forms, example, example gloss]
-   Latin American pronunciation is the default (seseo); the voseo of
+   Latin American pronunciation is the default (seseo; speech uses es-MX,
+   falling back to any Spanish voice); the voseo of
    Argentina and the vosotros of Spain are noted where they matter.
    ============================================================ */
 
@@ -6828,7 +6868,7 @@ var ES_VOCAB = {
     ["cerrar", "to close", "verb", "cierro, cierras… (e→ie)", "La tienda cierra a las ocho.", "The shop closes at eight."],
     ["ropa", "clothes", "n", "la ropa (singular)", "Ropa nueva.", "New clothes."],
     ["zapato", "shoe", "n", "los zapatos", "Quítate los zapatos.", "Take off your shoes."],
-    ["chaqueta", "jacket", "n", "la chaqueta; el abrigo = coat", "Una chaqueta caliente.", "A warm jacket."],
+    ["chaqueta", "jacket", "n", "la chaqueta; el abrigo = coat", "Una chaqueta abrigada.", "A warm jacket."],
     ["camiseta", "T-shirt / jersey", "n", "la camiseta", "Mi camiseta de hockey.", "My hockey jersey."],
     ["pantalones", "trousers", "n", "los pantalones", "Pantalones azules.", "Blue trousers."],
     ["bolso", "bag", "n", "el bolso; la mochila = backpack", "¿Dónde está mi bolso?", "Where is my bag?"],
@@ -6962,7 +7002,7 @@ var ES_VOCAB = {
     ["esperar", "to hope", "verb", "espero que + subjunctive", "Espero que sí.", "I hope so."],
     ["creer", "to believe / think", "verb", "creo que…", "Creo que sí.", "I think so."],
     ["quizás", "maybe", "adv", "tal vez, a lo mejor", "Quizás mañana.", "Maybe tomorrow."],
-    ["seguro", "sure / safe", "adj", "seguramente = probably", "Seguro que sí.", "Surely yes."],
+    ["seguro", "sure / safe", "adj", "seguramente = probably", "Seguro que sí.", "Of course. / I'm sure of it."],
     ["de verdad", "really", "adv", "¿de verdad? = really?", "¿De verdad?", "Really?"],
     ["en realidad", "actually", "adv", "", "En realidad es bueno.", "Actually it's good."],
     ["desafortunadamente", "unfortunately", "adv", "por desgracia", "Desafortunadamente no.", "Unfortunately not."],
@@ -7009,7 +7049,7 @@ var ES_VOCAB = {
     ["noticias", "news", "n", "las noticias", "¿Viste las noticias?", "Did you see the news?"],
     ["periódico", "newspaper", "n", "el periódico; el diario", "Leo el periódico.", "I read the paper."],
     ["gobierno", "government", "n", "el gobierno", "El gobierno decide.", "The government decides."],
-    ["elecciones", "election", "n", "las elecciones", "Las elecciones son en noviembre.", "The elections are in November."],
+    ["elecciones", "elections", "n", "las elecciones", "Las elecciones son en noviembre.", "The elections are in November."],
     ["votar", "to vote", "verb", "regular -ar", "Voto el domingo.", "I vote on Sunday."],
     ["ley", "law", "n", "la ley, las leyes", "Es la ley.", "It's the law."],
     ["impuesto", "tax", "n", "el impuesto", "Impuestos altos.", "High taxes."],
@@ -7236,35 +7276,35 @@ var ES_DIALOGUES = [
     turns: [
       { bot: "¡Hola! Me llamo Lucía. ¿Cómo te llamas?", botg: "Hi! My name is Lucía. What's your name?", expect: ["me llamo", "mi nombre", "^(yo )?soy "], model: "¡Hola! Me llamo Erik.", modelg: "Hi! My name is Erik.", hint: "Me llamo ... (My name is ...)" },
       { bot: "¡Mucho gusto! ¿De dónde eres?", botg: "Nice to meet you! Where are you from?", expect: ["soy de", "de canad[aá]", "canadiense", "vengo de"], model: "Soy de Canadá.", modelg: "I'm from Canada.", hint: "Soy de ... " },
-      { bot: "¡Qué bien! ¿Vives aquí ahora?", botg: "Great! Do you live here now?", expect: ["^s[ií]", "^no", "vivo"], model: "Sí, vivo aquí ahora.", modelg: "Yes, I live here now.", hint: "Sí / No, vivo ..." },
-      { bot: "¿Juegas al hockey?", botg: "Do you play hockey?", expect: ["s[ií]", "juego"], reject: ["no"], model: "Sí, juego al hockey.", modelg: "Yes, I play hockey.", hint: "Sí, juego al ..." },
+      { bot: "¡Qué bien! ¿Vives aquí ahora?", botg: "Great! Do you live here now?", expect: ["^s[ií]( |$)", "^no( |$)", "vivo"], model: "Sí, vivo aquí ahora.", modelg: "Yes, I live here now.", hint: "Sí / No, vivo ..." },
+      { bot: "¿Juegas al hockey?", botg: "Do you play hockey?", expect: ["(^| )s[ií]( |$)", "juego"], reject: ["^no( |$)", "no juego"], model: "Sí, juego al hockey.", modelg: "Yes, I play hockey.", hint: "Sí, juego al ..." },
       { bot: "¡Perfecto! Nos vemos en el entrenamiento. ¡Adiós!", botg: "Perfect! See you at practice. Bye!", expect: ["adi[oó]s", "hasta", "nos vemos", "chao"], model: "¡Adiós, hasta luego!", modelg: "Bye, see you later!", hint: "Adiós / Hasta luego / Nos vemos" }
     ] },
   { id: "es_d2", title: "At the café", setting: "Order a coffee and something to eat, then pay.", level: "A1",
     turns: [
-      { bot: "¡Hola! ¿Qué desea?", botg: "Hi! What would you like?", expect: ["caf[eé]", "t[eé]", "quiero", "por favor", "me pone"], model: "Un café con leche, por favor.", modelg: "A coffee with milk, please.", hint: "Un café, por favor / Quiero ..." },
-      { bot: "¿Quiere algo de comer también?", botg: "Would you like something to eat too?", expect: ["s[ií]", "no", "tostada", "croissant", "bocadillo", "gracias"], model: "Sí, una tostada, por favor.", modelg: "Yes, a piece of toast, please.", hint: "Sí, un/una ... por favor / No, gracias" },
+      { bot: "¡Hola! ¿Qué desea?", botg: "Hi! What would you like?", expect: ["caf[eé]", "(^| )t[eé]( |$)", "quiero", "por favor", "me pone"], model: "Un café con leche, por favor.", modelg: "A coffee with milk, please.", hint: "Un café, por favor / Quiero ..." },
+      { bot: "¿Quiere algo de comer también?", botg: "Would you like something to eat too?", expect: ["(^| )s[ií]( |$)", "no", "tostada", "croissant", "bocadillo", "gracias"], model: "Sí, una tostada, por favor.", modelg: "Yes, a piece of toast, please.", hint: "Sí, un/una ... por favor / No, gracias" },
       { bot: "Son cuatro euros con cincuenta. ¿Con tarjeta o en efectivo?", botg: "That's four fifty. Card or cash?", expect: ["tarjeta", "efectivo"], model: "Con tarjeta, por favor.", modelg: "By card, please.", hint: "Con tarjeta / En efectivo" },
-      { bot: "Aquí tiene. ¿Quiere el recibo?", botg: "Here you go. Do you want the receipt?", expect: ["s[ií]", "no", "gracias"], model: "No, gracias.", modelg: "No, thanks.", hint: "No, gracias / Sí, por favor" }
+      { bot: "Aquí tiene. ¿Quiere el recibo?", botg: "Here you go. Do you want the receipt?", expect: ["(^| )s[ií]( |$)", "no", "gracias"], model: "No, gracias.", modelg: "No, thanks.", hint: "No, gracias / Sí, por favor" }
     ] },
   { id: "es_d3", title: "Asking the way", setting: "You are lost in Barcelona and need the train station.", level: "A2",
     turns: [
       { bot: "Hola, ¿puedo ayudarle?", botg: "Hello, can I help you?", expect: ["d[oó]nde est[aá]", "estaci[oó]n", "busco", "c[oó]mo (llego|voy)"], model: "Sí, ¿dónde está la estación de tren?", modelg: "Yes, where is the train station?", hint: "¿Dónde está ...? / ¿Cómo llego a ...?" },
       { bot: "Siga todo recto y gire a la izquierda en el banco. ¿Entendido?", botg: "Go straight ahead and turn left at the bank. Got it? (say it back)", expect: ["recto", "izquierda", "banco"], model: "Todo recto y a la izquierda en el banco.", modelg: "Straight ahead and left at the bank.", hint: "Repeat: todo recto ... izquierda ..." },
-      { bot: "Exacto. Son unos diez minutos. ¿Va a Madrid?", botg: "Exactly. About ten minutes. Are you going to Madrid?", expect: ["s[ií]", "no", "voy a", "madrid", "sevilla"], model: "Sí, voy a Madrid.", modelg: "Yes, I'm going to Madrid.", hint: "Sí, voy a ..." },
+      { bot: "Exacto. Son unos diez minutos. ¿Va a Madrid?", botg: "Exactly. About ten minutes. Are you going to Madrid?", expect: ["(^| )s[ií]( |$)", "no", "voy a", "madrid", "sevilla"], model: "Sí, voy a Madrid.", modelg: "Yes, I'm going to Madrid.", hint: "Sí, voy a ..." },
       { bot: "¡Buen viaje! Adiós.", botg: "Have a good trip! Bye.", expect: ["gracias", "adi[oó]s"], model: "¡Muchas gracias! Adiós.", modelg: "Thanks a lot! Bye.", hint: "Gracias ... adiós" }
     ] },
   { id: "es_d4", title: "At the doctor", setting: "You hurt your knee at hockey. Say what happened in the past tense.", level: "A2",
     turns: [
       { bot: "Buenos días, ¿qué le pasa?", botg: "Good morning, what's wrong?", expect: ["me duele", "rodilla", "me lesion[eé]", "me ca[ií]"], model: "Me duele la rodilla.", modelg: "My knee hurts.", hint: "Me duele ... / Me lesioné ..." },
       { bot: "Entiendo. ¿Cuándo pasó?", botg: "I see. When did it happen?", expect: ["ayer", "anoche", "hace", "en el entrenamiento", "el (lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bado|domingo)"], model: "Ayer, en el entrenamiento de hockey.", modelg: "Yesterday, at hockey practice.", hint: "Ayer / Hace ... / En el entrenamiento" },
-      { bot: "¿Puede caminar?", botg: "Can you walk?", expect: ["s[ií]", "no", "un poco", "puedo"], model: "Sí, pero me cuesta.", modelg: "Yes, but it's hard.", hint: "Sí / No / Un poco" },
-      { bot: "Tome este medicamento dos veces al día y descanse una semana. ¿De acuerdo?", botg: "Take this medicine twice a day and rest a week. OK?", expect: ["de acuerdo", "vale", "gracias", "s[ií]"], model: "De acuerdo, muchas gracias.", modelg: "OK, thanks a lot.", hint: "De acuerdo / Vale, gracias" }
+      { bot: "¿Puede caminar?", botg: "Can you walk?", expect: ["(^| )s[ií]( |$)", "no", "un poco", "puedo"], model: "Sí, pero me cuesta.", modelg: "Yes, but it's hard.", hint: "Sí / No / Un poco" },
+      { bot: "Tome este medicamento dos veces al día y descanse una semana. ¿De acuerdo?", botg: "Take this medicine twice a day and rest a week. OK?", expect: ["de acuerdo", "vale", "gracias", "(^| )s[ií]( |$)"], model: "De acuerdo, muchas gracias.", modelg: "OK, thanks a lot.", hint: "De acuerdo / Vale, gracias" }
     ] },
   { id: "es_d5", title: "Talking about the game", setting: "A friend asks about last night's game. Preterite and opinions.", level: "B1",
     turns: [
       { bot: "¿Qué tal el partido de ayer?", botg: "How was the game yesterday?", expect: ["ganamos", "perdimos", "fue", "empatamos"], model: "¡Ganamos tres a dos!", modelg: "We won 3–2!", hint: "Ganamos / Perdimos / Fue ..." },
-      { bot: "¡Enhorabuena! ¿Marcaste algún gol?", botg: "Congratulations! Did you score a goal?", expect: ["s[ií]", "no", "gol", "marqu[eé]", "asistencia"], model: "Marqué un gol y di una asistencia.", modelg: "I scored a goal and gave an assist.", hint: "Marqué ... / No, pero ..." },
+      { bot: "¡Enhorabuena! ¿Marcaste algún gol?", botg: "Congratulations! Did you score a goal?", expect: ["(^| )s[ií]( |$)", "no", "gol", "marqu[eé]", "asistencia"], model: "Marqué un gol y di una asistencia.", modelg: "I scored a goal and gave an assist.", hint: "Marqué ... / No, pero ..." },
       { bot: "¿Qué fue lo más difícil?", botg: "What was the hardest part?", expect: ["lo m[aá]s dif[ií]cil", "fue", "tercer", "cansados", "r[aá]pidos"], model: "Lo más difícil fue el tercer período; estábamos cansados.", modelg: "The hardest was the third period; we were tired.", hint: "Lo más difícil fue ..." },
       { bot: "¿Cuándo es el próximo partido?", botg: "When's the next game?", expect: ["el (lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bado|domingo)", "pr[oó]xim", "ma[nñ]ana", "semana"], model: "El sábado, fuera de casa.", modelg: "On Saturday, away.", hint: "El ... / La semana que viene" },
       { bot: "Iré a verlo. ¡Suerte!", botg: "I'll come and watch. Good luck!", expect: ["gracias", "genial", "qu[eé] bien"], model: "¡Gracias, qué bien!", modelg: "Thanks, great!", hint: "Gracias ..." }
@@ -7381,8 +7421,8 @@ var ES_WRITING = [
   add(vocabLesson("es_v1", "The first thirty", "Pronouns, greetings, ser and estar", "The words in every sentence, with the two verbs 'to be' that organise Spanish.",
     "Frequency decides the order: the hundred most common words cover about half of what is said. Two of them are 'to be': ser for what things are (identity, origin, time) and estar for where and how they are (location, state). The lesson on ser and estar comes in stage 2; for now learn both sets of forms.",
     [{ t: "rule", x: "yo · tú · él / ella / usted · nosotros · vosotros · ellos / ellas / ustedes\nsoy · eres · es · somos · sois · son   (ser)\nestoy · estás · está · estamos · estáis · están   (estar)", note: "Subject pronouns are usually dropped: the verb ending says who. Usted (formal you) takes the él/ella forms." }]));
-  add(vocabLesson("es_v2", "Thirty verbs", "The core verbs and their present forms", "The verbs of nine sentences in ten, with their irregular yo forms and stem changes listed.",
-    "Spanish verbs change for every person, so each verb is six forms; the regular patterns (stage 2) make most of them free. The thirty here include the irregulars you cannot avoid: ir, hacer, decir, tener, poder, querer, saber. Learn the yo form with the infinitive.",
+  add(vocabLesson("es_v2", "Thirty-one verbs", "The core verbs and their present forms", "The verbs of nine sentences in ten, with their irregular yo forms and stem changes listed.",
+    "Spanish verbs change for every person, so each verb is six forms; the regular patterns (stage 2) make most of them free. The thirty-one here include the irregulars you cannot avoid: ir, hacer, decir, tener, poder, querer, saber. Learn the yo form with the infinitive.",
     [{ t: "rule", x: "-ar: hablo hablas habla hablamos habláis hablan\n-er: como comes come comemos coméis comen\n-ir: vivo vives vive vivimos vivís viven", note: "Vosotros (informal you plural) is used in Spain; Latin America uses ustedes with the ellos forms." }]));
   add({ id: "es_num", mode: "esnum", pass: 7, of: 10, title: "Numbers and the clock", sub: "0 to 1,000, the time", gist: "Numbers are the one piece of vocabulary you cannot look up in a conversation. Drill them to reflex.",
     blocks: [
@@ -7454,7 +7494,7 @@ var ES_WRITING = [
   add(vocabLesson("es_v10", "Feelings and opinions", "Feliz, triste, creo que", "How you feel and what you think, with the hedges.", "Feelings take estar (estoy contento) or tener (tengo miedo). Opinions: creo que, pienso que, me parece que + indicative; no creo que + subjunctive, which is stage 4."));
   add(vocabLesson("es_v11", "Nature and weather", "Seasons, animals, the sky", "The weather is 'hace': hace frío, hace sol, hace viento.", "Weather uses hacer (hace calor), hay (hay nubes), and impersonal verbs (llueve, nieva). Tener frío is a person being cold; hace frío is the weather; está frío is a thing."));
   add(vocabLesson("es_v12", "Society and news", "Politics, money, the world", "The front page of El País, which is where B1 reading begins.", "Greek -ma nouns are masculine despite the -a: el problema, el sistema, el clima, el idioma, el programa. A list worth memorising as a chant."));
-  add(vocabLesson("es_v13", "Connectors", "Porque, aunque, sin embargo, todavía", "The words that join sentences into arguments.", "Some connectors decide the mood of the clause after them: porque, ya que, mientras + indicative; para que, antes de que, a menos que + subjunctive; aunque with either, by meaning (stage 4)."));
+  add(vocabLesson("es_v13", "Connectors", "Porque, aunque, sin embargo, todavía", "The words that join sentences into arguments.", "Some connectors decide the mood of the clause after them: porque, ya que + indicative; mientras + indicative for what is happening, + subjunctive for the future or hypothetical (mientras vivas); para que, antes de que, a menos que + subjunctive; aunque with either, by meaning (stage 4)."));
   add(vocabLesson("es_v14", "Idioms and the words that make you sound Spanish", "Vale, venga, echar de menos, ojalá", "Thirty expressions a textbook never teaches.", "Vale and venga are Spain; Latin America says bueno, dale, órale (Mexico), listo. Ojalá (from Arabic 'God willing') takes the subjunctive and expresses every wish you have."));
 
   /* ---------------- stage 4: tenses and moods ---------------- */
@@ -7534,7 +7574,7 @@ var ES_WRITING = [
   ];
 
   function pick(a, rnd) { return a[((rnd || Math.random)() * a.length) | 0]; }
-  function tts(text, caps) { return caps && caps.tts ? { text: text, lang: "es-ES" } : null; }
+  function tts(text, caps) { return caps && caps.tts ? { text: text, lang: LG_LANG.es.code } : null; }
   var DRILLS = {
     essound: { name: "Sound rules", target: 6, gen: function (ctx) {
       var row = pick(ES_SOUNDS, ctx.rnd), opts = lgOptions(row[1], ES_SOUND_RULES, 3, ctx.rnd, "es");
@@ -7547,7 +7587,7 @@ var ES_WRITING = [
     } },
     espair: { name: "Minimal pairs", target: 6, gen: function (ctx) {
       var p = pick(ES_PAIRS, ctx.rnd), which = ctx.rnd() < 0.5 ? 0 : 1, word = p[which], expl = ["<b>" + p[0] + "</b> / <b>" + p[1] + "</b>: " + p[2]];
-      if (ctx.caps && ctx.caps.tts) return { kind: "choice", question: "Listen. Which word did you hear?", options: [p[0], p[1]], answer: word, target: 6, explain: expl, speak: { text: word, lang: "es-ES" }, hideText: true };
+      if (ctx.caps && ctx.caps.tts) return { kind: "choice", question: "Listen. Which word did you hear?", options: [p[0], p[1]], answer: word, target: 6, explain: expl, speak: { text: word, lang: LG_LANG.es.code }, hideText: true };
       var m = p[2].split(" / ");
       return { kind: "choice", question: "Which spelling means <b>" + (m[which] || p[2]) + "</b>?", options: [p[0], p[1]], answer: word, target: 6, explain: expl };
     } },
@@ -7754,6 +7794,9 @@ window.MATH340 = {
     factorial(n) { let r = 1; for (let i = 2; i <= n; i++) r *= i; return r; },
     perm(n, k) { let r = 1; for (let i = 0; i < k; i++) r *= (n - i); return r; },
     choose(n, k) {
+      // Defined here for whole numbers only; a fractional argument is a bug in
+      // the caller, and silently truncating it would print a wrong answer.
+      if (!Number.isInteger(n) || !Number.isInteger(k)) throw new RangeError(`choose(${n}, ${k}): arguments must be integers`);
       if (k < 0 || k > n) return 0;
       k = Math.min(k, n - k);
       // Exact integer arithmetic: in floating point the partial products overflow
@@ -7765,11 +7808,18 @@ window.MATH340 = {
       return Number(r);
     },
     gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { [a, b] = [b, a % b]; } return a; },
-    lcm(a, b) { return a * b / this.gcd(a, b); },
-    round(x, d) { const p = Math.pow(10, d); return Math.round(x * p) / p; },
+    lcm(a, b) { return a === 0 || b === 0 ? 0 : Math.abs(a * b) / this.gcd(a, b); },
+    /* Round half away from zero to d places. Shifting the decimal point in the
+     * string form (1.005 -> "1.005e2") avoids the binary error of x * 10^d, so
+     * round(1.005, 2) is 1.01, not 1. */
+    round(x, d = 0) {
+      if (!Number.isFinite(x)) return x;
+      const shift = (v, by) => { const [m, e] = String(v).split("e"); return Number(`${m}e${Number(e || 0) + by}`); };
+      return Math.sign(x) * shift(Math.round(shift(Math.abs(x), d)), -d);
+    },
     fmt(x, d = 4) {
       if (Number.isInteger(x)) return String(x);
-      return String(Math.round(x * Math.pow(10, d)) / Math.pow(10, d));
+      return String(this.round(x, d));
     },
     /* Plain text into HTML: for labels that were typed, imported or synced
      * rather than authored in the data files. */
@@ -7802,6 +7852,7 @@ window.MATH340 = {
     plural(n, one, many) { return n === 1 ? one : (many != null ? many : one + "s"); },
     // Reduced fraction as LaTeX, e.g. fracTex(6, 8) -> "\frac{3}{4}".
     fracTex(n, d) {
+      if (d === 0) throw new RangeError(`fracTex(${n}, 0): zero denominator`);
       const g = (this.gcd(n, d) || 1) * (d < 0 ? -1 : 1);   // keep the sign on top
       const num = n / g, den = d / g;
       return den === 1 ? String(num) : `\\frac{${num}}{${den}}`;
@@ -7915,7 +7966,7 @@ window.MATH340 = {
     {
       name: "Hypergeometric", params: R`\text{HGeom}(w, b, n)`, type: "discrete",
       story: "Number of white balls when drawing n balls without replacement from an urn with w white and b black balls.",
-      support: R`k \in \{0, 1, \dots, n\}`,
+      support: R`k \in \{\max(0, n - b), \dots, \min(w, n)\}`,
       pmf: R`P(X = k) = \dfrac{\binom{w}{k}\binom{b}{n-k}}{\binom{w+b}{n}}`,
       mean: R`\mu = \dfrac{nw}{w + b}`, variance: R`\left(\dfrac{w + b - n}{w + b - 1}\right) n \dfrac{\mu}{n}\left(1 - \dfrac{\mu}{n}\right)`, mgf: R`\text{(messy)}`,
     },
@@ -8796,12 +8847,14 @@ window.MATH340 = {
           make() {
             const days = U.pick([365, 12, 30]);
             const n = days === 365 ? U.randInt(4, 12) : U.randInt(3, 5);
-            const unit = days === 365 ? "birthday" : days === 12 ? "birth month" : "birthday within a 30-day month";
+            const unit = days === 365 ? "birthday" : days === 12 ? "birth month" : "birthday's day of the month";
             let distinct = 1;
             for (let i = 0; i < n; i++) distinct *= (days - i) / days;
             const ans = 1 - distinct;
             return {
-              q: R`${n} people are selected at random, each equally likely to have any of the ${days} possible values of their ${unit}, independently. What is the probability that <b>at least two</b> of them share the same value?`,
+              q: days === 30
+                ? R`${n} people are selected at random. Look only at the day of the month each was born on, and assume birthdays are uniform over the 30 days of a month, independently. What is the probability that <b>at least two</b> of them share the same day?`
+                : R`${n} people are selected at random, each equally likely to have any of the ${days} possible values of their ${unit}, independently. What is the probability that <b>at least two</b> of them share the same value?`,
               answer: ans, kind: "prob",
               sol: R`<div class="sol-step">"At least two share" covers many messy cases; its complement — <b>all ${n} distinct</b> — is a single product.</div>
                    <div class="sol-step">$$P(\text{all distinct}) = ${Array.from({ length: n }, (_, i) => `\\tfrac{${days - i}}{${days}}`).join("\\cdot")} \approx ${U.fmt(distinct)}$$</div>
@@ -8819,7 +8872,7 @@ window.MATH340 = {
               q: R`A building has ${n} independent backup generators. Each one fails to start with probability ${p}. What is the probability that <b>at least one</b> generator starts?`,
               answer: ans, kind: "prob",
               sol: R`<div class="sol-step">Complement: <em>every</em> generator fails. By independence that is a product of the ${n} failure probabilities.</div>
-                   <div class="sol-step">$$P(\text{all fail}) = ${p}^{${n}} = ${U.fmt(Math.pow(p, n), 5)}$$</div>
+                   <div class="sol-step">$$P(\text{all fail}) = {${p}}^{${n}} = ${U.fmt(Math.pow(p, n), 5)}$$</div>
                    <div class="sol-step">$$P(\text{at least one starts}) = 1 - ${U.fmt(Math.pow(p, n), 5)} \approx ${U.fmt(ans)}$$</div>`,
             };
           },
@@ -9022,14 +9075,14 @@ window.MATH340 = {
             const pa = U.randInt(15, 40) / 100;
             const pb = U.round(pa + U.randInt(15, 40) / 100, 4);
             const askSubset = Math.random() < 0.5;
-            const ans = askSubset ? U.round(pb - pa, 4) : 1;
+            const ans = askSubset ? U.round(pb - pa, 4) : pb;
             return {
-              q: R`Event \(A\) implies event \(B\) (that is, \(A \subseteq B\)), with \(P(A) = ${pa}\) and \(P(B) = ${U.fmt(pb)}\). Find ${askSubset ? R`\(P(B \cap A^c)\)` : R`\(P(B \mid A)\), the probability of \(B\) given that \(A\) occurred`}.`,
+              q: R`Event \(A\) implies event \(B\) (that is, \(A \subseteq B\)), with \(P(A) = ${pa}\) and \(P(B) = ${U.fmt(pb)}\). Find ${askSubset ? R`\(P(B \cap A^c)\)` : R`\(P(A \cup B)\)`}.`,
               answer: ans, kind: "prob",
               sol: R`<div class="sol-step">Since \(A \subseteq B\), we have \(A \cap B = A\), and monotonicity guarantees \(P(A) \le P(B)\) — consistent with \(${pa} \le ${U.fmt(pb)}\).</div>
                    ${askSubset
                      ? R`<div class="sol-step">\(B\) is the disjoint union of \(A\) and \(B \cap A^c\), so $$P(B \cap A^c) = P(B) - P(A) = ${U.fmt(pb)} - ${pa} = ${U.fmt(ans)}$$</div>`
-                     : R`<div class="sol-step">$$P(B \mid A) = \frac{P(A \cap B)}{P(A)} = \frac{P(A)}{P(A)} = 1$$ If \(A\) occurs then \(B\) must occur too — the numbers are a distraction.</div>`}`,
+                     : R`<div class="sol-step">Since \(A \subseteq B\), also \(A \cup B = B\). $$P(A \cup B) = P(A) + P(B) - P(A \cap B) = ${pa} + ${U.fmt(pb)} - ${pa} = ${U.fmt(pb)}$$ Simply adding \(P(A) + P(B)\) would count \(A\) twice: it is already inside \(B\).</div>`}`,
             };
           },
         },
@@ -9345,7 +9398,7 @@ window.MATH340 = {
               answer: ans, kind: "num", tol: 0.05,
               sol: R`<div class="sol-step">Independence means \(P(${t.rowE} \cap ${t.colE}) = P(${t.rowE})P(${t.colE})\). Writing each as a count over \(${n}\):</div>
                    <div class="sol-step">$$\frac{\text{cell}}{${n}} = \frac{${a + b}}{${n}} \cdot \frac{${a + c}}{${n}} \quad\Longrightarrow\quad \text{cell} = \frac{${a + b} \times ${a + c}}{${n}} = ${U.fmt(ans, 3)}$$</div>
-                   <div class="sol-step">The observed count is ${a}, so the events are ${Math.abs(a - ans) < 0.5 ? "essentially independent here" : `<b>not</b> independent (the cell is ${a > ans ? "larger" : "smaller"} than independence would predict)`}. This "row total × column total ÷ grand total" is the expected-count formula behind the chi-square test.</div>`,
+                   <div class="sol-step">The observed count is ${a}, so the events are ${Math.abs(a - ans) < 1e-9 ? "exactly independent here" : `<b>not</b> independent: the cell is ${a > ans ? "larger" : "smaller"} than independence would predict${Math.abs(a - ans) < 0.5 ? " (only slightly, but independence requires exact equality)" : ""}`}. This "row total × column total ÷ grand total" is the expected-count formula behind the chi-square test.</div>`,
             };
           },
         },
@@ -9708,7 +9761,7 @@ window.MATH340 = {
               q: R`You have one fair coin and one biased coin that lands Heads with probability ${pH}. You pick one of the two at random and flip it ${n} times; it lands Heads all ${n} times. Given this, what is the probability you picked the <b>fair</b> coin?`,
               answer: ans, kind: "prob",
               sol: R`<div class="sol-step">Let \(F\) = picked fair coin, \(A\) = all ${n} flips Heads. Prior: \(P(F) = P(F^c) = 1/2\).</div>
-                   <div class="sol-step">Likelihoods: \(P(A \mid F) = (1/2)^{${n}} = ${U.fmt(pDataFair, 5)}\), \(P(A \mid F^c) = ${pH}^{${n}} = ${U.fmt(pDataBias, 5)}\).</div>
+                   <div class="sol-step">Likelihoods: \(P(A \mid F) = (1/2)^{${n}} = ${U.fmt(pDataFair, 5)}\), \(P(A \mid F^c) = {${pH}}^{${n}} = ${U.fmt(pDataBias, 5)}\).</div>
                    <div class="sol-step">$$P(F \mid A) = \frac{P(A \mid F)P(F)}{P(A \mid F)P(F) + P(A \mid F^c)P(F^c)} = \frac{${U.fmt(pDataFair, 5)}}{${U.fmt(pDataFair, 5)} + ${U.fmt(pDataBias, 5)}} \approx ${U.fmt(ans)}$$</div>
                    <div class="sol-step">The equal priors cancel, so this reduces to comparing the two likelihoods.</div>`,
             };
@@ -9938,8 +9991,8 @@ window.MATH340 = {
               q: R`A server cluster has ${n} identical machines, each up (independently) with probability ${p}. The service stays online as long as <b>at least 2</b> machines are up. What is the probability the service is online?`,
               answer: ans, kind: "prob",
               sol: R`<div class="sol-step">Split into the disjoint cases "exactly 2 up" and "all 3 up".</div>
-                   <div class="sol-step">Exactly 2: choose which machine is down (\(\binom{3}{2} = 3\) ways), each case with probability \(${p}^2(1-${p})\): $$3 \times ${U.fmt(p * p, 4)} \times ${U.fmt(q, 2)} = ${U.fmt(3 * p * p * q, 5)}$$</div>
-                   <div class="sol-step">All 3: \(${p}^3 = ${U.fmt(p * p * p, 5)}\).</div>
+                   <div class="sol-step">Exactly 2: choose which machine is down (\(\binom{3}{2} = 3\) ways), each case with probability \({${p}}^2(1-${p})\): $$3 \times ${U.fmt(p * p, 4)} \times ${U.fmt(q, 2)} = ${U.fmt(3 * p * p * q, 5)}$$</div>
+                   <div class="sol-step">All 3: \({${p}}^3 = ${U.fmt(p * p * p, 5)}\).</div>
                    <div class="sol-step">$$P = ${U.fmt(3 * p * p * q, 5)} + ${U.fmt(p * p * p, 5)} \approx ${U.fmt(ans, 5)}$$ (This is a Binomial probability — Chapter 3 gives it a name.)</div>`,
             };
           },
@@ -10037,7 +10090,7 @@ window.MATH340 = {
               q: R`A student applies to ${n} scholarships. Each application succeeds independently with probability ${p}. What is the probability of winning <b>at least one</b> scholarship?`,
               answer: ans, kind: "prob",
               sol: R`<div class="sol-step">Complement: all ${n} applications fail. By independence these multiply:</div>
-                   <div class="sol-step">$$P(\text{none}) = (1 - ${p})^{${n}} = ${U.fmt(1 - p)}^{${n}} = ${U.fmt(Math.pow(1 - p, n), 6)}$$</div>
+                   <div class="sol-step">$$P(\text{none}) = (1 - ${p})^{${n}} = {${U.fmt(1 - p)}}^{${n}} = ${U.fmt(Math.pow(1 - p, n), 6)}$$</div>
                    <div class="sol-step">$$P(\text{at least one}) = 1 - ${U.fmt(Math.pow(1 - p, n), 6)} \approx ${U.fmt(ans, 5)}$$</div>
                    <div class="sol-step">Adding \(${n} \times ${p} = ${U.fmt(n * p, 3)}\) instead would double-count the overlaps (and can exceed 1).</div>`,
             };
@@ -10212,13 +10265,15 @@ window.MATH340 = {
             const indep = Math.random() < 0.5;
             const actual = indep ? U.round(pa * pb, 6) : U.round(pa * pb + U.pick([-1, 1]) * U.randInt(5, 12) / 100, 6);
             const clamped = Math.min(Math.max(actual, 0.01), Math.min(pa, pb));
-            const ans = U.round(pa * pb, 6);
+            const prod = U.round(pa * pb, 6);
+            const ans = U.round(clamped - prod, 6);
             return {
-              q: R`For events \(A\) and \(B\), \(P(A) = ${pa}\), \(P(B) = ${pb}\), and \(P(A \cap B) = ${U.fmt(clamped, 4)}\). Compute the value \(P(A)P(B)\) that the intersection <b>would</b> have if the events were independent.`,
-              answer: ans, kind: "prob",
+              q: R`For events \(A\) and \(B\), \(P(A) = ${pa}\), \(P(B) = ${pb}\), and \(P(A \cap B) = ${U.fmt(clamped, 4)}\). Test the definition of independence: compute \(P(A \cap B) - P(A)P(B)\). (It is \(0\) exactly when \(A\) and \(B\) are independent; the answer may be negative.)`,
+              answer: ans, kind: "num",
               sol: R`<div class="sol-step">Independence is the statement \(P(A \cap B) = P(A)P(B)\) — so compute the right-hand side and compare.</div>
-                   <div class="sol-step">$$P(A)P(B) = ${pa} \times ${pb} = ${U.fmt(ans, 5)}$$</div>
-                   <div class="sol-step">The actual intersection is \(${U.fmt(clamped, 4)}\), so the events are <b>${Math.abs(clamped - ans) < 1e-9 ? "independent" : "not independent"}</b>.${Math.abs(clamped - ans) < 1e-9 ? "" : clamped > ans ? " The overlap is larger than independence predicts: the events are positively associated." : " The overlap is smaller than independence predicts: the events are negatively associated."}</div>
+                   <div class="sol-step">$$P(A)P(B) = ${pa} \times ${pb} = ${U.fmt(prod, 5)}$$</div>
+                   <div class="sol-step">$$P(A \cap B) - P(A)P(B) = ${U.fmt(clamped, 4)} - ${U.fmt(prod, 5)} = ${U.fmt(ans, 5)}$$</div>
+                   <div class="sol-step">${Math.abs(ans) < 1e-9 ? "The difference is 0" : "The difference is not 0"}, so the events are <b>${Math.abs(ans) < 1e-9 ? "independent" : "not independent"}</b>.${Math.abs(ans) < 1e-9 ? "" : ans > 0 ? " The overlap is larger than independence predicts: the events are positively associated." : " The overlap is smaller than independence predicts: the events are negatively associated."}</div>
                    <div class="sol-step">Independence is a <em>numerical coincidence</em> between three probabilities, not something you can read off the story.</div>`,
             };
           },
@@ -10277,7 +10332,7 @@ window.MATH340 = {
             return {
               q: R`A mother carries a gene with probability \(${mn}/${md}\). If she carries it, each of her two children independently inherits a trait with probability ${h}; if not, each independently has it with probability ${g}. Given that the <b>elder</b> child has the trait, what is the probability the <b>younger</b> one does?`,
               answer: ans, kind: "prob",
-              sol: R`<div class="sol-step">Given the mother's status the children are independent, so condition on it (\(M\) = carrier): $$P(\text{elder}) = ${h}\cdot ${U.fmt(m)} + ${g}\cdot ${U.fmt(1 - m)} = ${U.fmt(pE)}, \qquad P(\text{both}) = ${h}^2 \cdot ${U.fmt(m)} + ${g}^2 \cdot ${U.fmt(1 - m)} = ${U.fmt(pEY)}$$</div>
+              sol: R`<div class="sol-step">Given the mother's status the children are independent, so condition on it (\(M\) = carrier): $$P(\text{elder}) = ${h}\cdot ${U.fmt(m)} + ${g}\cdot ${U.fmt(1 - m)} = ${U.fmt(pE)}, \qquad P(\text{both}) = {${h}}^2 \cdot ${U.fmt(m)} + {${g}}^2 \cdot ${U.fmt(1 - m)} = ${U.fmt(pEY)}$$</div>
                    <div class="sol-step">$$P(\text{younger} \mid \text{elder}) = \frac{${U.fmt(pEY)}}{${U.fmt(pE)}} \approx ${U.fmt(ans)}$$</div>
                    <div class="sol-step">Compare \(P(\text{younger}) = ${U.fmt(pE)}\): the elder's trait is evidence the mother is a carrier, which raises the younger's chance. Conditionally independent given \(M\), but <b>not</b> independent.</div>`,
             };
@@ -10485,7 +10540,7 @@ window.MATH340 = {
           name: "Given specificity: required sensitivity",
           make() {
             const prev = U.pick([0.02, 0.05, 0.1]);
-            // choose spec so that the threshold lands strictly inside (0, 1)
+            // choose spec so that the threshold lands in [0, 1): spec = 1 gives exactly 0
             const specs = [1, 0.999, 0.998, 0.995, 0.99, 0.98].filter(sp => (1 - prev) * (1 - sp) < prev);
             const spec = U.pick(specs);
             const ans = (1 - prev) * (1 - spec) / prev;
@@ -10508,8 +10563,8 @@ window.MATH340 = {
             return {
               q: R`A disease has prevalence ${prev}. A test has sensitivity ${sens} and false-positive rate ${fpr}. A patient tests positive, then is retested and is positive again. Assuming the results are conditionally independent given disease status, find \(P(D \mid \text{both positive})\).`,
               answer: ans, kind: "prob",
-              sol: R`<div class="sol-step">Conditional independence given \(D\) (and given \(D^c\)) lets the likelihoods multiply: \(P(++ \mid D) = ${sens}^2\), \(P(++ \mid D^c) = ${fpr}^2\).</div>
-                   <div class="sol-step">$$P(D \mid ++) = \frac{${sens}^2(${prev})}{${sens}^2(${prev}) + ${fpr}^2(${U.fmt(1 - prev)})} \approx ${U.fmt(ans)}$$</div>
+              sol: R`<div class="sol-step">Conditional independence given \(D\) (and given \(D^c\)) lets the likelihoods multiply: \(P(++ \mid D) = {${sens}}^2\), \(P(++ \mid D^c) = {${fpr}}^2\).</div>
+                   <div class="sol-step">$$P(D \mid ++) = \frac{{${sens}}^2(${prev})}{{${sens}}^2(${prev}) + {${fpr}}^2(${U.fmt(1 - prev)})} \approx ${U.fmt(ans)}$$</div>
                    <div class="sol-step">Sequentially: after one positive \(P(D \mid +) \approx ${U.fmt(one)}\); use that as the new prior and update again — same answer. One positive leaves plenty of doubt; the second does most of the work.</div>`,
             };
           },
@@ -10674,7 +10729,7 @@ window.MATH340 = {
     {
       id: "c3-cdf-props", tag: "Theorem 3.6.3",
       front: R`What three properties does every CDF \(F\) have?`,
-      back: R`1. <b>Increasing:</b> \(x_1 \le x_2 \Rightarrow F(x_1) \le F(x_2)\).<br>2. <b>Right-continuous:</b> at each jump, \(F\) takes the <em>upper</em> value (the dot is filled on the right piece).<br>3. <b>Limits:</b> \(F(x) \to 0\) as \(x \to -\infty\) and \(F(x) \to 1\) as \(x \to \infty\).`,
+      back: R`1. <b>Non-decreasing</b> (increasing in the weak sense): \(x_1 \le x_2 \Rightarrow F(x_1) \le F(x_2)\).<br>2. <b>Right-continuous:</b> at each jump, \(F\) takes the <em>upper</em> value (the dot is filled on the right piece).<br>3. <b>Limits:</b> \(F(x) \to 0\) as \(x \to -\infty\) and \(F(x) \to 1\) as \(x \to \infty\).`,
     },
     {
       id: "c3-cdf-interval", tag: "Proposition",
@@ -10868,7 +10923,7 @@ window.MATH340 = {
 
     /* ---- Section 3.8: independence of random variables ---- */
     {
-      id: "c3-indep-rv", tag: "Definition 3.8.1",
+      id: "c3-indep-rv", tag: "Definition 3.8.1 (PMF form)",
       front: R`When are two discrete random variables \(X\) and \(Y\) <em>independent</em>?`,
       back: R`When the joint PMF factors for <b>every</b> pair of values: $$P(X = x,\ Y = y) = P(X = x)\,P(Y = y) \quad \text{for all } x, y.$$ One pair factoring is not enough — a single pair that fails is enough to make them dependent.`,
     },
@@ -10921,7 +10976,7 @@ window.MATH340 = {
 
     /* ---- C3 full deck: independence of r.v.s, in full ---- */
     {
-      id: "c3-indep-cdf", tag: "Definition 3.8.1",
+      id: "c3-indep-cdf", tag: "Definition 3.8.1 (CDF form)",
       front: R`State the general (CDF) definition of independence of two r.v.s, and its discrete equivalent.`,
       back: R`\(X\) and \(Y\) are independent if $$P(X \le x,\ Y \le y) = P(X \le x)\,P(Y \le y) \quad \text{for all } x, y \in \mathbb{R}.$$ For discrete r.v.s this is equivalent to the joint PMF factoring: \(P(X = x, Y = y) = P(X = x)P(Y = y)\) for all \(x, y\) in the supports. The CDF form also covers continuous r.v.s, which have no PMF.`,
     },
@@ -11004,6 +11059,7 @@ window.MATH340 = {
       const n = U.randInt(6, 12);
       return { p: m / t, n, setup: R`On a basketball court you take ${n} free throws. Assume you make ${m} out of every ${t} free throws you attempt, independently from shot to shot.`,
         X: "the number of free throws you make", succ: "free throws you make", fail: "free throws you miss",
+        given: k => R`you made exactly ${k} of the ${n} free throws`, first: R`your <b>first</b> free throw went in`,
         pWhy: R`\(p = ${m}/${t} = ${U.fmt(m / t, 2)}\)` };
     },
     () => {
@@ -11011,6 +11067,7 @@ window.MATH340 = {
       const n = U.randInt(6, 12);
       return { p: 1 / c, n, setup: R`A student guesses blindly on all ${n} questions of a multiple-choice quiz. Each question has ${c} options, exactly one of them correct.`,
         X: "the number of questions answered correctly", succ: "correct answers", fail: "wrong answers",
+        given: k => R`exactly ${k} of the ${n} answers were correct`, first: R`the <b>first</b> question was answered correctly`,
         pWhy: R`\(p = 1/${c} = ${U.fmt(1 / c, 2)}\)` };
     },
     () => {
@@ -11018,6 +11075,7 @@ window.MATH340 = {
       const n = U.randInt(6, 12);
       return { p, n, setup: R`A packet contains ${n} seeds. Each seed germinates with probability ${p}, independently of the others.`,
         X: "the number of seeds that germinate", succ: "seeds that germinate", fail: "seeds that fail to germinate",
+        given: k => R`exactly ${k} of the ${n} seeds germinated`, first: R`one <b>particular</b> seed (say, the one you planted first) germinated`,
         pWhy: R`\(p = ${p}\)` };
     },
     () => {
@@ -11025,6 +11083,7 @@ window.MATH340 = {
       const n = U.randInt(8, 15);
       return { p, n, setup: R`A machine produces items that are defective with probability ${p}, independently. A quality inspector examines the next ${n} items off the line.`,
         X: "the number of defective items", succ: "defective items", fail: "non-defective items",
+        given: k => R`exactly ${k} of the ${n} items were defective`, first: R`the <b>first</b> item inspected was defective`,
         pWhy: R`\(p = ${p}\)` };
     },
     () => {
@@ -11032,6 +11091,7 @@ window.MATH340 = {
       const n = U.randInt(6, 12);
       return { p, n, setup: R`In a certain city ${Math.round(p * 100)}% of voters support a ballot measure. A pollster phones ${n} voters chosen independently at random (the city is large).`,
         X: "the number of supporters reached", succ: "supporters", fail: "non-supporters",
+        given: k => R`exactly ${k} of the ${n} voters phoned support the measure`, first: R`the <b>first</b> voter phoned is a supporter`,
         pWhy: R`\(p = ${p}\)` };
     },
   ];
@@ -11209,7 +11269,9 @@ window.MATH340 = {
               answer: ans, kind: "prob",
               sol: R`<div class="sol-step">Don't sum the infinite tail. Ask what the event <em>means</em>: ${strict ? R`\(X > ${k}\)` : R`\(X \ge ${k}\)`} says the first ${e} shots all miss.</div>
                    <div class="sol-step">$$P(X ${strict ? ">" : R`\ge`} ${k}) = (1 - ${p})^{${e}} = (${U.fmt(1 - p, 2)})^{${e}} \approx ${U.fmt(ans)}$$</div>
-                   <div class="sol-step">Mind the endpoint: \(X \ge ${k}\) is \(X > ${k - 1}\), so it needs only ${k - 1} misses, not ${k}.</div>`,
+                   <div class="sol-step">${strict
+                     ? R`Mind the endpoint: \(X > ${k}\) means shot ${k} also missed, so it needs ${k} misses. (\(X \ge ${k}\) would need only ${k - 1}.)`
+                     : R`Mind the endpoint: \(X \ge ${k}\) is \(X > ${k - 1}\), so it needs only ${k - 1} misses, not ${k}.`}</div>`,
             };
           },
         },
@@ -11371,7 +11433,7 @@ window.MATH340 = {
             const ans = ask === "c" ? 1 / tot : f(k) / tot;
             return {
               q: R`A random variable \(X\) has PMF \(p_X(x) = ${fTex}\) for \(x = 1, 2, \dots, ${n}\) (and \(0\) otherwise), where \(c\) is a constant. ${ask === "c" ? R`Find \(c\).` : R`Find \(P(X = ${k})\).`}`,
-              answer: ans, kind: "prob",
+              answer: ans, kind: ask === "c" ? "num" : "prob",   // c is a constant, not a probability
               sol: R`<div class="sol-step">The only thing that pins down \(c\) is that a PMF <b>sums to 1</b>.</div>
                    <div class="sol-step">$$\sum_{x=1}^{${n}} p_X(x) = c\,(${Array.from({ length: n }, (_, i) => f(i + 1)).join(" + ")}) = ${tot}c = 1 \quad\Longrightarrow\quad c = \frac{1}{${tot}}$$</div>
                    ${ask === "c" ? "" : R`<div class="sol-step">$$P(X = ${k}) = \frac{${f(k)}}{${tot}} \approx ${U.fmt(ans)}$$</div>`}`,
@@ -11428,7 +11490,7 @@ window.MATH340 = {
               q: R`A discrete random variable \(X\) has CDF ${C.tex} Find \(P(X = ${C.xs[i]})\).`,
               answer: ans, kind: "prob",
               sol: R`<div class="sol-step">\(P(X = x)\) is the <b>size of the jump</b> of \(F\) at \(x\): \(F(x) - F(x^-)\).</div>
-                   <div class="sol-step">$$P(X = ${C.xs[i]}) = F(${C.xs[i]}) - F(${C.xs[i]}^-) = ${hund(C.F[i])} - ${hund(C.Fleft(i))} = ${hund(C.ps[i])}$$</div>`,
+                   <div class="sol-step">$$P(X = ${C.xs[i]}) = F(${C.xs[i]}) - F({${C.xs[i]}}^-) = ${hund(C.F[i])} - ${hund(C.Fleft(i))} = ${hund(C.ps[i])}$$</div>`,
             };
           },
         },
@@ -11436,7 +11498,7 @@ window.MATH340 = {
           name: "Is there a jump here?",
           make() {
             const C = stepCdf();
-            // a point strictly between two jumps, or a jump point, 50/50
+            // a jump point about 35% of the time, otherwise a point strictly between two jumps
             const onJump = Math.random() < 0.35;
             let x, ans;
             if (onJump) {
@@ -11482,9 +11544,9 @@ window.MATH340 = {
             if (form === 0 && i === 0 && j === C.k - 1) form = 1;  // the whole support would give 1
             // [lower F, upper F, symbol, explanation]
             const cfg = [
-              [C.Fleft(i), C.F[j], R`${a} \le X \le ${b}`, R`Including \(${a}\) means subtracting \(F(${a}^-)\), the value just <em>before</em> the jump at \(${a}\).`],
-              [C.F[i], C.Fleft(j), R`${a} < X < ${b}`, R`Excluding \(${b}\) means using \(F(${b}^-)\), the value just <em>before</em> the jump at \(${b}\).`],
-              [C.Fleft(i), C.Fleft(j), R`${a} \le X < ${b}`, R`Include \(${a}\): subtract \(F(${a}^-)\). Exclude \(${b}\): use \(F(${b}^-)\).`],
+              [C.Fleft(i), C.F[j], R`${a} \le X \le ${b}`, R`Including \(${a}\) means subtracting \(F({${a}}^-)\), the value just <em>before</em> the jump at \(${a}\).`],
+              [C.F[i], C.Fleft(j), R`${a} < X < ${b}`, R`Excluding \(${b}\) means using \(F({${b}}^-)\), the value just <em>before</em> the jump at \(${b}\).`],
+              [C.Fleft(i), C.Fleft(j), R`${a} \le X < ${b}`, R`Include \(${a}\): subtract \(F({${a}}^-)\). Exclude \(${b}\): use \(F({${b}}^-)\).`],
             ][form];
             const ans = (cfg[1] - cfg[0]) / 100;
             return {
@@ -11798,7 +11860,7 @@ window.MATH340 = {
             const k = U.randInt(2, c.n - 1);
             const ans = k / c.n;
             return {
-              q: R`${c.setup} Given that there were exactly ${k} ${c.succ} in total, what is the probability that the <b>first</b> trial was one of them?`,
+              q: R`${c.setup} Given that ${c.given(k)}, what is the probability that ${c.first}?`,
               answer: ans, kind: "prob",
               sol: R`<div class="sol-step">Given \(X = ${k}\), every arrangement of ${k} successes among ${c.n} trials has the same probability \(p^{${k}}q^{${c.n - k}}\) (with \(q = 1 - p\)), so all \(\binom{${c.n}}{${k}}\) arrangements are <b>equally likely</b> and \(p\) drops out.</div>
                    <div class="sol-step">$$P(\text{trial 1 success} \mid X = ${k}) = \frac{p \cdot \binom{${c.n - 1}}{${k - 1}} p^{${k - 1}}q^{${c.n - k}}}{\binom{${c.n}}{${k}} p^{${k}} q^{${c.n - k}}} = \frac{\binom{${c.n - 1}}{${k - 1}}}{\binom{${c.n}}{${k}}} = \frac{${k}}{${c.n}} \approx ${U.fmt(ans)}$$</div>`,
@@ -12499,7 +12561,7 @@ window.MATH340 = {
               q: R`On average ${lam} ${c.what} per ${c.per}. Let \(X\) be the number of ${c.evt} in the next ${c.per}. Find \(P(X = ${k})\).`,
               answer: ans, kind: "prob",
               sol: R`<div class="sol-step">A count of events in a fixed interval at a steady rate: \(X \sim \text{Pois}(\lambda)\) with \(\lambda = ${lam}\), the expected count in <em>one ${c.per}</em>.</div>
-                   <div class="sol-step">$$P(X = ${k}) = \frac{e^{-${lam}}\,${lam}^{${k}}}{${k}!} \approx ${U.fmt(ans)}$$</div>`,
+                   <div class="sol-step">$$P(X = ${k}) = \frac{e^{-${lam}}\,{${lam}}^{${k}}}{${k}!} \approx ${U.fmt(ans)}$$</div>`,
             };
           }),
         },
@@ -12513,7 +12575,7 @@ window.MATH340 = {
             return {
               q: R`On average ${lam} ${c.what} per ${c.per}. Find the probability of <b>at most ${k}</b> ${c.evt} in a given ${c.per}.`,
               answer: ans, kind: "prob",
-              sol: R`<div class="sol-step">\(X \sim \text{Pois}(${lam})\). "At most ${k}" is the CDF value \(F(${k}) = \sum_{j=0}^{${k}} e^{-${lam}}${lam}^j / j!\).</div>
+              sol: R`<div class="sol-step">\(X \sim \text{Pois}(${lam})\). "At most ${k}" is the CDF value \(F(${k}) = \sum_{j=0}^{${k}} e^{-${lam}}{${lam}}^j / j!\).</div>
                    <div class="sol-step">$$P(X \le ${k}) = ${terms.join(" + ")} \approx ${U.fmt(ans)}$$</div>
                    <div class="sol-step">Don't forget the \(j = 0\) term, \(e^{-${lam}}\): zero events is a possible value.</div>`,
             };
@@ -12579,7 +12641,7 @@ window.MATH340 = {
               q: R`A factory ships ${n} items; each is defective with probability ${p}, independently. Using the <b>Poisson approximation</b>, estimate the probability that exactly ${k} items are defective.`,
               answer: ans, kind: "prob", tol: Math.max(0.002, Math.abs(ans - exact) + 0.0006),
               sol: R`<div class="sol-step">Exactly, \(X \sim \text{Bin}(${n}, ${p})\): many trials, each a rare event. Then \(X\) is approximately \(\text{Pois}(\lambda)\) with \(\lambda = np = ${n} \times ${p} = ${U.fmt(lam)}\).</div>
-                   <div class="sol-step">$$P(X = ${k}) \approx \frac{e^{-${U.fmt(lam)}}\,${U.fmt(lam)}^{${k}}}{${k}!} \approx ${U.fmt(ans)}$$</div>
+                   <div class="sol-step">$$P(X = ${k}) \approx \frac{e^{-${U.fmt(lam)}}\,{${U.fmt(lam)}}^{${k}}}{${k}!} \approx ${U.fmt(ans)}$$</div>
                    <div class="sol-step">The exact Binomial value is \(${U.fmt(exact)}\) — the approximation is good because \(n\) is large and \(p\) is small.</div>`,
             };
           }),
@@ -12608,8 +12670,8 @@ window.MATH340 = {
               q: R`For each \(n\), let \(X_n \sim \text{Bin}\left(n, \frac{${lam}}{n}\right)\). Find \(\displaystyle\lim_{n \to \infty} P(X_n = ${k})\).`,
               answer: ans, kind: "prob",
               sol: R`<div class="sol-step">\(np = ${lam}\) stays fixed while \(n \to \infty\) and \(p \to 0\): this is exactly the setting where the Binomial PMF converges to the Poisson PMF with \(\lambda = ${lam}\).</div>
-                   <div class="sol-step">$$P(X_n = ${k}) = \frac{${lam}^{${k}}}{${k}!}\left[\frac{n(n-1)\cdots(n-${k}+1)}{n^{${k}}}\right]\left(1 - \frac{${lam}}{n}\right)^{n}\left(1 - \frac{${lam}}{n}\right)^{-${k}}$$ The bracket \(\to 1\), \(\left(1 - \frac{${lam}}{n}\right)^{n} \to e^{-${lam}}\), and the last factor \(\to 1\).</div>
-                   <div class="sol-step">$$\lim_{n \to \infty} P(X_n = ${k}) = \frac{e^{-${lam}}\,${lam}^{${k}}}{${k}!} \approx ${U.fmt(ans)}$$</div>`,
+                   <div class="sol-step">$$P(X_n = ${k}) = \frac{{${lam}}^{${k}}}{${k}!}\left[\frac{n(n-1)\cdots(n-${k}+1)}{n^{${k}}}\right]\left(1 - \frac{${lam}}{n}\right)^{n}\left(1 - \frac{${lam}}{n}\right)^{-${k}}$$ The bracket \(\to 1\), \(\left(1 - \frac{${lam}}{n}\right)^{n} \to e^{-${lam}}\), and the last factor \(\to 1\).</div>
+                   <div class="sol-step">$$\lim_{n \to \infty} P(X_n = ${k}) = \frac{e^{-${lam}}\,{${lam}}^{${k}}}{${k}!} \approx ${U.fmt(ans)}$$</div>`,
             };
           },
         },
@@ -12668,6 +12730,10 @@ window.MATH340 = {
               xs.forEach((x, i) => ys.forEach((y, j) => { (groups[x * y] = groups[x * y] || []).push([i, j]); }));
               const multi = Object.keys(groups).filter(k => groups[k].length >= 2);
               if (multi.length) { v = Number(U.pick(multi)); break; }
+            }
+            if (v === undefined) {   // deterministic fallback: 6 = 1·6 = 2·3 = 3·2
+              xs = [1, 2, 3]; ys = [2, 3, 6]; v = 6;
+              groups = { 6: [[0, 2], [1, 1], [2, 0]] };
             }
             px = pmfHundredths(3, 10); py = pmfHundredths(3, 10);
             const pairs = groups[v];
@@ -12838,7 +12904,7 @@ window.MATH340 = {
     {
       when: R`an urn, but "with replacement", "put back", or a population so large it doesn't matter`,
       use: R`Binomial with \(p = \frac{w}{w+b}\)`,
-      why: R`With replacement the urn is unchanged before every draw, so the draws are independent with constant \(p\). That is what separates Binomial from Hypergeometric.`,
+      why: R`With replacement the urn is unchanged before every draw, so the draws are independent with constant \(p\). That is what separates Binomial from Hypergeometric. Without replacement from a huge population the draws are only nearly independent, so the Binomial is then an <em>approximation</em> to the exact Hypergeometric.`,
     },
     {
       when: R`"chosen at random" from a finite list, with nothing to tell the items apart`,
@@ -12997,7 +13063,7 @@ window.MATH340 = {
     {
       id: "c4-g-trap", tag: "Common pitfall",
       front: R`Is \(E(X^2) = [E(X)]^2\)? Is \(E(g(X)) = g(E(X))\)?`,
-      back: R`<b>Not in general.</b> Linearity only lets you pull out <em>constants</em> and split <em>sums</em>. For a nonlinear \(g\) (squares, \(\frac{1}{X}\), \(|X|\), \(\min(X, c)\)) you must use LOTUS. In fact \(E(X^2) - [E(X)]^2 = \text{Var}(X) \ge 0\), so \(E(X^2) \ge [E(X)]^2\), with equality only when \(X\) is constant.`,
+      back: R`<b>Not in general.</b> Linearity only lets you pull out <em>constants</em> and split <em>sums</em>. For a nonlinear \(g\) (squares, \(\frac{1}{X}\), \(|X|\), \(\min(X, c)\)) you must use LOTUS. In fact \(E(X^2) - [E(X)]^2 = \text{Var}(X) \ge 0\), so \(E(X^2) \ge [E(X)]^2\), with equality only when \(X\) is constant with probability 1.`,
     },
     {
       id: "c4-indicator-count", tag: "Linearity · indicators",
@@ -13132,7 +13198,7 @@ window.MATH340 = {
     return { xs, ps, mean: m100 / 100, ex2: s100 / 100, variance: (100 * s100 - m100 * m100) / 10000 };
   }
   const meanTerms = (xs, ps) => xs.map((x, i) => `${paren(x)}(${hund(ps[i])})`).join(" + ");
-  const sqTerms = (xs, ps) => xs.map((x, i) => `${paren(x)}^2(${hund(ps[i])})`).join(" + ");
+  const sqTerms = (xs, ps) => xs.map((x, i) => `{${paren(x)}}^2(${hund(ps[i])})`).join(" + ");
 
   // "aX + b"-style text with sensible signs: lin("X", 3, -2) -> "3X - 2".
   function lin(v, a, b) {
@@ -13469,7 +13535,7 @@ window.MATH340 = {
               answer: ex2, kind: "num",
               sol: R`<div class="sol-step">LOTUS: \(E(g(X)) = \sum_x g(x)P(X = x)\). Square each <b>value</b> and keep the probabilities of \(X\). No need to find the PMF of \(X^2\).</div>
                    <div class="sol-step">$$E(X^2) = ${sqTerms(xs, ps)} = ${f4(ex2)}$$</div>
-                   <div class="sol-step">Compare \([E(X)]^2 = ${f4(mean)}^2 = ${f4(mean * mean)}\). They differ, by exactly \(\text{Var}(X)\).</div>`,
+                   <div class="sol-step">Compare \([E(X)]^2 = ${mean < 0 ? `(${f4(mean)})` : `{${f4(mean)}}`}^2 = ${f4(mean * mean)}\). They differ, by exactly \(\text{Var}(X)\).</div>`,
             };
           },
         },
@@ -13685,7 +13751,7 @@ window.MATH340 = {
               answer: ans, kind: "num",
               sol: R`<div class="sol-step">The PMF is symmetric about 0 (\(f_X(x) = f_X(-x)\)), so \(E(X) = 0\) with no arithmetic. Then \(\text{Var}(X) = E(X^2)\).</div>
                    <div class="sol-step">LOTUS: $$E(X^2) = \sum_x x^2\cdot\frac{${gt}}{${S}} = \frac{${xs.map(x => x * x * g(x)).join(" + ")}}{${S}} = \frac{${num}}{${S}}$$</div>
-                   <div class="sol-step">$$\text{Var}(X) = ${U.fracTex(num, S)} \approx ${f4(ans)}$$</div>`,
+                   <div class="sol-step">$$\text{Var}(X) = ${U.fracTex(num, S)}${Number.isInteger(ans) ? "" : R` \approx ${f4(ans)}`}$$</div>`,
             };
           },
         },
@@ -13703,7 +13769,7 @@ window.MATH340 = {
               answer: ans, kind: "num",
               sol: R`<div class="sol-step">${a === 1 ? R`\(X\) is uniform on \(1, \dots, ${n}\).` : R`Write \(X = ${a - 1} + Y\) with \(Y\) uniform on \(1, \dots, ${n}\). Shifting does not change variance, so \(\text{Var}(X) = \text{Var}(Y)\).`}</div>
                    <div class="sol-step">For \(Y\) uniform on \(1, \dots, ${n}\): \(E(Y) = \frac{${n + 1}}{2}\) and \(E(Y^2) = \frac{1}{${n}}\sum_{k=1}^{${n}} k^2 = \frac{(${n + 1})(${2 * n + 1})}{6}\).</div>
-                   <div class="sol-step">$$\text{Var} = \frac{(${n + 1})(${2 * n + 1})}{6} - \left(\frac{${n + 1}}{2}\right)^2 = \frac{${n}^2 - 1}{12} = ${U.fracTex(n * n - 1, 12)} \approx ${f4(ans)}$$</div>`,
+                   <div class="sol-step">$$\text{Var} = \frac{(${n + 1})(${2 * n + 1})}{6} - \left(\frac{${n + 1}}{2}\right)^2 = \frac{${n}^2 - 1}{12} = ${U.fracTex(n * n - 1, 12)}${Number.isInteger(ans) ? "" : R` \approx ${f4(ans)}`}$$</div>`,
             };
           },
         },
@@ -13886,7 +13952,7 @@ window.MATH340 = {
               answer: ans, kind: "num",
               sol: R`<div class="sol-step">Decide what is being counted. Failures before the first success is \(\text{Geom}(p)\), with mean \(\frac{q}{p}\). Trials up to and including it is that plus 1, with mean \(\frac{1}{p}\).</div>
                    <div class="sol-step">${askVar
-                     ? R`The two counts differ by the constant 1, and shifting does not change variance. Both have \(\text{Var} = \frac{q}{p^2} = \frac{${U.fmt(q1, 2)}}{${U.fmt(p, 2)}^2}\).`
+                     ? R`The two counts differ by the constant 1, and shifting does not change variance. Both have \(\text{Var} = \frac{q}{p^2} = \frac{${U.fmt(q1, 2)}}{{${U.fmt(p, 2)}}^2}\).`
                      : trials ? R`Counting trials: \(E = \frac{1}{p} = \frac{1}{${p}}\).` : R`Counting failures: \(E = \frac{q}{p} = \frac{${U.fmt(q1, 2)}}{${p}}\).`}</div>
                    <div class="sol-step">$$= ${f4(ans)}$$</div>`,
             };
@@ -13927,7 +13993,7 @@ window.MATH340 = {
                    <div class="sol-step">For a Poisson, \(E(X) = \text{Var}(X) = \lambda = ${U.fmt(lam)}\).</div>
                    <div class="sol-step">${ask === "Var" ? R`$$\text{Var}(X) = ${U.fmt(lam)}$$`
                      : ask === "SD" ? R`$$\text{SD}(X) = \sqrt{${U.fmt(lam)}} \approx ${f4(ans)}$$`
-                     : R`$$E(X^2) = \text{Var}(X) + [E(X)]^2 = ${U.fmt(lam)} + ${U.fmt(lam)}^2 = ${U.fmt(ans)}$$`}</div>`,
+                     : R`$$E(X^2) = \text{Var}(X) + [E(X)]^2 = ${U.fmt(lam)} + {${U.fmt(lam)}}^2 = ${U.fmt(ans)}$$`}</div>`,
             };
           },
         },
@@ -13942,7 +14008,7 @@ window.MATH340 = {
               answer: ans, kind: "num",
               sol: R`<div class="sol-step">Summing \(k^2\binom{${n}}{k}p^k q^{${n} - k}\) is painful. Run the variance shortcut backwards: \(E(X^2) = \text{Var}(X) + [E(X)]^2\).</div>
                    <div class="sol-step">\(E(X) = np = ${U.fmt(mu)}\), \(\text{Var}(X) = np(1 - p) = ${f4(v)}\).</div>
-                   <div class="sol-step">$$E(X^2) = ${f4(v)} + ${U.fmt(mu)}^2 = ${f4(ans)}$$</div>`,
+                   <div class="sol-step">$$E(X^2) = ${f4(v)} + {${U.fmt(mu)}}^2 = ${f4(ans)}$$</div>`,
             };
           },
         },
@@ -14288,6 +14354,12 @@ window.MATH340 = {
     const s = U.fracTex(Math.abs(x[0]), x[1]);
     return x[0] < 0 ? `-${s}` : s;
   }
+  // "= 1/3 \approx 0.3333", but just "= 6" when the exact value is a whole number.
+  const qtApprox = x => (x[1] === 1 ? qt(x) : `${qt(x)} \\approx ${U.fmt(qv(x), 4)}`);
+  // A constant written in front of a factor: nothing when it is 1.
+  const coefTex = x => (x[0] === 1 && x[1] === 1 ? "" : `${qt(x)}\\,`);
+  // (x/b)^n, written as x^n when b = 1 and without the exponent when n = 1.
+  const xbTex = (b, n) => { const base = b === 1 ? "x" : `\\left(\\frac{x}{${b}}\\right)`; return n === 1 ? base : `${base}^{${n}}`; };
   const f4 = x => U.fmt(x, 4);
 
   /* A polynomial is a list of [rational coefficient, power]. */
@@ -14333,7 +14405,7 @@ window.MATH340 = {
     const ex2 = integ(shift(fpoly, 2), Q(0), B);
     const v = qs(ex2, qm(ex, ex));
     const kTex = U.fracTex(k[0], k[1]);
-    const fTex = R`f(x) = \begin{cases} ${kTex}\,${s.tex}, & 0 \le x \le ${s.b}, \\ 0, & \text{otherwise.} \end{cases}`;
+    const fTex = R`f(x) = \begin{cases} ${coefTex(k)}${s.tex}, & 0 \le x \le ${s.b}, \\ 0, & \text{otherwise.} \end{cases}`;
     return { ...s, B, area, k, kTex, fpoly, F, ex, ex2, v, fTex };
   }
   // A rational point strictly inside (0, b), in quarters.
@@ -14376,7 +14448,7 @@ window.MATH340 = {
               answer: qv(d.k), kind: "num",
               sol: R`<div class="sol-step">A PDF must have total area 1. Integrate over the support and set the result equal to 1.</div>
                    <div class="sol-step">$$\int_0^{${d.b}} \left(${polyTex(d.p)}\right)dx = \Big[${antiTex(d.p)}\Big]_0^{${d.b}} = ${qt(d.area)}$$</div>
-                   <div class="sol-step">$$k \cdot ${qt(d.area)} = 1 \implies k = ${d.kTex} \approx ${f4(qv(d.k))}$$ Also check \(f \ge 0\) on \([0, ${d.b}]\), which it is.</div>`,
+                   <div class="sol-step">$$k \cdot ${qt(d.area)} = 1 \implies k = ${qtApprox(d.k)}$$ Also check \(f \ge 0\) on \([0, ${d.b}]\), which it is.</div>`,
             };
           },
         },
@@ -14388,10 +14460,10 @@ window.MATH340 = {
             const c = qm(d.k, m);
             const total = qm(c, d.area);
             return {
-              q: R`Someone proposes \(f(x) = ${qt(c)}\,${d.tex}\) for \(0 \le x \le ${d.b}\) (and \(0\) otherwise) as a PDF. Compute \(\int_{-\infty}^{\infty} f(x)\,dx\). (The function is a valid PDF only if the answer is exactly 1.)`,
+              q: R`Someone proposes \(f(x) = ${coefTex(c)}${d.tex}\) for \(0 \le x \le ${d.b}\) (and \(0\) otherwise) as a PDF. Compute \(\int_{-\infty}^{\infty} f(x)\,dx\). (The function is a valid PDF only if the answer is exactly 1.)`,
               answer: qv(total), kind: "num",
               sol: R`<div class="sol-step">\(f \ge 0\) holds on \([0, ${d.b}]\), so validity comes down to the total area.</div>
-                   <div class="sol-step">$$\int_0^{${d.b}} ${qt(c)}\,(${polyTex(d.p)})\,dx = ${qt(c)} \cdot ${qt(d.area)} = ${qt(total)}$$</div>
+                   <div class="sol-step">$$\int_0^{${d.b}} ${coefTex(c)}(${polyTex(d.p)})\,dx = ${qt(c)} \cdot ${qt(d.area)} = ${qt(total)}$$</div>
                    <div class="sol-step">${qv(total) === 1 ? "The area is 1: a valid PDF." : R`The area is \(${qt(total)} \ne 1\): <b>not</b> a valid PDF. The constant that would fix it is \(${d.kTex}\).`}</div>`,
             };
           },
@@ -14419,7 +14491,7 @@ window.MATH340 = {
               answer: qv(c), kind: "num",
               sol: R`<div class="sol-step">The area under a step density is a sum of rectangles: height \(\times\) width for each piece.</div>
                    <div class="sol-step">$$c \cdot ${u} + ${r}c \cdot ${w} = ${u + r * w}c = 1$$</div>
-                   <div class="sol-step">$$c = ${qt(c)} \approx ${f4(qv(c))}$$</div>`,
+                   <div class="sol-step">$$c = ${qtApprox(c)}$$</div>`,
             };
           },
         },
@@ -14475,7 +14547,7 @@ window.MATH340 = {
               answer: qv(ans), kind: "prob",
               sol: R`<div class="sol-step">The probability is the area under \(f\) between the two points: \(\int_{${dec(lo)}}^{${dec(hi)}} f(x)\,dx\).</div>
                    <div class="sol-step">An antiderivative of \(f\) is \(${antiTex(d.fpoly)}\), so $$P = \Big[${antiTex(d.fpoly)}\Big]_{${dec(lo)}}^{${dec(hi)}} = ${qt(d.F(hi))} - ${qt(d.F(lo))}$$</div>
-                   <div class="sol-step">$$P(${dec(lo)} \le X \le ${dec(hi)}) = ${qt(ans)} \approx ${f4(qv(ans))}$$</div>`,
+                   <div class="sol-step">$$P(${dec(lo)} \le X \le ${dec(hi)}) = ${qtApprox(ans)}$$</div>`,
             };
           },
         },
@@ -14491,7 +14563,7 @@ window.MATH340 = {
               answer: qv(ans), kind: "prob",
               sol: R`<div class="sol-step">The density is \(0\) beyond \(x = ${d.b}\), so the part of the interval from \(${d.b}\) to \(${hi}\) adds no area: \(P(${dec(lo)} &lt; X \le ${hi}) = P(${dec(lo)} &lt; X \le ${d.b})\).</div>
                    <div class="sol-step">$$\int_{${dec(lo)}}^{${d.b}} f(x)\,dx = 1 - F(${dec(lo)}) = 1 - ${qt(d.F(lo))}$$</div>
-                   <div class="sol-step">$$= ${qt(ans)} \approx ${f4(qv(ans))}$$</div>`,
+                   <div class="sol-step">$$= ${qtApprox(ans)}$$</div>`,
             };
           },
         },
@@ -14506,7 +14578,7 @@ window.MATH340 = {
               answer: qv(ans), kind: "prob",
               sol: R`<div class="sol-step">Either integrate from \(${dec(a)}\) to \(${d.b}\), or use \(P(X > a) = 1 - F(a)\). The second is often less work.</div>
                    <div class="sol-step">$$F(${dec(a)}) = \int_0^{${dec(a)}} f(x)\,dx = ${qt(d.F(a))}$$</div>
-                   <div class="sol-step">$$P(X > ${dec(a)}) = 1 - ${qt(d.F(a))} = ${qt(ans)} \approx ${f4(qv(ans))}$$</div>`,
+                   <div class="sol-step">$$P(X > ${dec(a)}) = 1 - ${qt(d.F(a))} = ${qtApprox(ans)}$$</div>`,
             };
           },
         },
@@ -14541,7 +14613,7 @@ window.MATH340 = {
               answer: qv(ans), kind: "prob",
               sol: R`<div class="sol-step">The definition of conditional probability. Since \(\{X > ${dec(c)}\} \subseteq \{X > ${dec(a)}\}\), the intersection is just \(\{X > ${dec(c)}\}\): $$P(X > ${dec(c)} \mid X > ${dec(a)}) = \frac{P(X > ${dec(c)})}{P(X > ${dec(a)})}$$</div>
                    <div class="sol-step">Both tails via the CDF: \(1 - F(${dec(c)}) = ${qt(tc)}\) and \(1 - F(${dec(a)}) = ${qt(ta)}\).</div>
-                   <div class="sol-step">$$\frac{${qt(tc)}}{${qt(ta)}} = ${qt(ans)} \approx ${f4(qv(ans))}$$</div>`,
+                   <div class="sol-step">$$\frac{${qt(tc)}}{${qt(ta)}} = ${qtApprox(ans)}$$</div>`,
             };
           },
         },
@@ -14566,7 +14638,7 @@ window.MATH340 = {
               q: R`\(X\) has density $$${d.fTex}$$ Find \(P(${dec(lo)} &lt; X &lt; ${dec(hi)})\). (Strict inequalities.)`,
               answer: qv(ans), kind: "prob",
               sol: R`<div class="sol-step">Strict or not makes no difference for a continuous r.v.: the endpoints have probability 0, so \(P(${dec(lo)} &lt; X &lt; ${dec(hi)}) = F(${dec(hi)}) - F(${dec(lo)})\).</div>
-                   <div class="sol-step">$$= ${qt(d.F(hi))} - ${qt(d.F(lo))} = ${qt(ans)} \approx ${f4(qv(ans))}$$</div>`,
+                   <div class="sol-step">$$= ${qt(d.F(hi))} - ${qt(d.F(lo))} = ${qtApprox(ans)}$$</div>`,
             };
           },
         },
@@ -14590,7 +14662,7 @@ window.MATH340 = {
               answer: qv(ans), kind: "prob",
               sol: R`<div class="sol-step">\(F(x) = \int_{-\infty}^x f(y)\,dy\). The density is 0 left of 0, so integrate from 0.</div>
                    <div class="sol-step">For \(0 \le x \le ${d.b}\): \(F(x) = ${antiTex(d.fpoly)}\).</div>
-                   <div class="sol-step">$$F(${dec(x0)}) = ${qt(ans)} \approx ${f4(qv(ans))}$$</div>`,
+                   <div class="sol-step">$$F(${dec(x0)}) = ${qtApprox(ans)}$$</div>`,
             };
           },
         },
@@ -14617,7 +14689,7 @@ window.MATH340 = {
             let Ftex, Fv, lo, hi, cases;
             if (kind === 0) {
               const n = U.randInt(2, 4), b = U.randInt(1, 3);
-              cases = R`\left(\frac{x}{${b}}\right)^{${n}}, & 0 \le x \le ${b}`;
+              cases = R`${xbTex(b, n)}, & 0 \le x \le ${b}`;
               Fv = x => (x <= 0 ? 0 : x >= b ? 1 : Math.pow(x / b, n));
               [lo, hi] = [U.randInt(1, 2 * b - 1) / 4, null];
               hi = lo + U.randInt(1, 2 * b) / 4;
@@ -14651,11 +14723,11 @@ window.MATH340 = {
               const x0 = U.randInt(1, 4 * b - 1) / 4;
               const ans = n * Math.pow(x0, n - 1) / Math.pow(b, n);
               return {
-                q: R`\(X\) has CDF \(F(x) = \left(\frac{x}{${b}}\right)^{${n}}\) for \(0 \le x \le ${b}\) (with \(F = 0\) to the left and \(F = 1\) to the right). Find the density value \(f(${x0})\).`,
+                q: R`\(X\) has CDF \(F(x) = ${xbTex(b, n)}\) for \(0 \le x \le ${b}\) (with \(F = 0\) to the left and \(F = 1\) to the right). Find the density value \(f(${x0})\).`,
                 answer: ans, kind: "num",
                 sol: R`<div class="sol-step">The density is the derivative of the CDF: \(f(x) = F'(x)\).</div>
-                     <div class="sol-step">$$f(x) = \frac{d}{dx}\frac{x^{${n}}}{${Math.pow(b, n)}} = \frac{${n}x^{${n - 1}}}{${Math.pow(b, n)}}, \quad 0 \le x \le ${b}$$</div>
-                     <div class="sol-step">$$f(${x0}) = \frac{${n}(${x0})^{${n - 1}}}{${Math.pow(b, n)}} \approx ${f4(ans)}$$ It is a density value, not a probability.</div>`,
+                     <div class="sol-step">$$f(x) = ${b === 1 ? R`\frac{d}{dx}x^{${n}} = ${n}x^{${n - 1}}` : R`\frac{d}{dx}\frac{x^{${n}}}{${Math.pow(b, n)}} = \frac{${n}x^{${n - 1}}}{${Math.pow(b, n)}}`}, \quad 0 \le x \le ${b}$$</div>
+                     <div class="sol-step">$$f(${x0}) = ${b === 1 ? R`${n}(${x0})^{${n - 1}}` : R`\frac{${n}(${x0})^{${n - 1}}}{${Math.pow(b, n)}}`} ${Number.isInteger(ans) ? "=" : R`\approx`} ${f4(ans)}$$ It is a density value, not a probability.</div>`,
               };
             }
             const lam = U.pick([0.5, 1, 2, 3]);
@@ -14679,10 +14751,10 @@ window.MATH340 = {
               const n = U.randInt(1, 3), b = U.randInt(1, 4);
               const ans = b * Math.pow(p, 1 / n);
               return {
-                q: R`\(X\) has CDF \(F(x) = \left(\frac{x}{${b}}\right)${n === 1 ? "" : `^{${n}}`}\) for \(0 \le x \le ${b}\). Find the ${name} of \(X\).`,
+                q: R`\(X\) has CDF \(F(x) = ${xbTex(b, n)}\) for \(0 \le x \le ${b}\). Find the ${name} of \(X\).`,
                 answer: ans, kind: "num",
                 sol: R`<div class="sol-step">The ${name} is the \(x\) with \(F(x) = ${p}\): ${p === 0.5 ? "half the area lies to its left" : `${Math.round(p * 100)}% of the area lies to its left`}.</div>
-                     <div class="sol-step">$$\left(\frac{x}{${b}}\right)${n === 1 ? "" : `^{${n}}`} = ${p} \implies x = ${b}\cdot${n === 1 ? p : `(${p})^{1/${n}}`}$$</div>
+                     <div class="sol-step">$$${xbTex(b, n)} = ${p} \implies x = ${b === 1 ? "" : R`${b}\cdot`}${n === 1 ? p : `(${p})^{1/${n}}`}$$</div>
                      <div class="sol-step">$$x \approx ${f4(ans)}$$</div>`,
               };
             }
@@ -14715,7 +14787,7 @@ window.MATH340 = {
               answer: qv(d.ex), kind: "num",
               sol: R`<div class="sol-step">Integrate \(x\) times the density over the support: \(E(X) = \int_0^{${d.b}} x f(x)\,dx\).</div>
                    <div class="sol-step">$$\int_0^{${d.b}} \left(${polyTex(shift(d.fpoly, 1))}\right)dx = \Big[${antiTex(shift(d.fpoly, 1))}\Big]_0^{${d.b}}$$</div>
-                   <div class="sol-step">$$E(X) = ${qt(d.ex)} \approx ${f4(qv(d.ex))}$$</div>`,
+                   <div class="sol-step">$$E(X) = ${qtApprox(d.ex)}$$</div>`,
             };
           },
         },
@@ -14728,7 +14800,7 @@ window.MATH340 = {
               answer: qv(d.ex2), kind: "num",
               sol: R`<div class="sol-step">LOTUS: \(E(X^2) = \int x^2 f(x)\,dx\). Multiply the density by \(x^2\) and integrate. You do not need the distribution of \(X^2\).</div>
                    <div class="sol-step">$$\int_0^{${d.b}} \left(${polyTex(shift(d.fpoly, 2))}\right)dx = \Big[${antiTex(shift(d.fpoly, 2))}\Big]_0^{${d.b}}$$</div>
-                   <div class="sol-step">$$E(X^2) = ${qt(d.ex2)} \approx ${f4(qv(d.ex2))}$$</div>`,
+                   <div class="sol-step">$$E(X^2) = ${qtApprox(d.ex2)}$$</div>`,
             };
           },
         },
@@ -14741,7 +14813,7 @@ window.MATH340 = {
               answer: qv(d.v), kind: "num",
               sol: R`<div class="sol-step">\(V(X) = E(X^2) - [E(X)]^2\): two integrals, then subtract.</div>
                    <div class="sol-step">\(E(X) = \int_0^{${d.b}} x f(x)\,dx = ${qt(d.ex)}\), and \(E(X^2) = \int_0^{${d.b}} x^2 f(x)\,dx = ${qt(d.ex2)}\).</div>
-                   <div class="sol-step">$$V(X) = ${qt(d.ex2)} - \left(${qt(d.ex)}\right)^2 = ${qt(d.v)} \approx ${f4(qv(d.v))}$$</div>`,
+                   <div class="sol-step">$$V(X) = ${qt(d.ex2)} - \left(${qt(d.ex)}\right)^2 = ${qtApprox(d.v)}$$</div>`,
             };
           },
         },
@@ -14797,7 +14869,7 @@ window.MATH340 = {
               answer: ans, kind: "num",
               sol: R`<div class="sol-step">The density is \(\frac{1}{${w}}\) on \([${a}, ${b}]\).</div>
                    <div class="sol-step">${askVar
-                     ? R`\(E(X^2) = \int_{${a}}^{${b}} \frac{x^2}{${w}}\,dx\) and \(E(X) = \frac{${a} + ${b < 0 ? `(${b})` : b}}{2}\). The shortcut simplifies to $$V(X) = \frac{(b - a)^2}{12} = \frac{${w}^2}{12} = ${U.fracTex(w * w, 12)} \approx ${f4(ans)}$$`
+                     ? R`\(E(X^2) = \int_{${a}}^{${b}} \frac{x^2}{${w}}\,dx\) and \(E(X) = \frac{${a} + ${b < 0 ? `(${b})` : b}}{2}\). The shortcut simplifies to $$V(X) = \frac{(b - a)^2}{12} = \frac{${w}^2}{12} = ${U.fracTex(w * w, 12)}${Number.isInteger(ans) ? "" : R` \approx ${f4(ans)}`}$$`
                      : R`$$E(X) = \int_{${a}}^{${b}} \frac{x}{${w}}\,dx = \frac{(${b})^2 - (${a})^2}{2\cdot${w}} = \frac{${a} + ${b < 0 ? `(${b})` : b}}{2} = ${U.fmt(ans)}$$`}</div>`,
             };
           },
@@ -18512,7 +18584,7 @@ function drawCalSettings(box) {
   g.appendChild(num("Most study minutes on a day", "cap", 10, 300, 5, "The ceiling on an open day. Reviews, lessons and applied sessions in the hub; school blocks count inside it, homework and assignment blocks are reserved on top."));
   g.appendChild(num("Cap on hockey days", "hockeyCap", 5, 300, 5, "Lower, because you are tired and the day is short."));
   g.appendChild(num("Cap on heavy days (5+ busy hours)", "heavyCap", 5, 300, 5, ""));
-  g.appendChild(num("New lessons a day, at most", "newPerDay", 0, 6, 1, "Across every skill, never two in one skill. Two is the evidence-based default."));
+  g.appendChild(num("New lessons a day, at most", "newPerDay", 0, 6, 1, "Across every skill, never two in one skill. Two is a cautious default: no study fixes the number, but it keeps the reviews from piling up."));
   g.appendChild(num("Smallest block, minutes", "minBlock", 5, 30, 1, ""));
   g.appendChild(num("Buffer around commitments, minutes", "buffer", 0, 60, 5, "Getting there and back."));
   g.appendChild(time("Day starts", "wake", "No block before this."));
@@ -18638,7 +18710,7 @@ function drawQuant(box, gid) {
   var S = HUB.quant;
   if (!gid) {
     var lv = qtLevel(S);
-    box.innerHTML = '<div class="vhead"><div><h1>Quant games</h1><p>The timed games quant firms screen with, at the sites\' own settings: Zetamac\'s arithmetic and the Optiver 80 in 8, plus sequences, estimation, percentages and odds. No stakes; your score over time is the progress.</p></div></div>';
+    box.innerHTML = '<div class="vhead"><div><h1>Quant games</h1><p>Timed games like the ones quant firms screen with: Zetamac\'s arithmetic at its default settings and the Optiver 80 in 8 as applicants report it, plus sequences, estimation, percentages and odds. No stakes; your score over time is the progress.</p></div></div>';
     var hero = el("div", "hero"); hero.innerHTML = '<div class="kick">Level: ' + esc(lv.name) + '</div><h2>' + (qtPlayedToday(S, todayKey(), dayKey) ? "Played today. Another run is free." : "One game today, before the first real session") + '</h2><p>Zetamac is the one that transfers most; play the 80 in 8 once a week. A run is not counted against your study budget.</p>'; box.appendChild(hero);
     var grid = el("div", "qgrid");
     QT_GAMES.forEach(function (G) { var hist = qtHistory(S, G.id, 5).map(function (r) { return r.score; }); var a = el("a", "qcard"); a.href = "#/quant/" + G.id; a.innerHTML = '<b>' + esc(G.name) + '</b><span>' + esc(G.blurb) + '</span><div class="qb">' + esc(G.about) + '</div><span>target ' + G.target + ' · best ' + qtBest(S, G.id) + ' · last: ' + (hist.length ? hist.join(", ") : "none yet") + '</span>'; grid.appendChild(a); });
@@ -18967,7 +19039,7 @@ function drawImmersionLog(box, c, full) {
   var p = el("div", "panel"); p.style.marginTop = "16px";
   var logs = (HUB.logs || []).filter(function (l) { return l.c === c.id; }).sort(function (a, b) { return b.t - a.t; });
   var hours = loggedHours(c.id);
-  p.innerHTML = '<div class="ph"><h3>Immersion log</h3><span>' + hours.toFixed(1) + ' h logged · ' + (c.need || 700) + ' h is the FSI estimate to C1</span></div><p class="pnote">Log the minutes of real ' + esc(c.name) + ' you take in and put out: shows, podcasts, reading, a tandem call, shadowing. Past B1 these hours are the level, and the planner schedules them. Drills and lessons are counted automatically; this is for everything else.</p>';
+  p.innerHTML = '<div class="ph"><h3>Immersion log</h3><span>' + hours.toFixed(1) + ' h logged · ' + (c.need || 700) + ' h is the FSI estimate to professional working proficiency (ILR 3, roughly C1)</span></div><p class="pnote">Log the minutes of real ' + esc(c.name) + ' you take in and put out: shows, podcasts, reading, a tandem call, shadowing. Past B1 these hours are the level, and the planner schedules them. Drills and lessons are counted automatically; this is for everything else.</p>';
   var form = el("div", "row"); form.style.margin = "10px 0";
   var sel = el("select"); ["listening", "reading", "speaking", "writing", "shadowing"].forEach(function (k) { var o = el("option", "", k); o.value = k; sel.appendChild(o); }); sel.style.width = "auto";
   var min = el("input"); min.type = "number"; min.placeholder = "minutes"; min.style.width = "110px"; min.min = 1;
