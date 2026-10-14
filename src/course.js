@@ -78,7 +78,7 @@ var LESSONS_0 = [
   blocks: [
     { t:"p", x:"Money goes in across four rounds. Two players post forced bets called blinds so there is something to fight over, then the hand unfolds in streets." },
     { t:"tbl", head:["Street","Cards visible","What happens"], rows:[
-      ["Preflop","Your 2","Everyone acts once. Most hands end here."],
+      ["Preflop","Your 2","Bet, raise or fold before any board card. Most hands end here."],
       ["Flop","Your 2 + 3","The shape of the hand is decided."],
       ["Turn","Your 2 + 4","Bets get big. Draws get expensive."],
       ["River","Your 2 + 5","No more cards. Pure value or pure bluff."]
@@ -630,7 +630,7 @@ var LESSONS_5 = [
 
 var READING = [
   { g:"Start here", items:[
-    ["The Mathematics of Poker", "Chen and Ankenman. Chen was a quant at Susquehanna. Derives toy games from first principles and builds to real spots. Written for you specifically.", "https://www.pokerbooks.lt/books/en/The_Mathematics_of_Poker.pdf"],
+    ["The Mathematics of Poker", "Chen and Ankenman. Chen was a quant at Susquehanna. Derives toy games from first principles and builds to real spots. Written for you specifically.", "https://www.conjelco.com/"],
     ["Play Optimal Poker 1 and 2", "Brokos. The same equilibrium intuition through toy games, without the machinery. Read alongside Chen."],
     ["Modern Poker Theory", "Acevedo. Solver output organised into heuristics you can actually carry to a table."]
   ]},

@@ -224,10 +224,10 @@ var L_SPR = {
     { t:"p", x:"How much a hand is worth depends on how much money can still go in. Top pair in a pot with little behind is a monster; the same top pair with a huge stack behind is a bluff catcher. The number that captures this is the stack-to-pot ratio." },
     { t:"rule", x:"SPR = effective stack behind / pot on the flop", note:"Effective stack is the smaller of the two stacks, because that is all that can be won. Measure it after the preflop betting." },
     { t:"tbl", head:["SPR","Typical pot","Hands happy to get it all in"], rows:[
-      ["under 3","3-bet and 4-bet pots","Top pair and overpairs"],
-      ["3 to 6","3-bet pots","Top pair good kicker, two pair+"],
-      ["6 to 13","single-raised pots at 100 bb","Two pair, sets, strong draws"],
-      ["over 13","limped or deep pots","Sets and better; nut draws"]
+      ["under 3","4-bet pots (about 1.5)","Top pair and overpairs"],
+      ["3 to 6","3-bet pots (about 4 to 5)","Top pair good kicker, two pair+"],
+      ["6 to 12","multiway or big-open raised pots","Two pair, sets, strong draws"],
+      ["over 12","heads-up single-raised pots at 100 bb (13 to 18), limped pots","Sets and better; nut draws"]
     ], caption:"A rule of thumb in the spirit of Acevedo's commitment thresholds, not a law. The idea is that you should decide how far to go with a hand before the flop, from the SPR, not in the middle of a raise war." },
     { t:"ex", title:"Worked example",
       facts:[["Stacks","100 bb"],["Preflop","CO opens 2.5 bb, BTN calls, blinds fold"]],
@@ -244,7 +244,7 @@ var L_SPR = {
         "Subtract what each player put in preflop from the effective stack.",
         "Divide the stack behind by the pot."
       ],
-      tip:"Single-raised pots at 100 bb are SPR 13 to 16. 3-bet pots are 4 to 5. 4-bet pots are about 1." }
+      tip:"Heads-up single-raised pots at 100 bb are SPR 13 to 18, about 15 for a 2.5 bb open. 3-bet pots are 4 to 5. 4-bet pots are about 1.5." }
   ]
 };
 
@@ -299,7 +299,7 @@ var L_EQR = {
       steps:[
         "Raw equity 28% beats the 25% price. On pot odds alone, this is a call.",
         "Realised equity: 0.8 × 28% = 22.4%.",
-        "22.4% < 25%: fold. Equivalently, you need 25% / 0.8 = 31% raw equity."
+        "22.4% &lt; 25%: fold. Equivalently, you need 25% / 0.8 = 31% raw equity."
       ],
       bar:{ fill:22.4, tick:25, fillLabel:"realised 22.4%", tickLabel:"price 25%" },
       punch:"This is why the big blind can defend wide against a button open but the small blind, out of position against everyone, should mostly 3-bet or fold." },
@@ -359,7 +359,7 @@ var L_GEO = {
       ["4","400%","100%","54%"],
       ["6.5","650%","137%","71%"],
       ["13","1,300%","210%","100%"]
-    ], caption:"At SPR 13, a normal single-raised pot at 100 bb, three pot-size bets exactly get it in. At SPR 4, two pot-size bets do." },
+    ], caption:"At SPR 13, the low end of a heads-up single-raised pot at 100 bb (13 to 18), three pot-size bets exactly get it in. At SPR 4, a 3-bet pot, two pot-size bets do." },
     { t:"ex", title:"Worked example",
       facts:[["Pot on the flop","10 bb"],["Stack behind","90 bb"],["Streets","3"]],
       steps:[

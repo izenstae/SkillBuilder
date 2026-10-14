@@ -47,10 +47,10 @@ var HE_PAST = {
 var HE_FUTURE = {
   name: "Future tense", cols: ["infinitive", "I (אֲנִי)", "you (אַתָּה)", "he (הוּא)", "she (הִיא)", "we (אֲנַחְנוּ)", "they (הֵם)", "meaning"], ask: [1, 2, 3, 4, 5, 6], given: 0, gloss: 7, target: 10,
   q: "{w} ({g}): give the future tense for <b>{form}</b>.",
-  rule: { 1: "Future marks the person with a prefix: אֶ- (I), תִּ- (you m. / she), יִ- (he), נִ- (we), תִּ...וּ (you pl.), יִ...וּ (they). The same prefixes serve every binyan; only the vowels change.", 2: "You (m.) and she share the form תִּלְמַד; context tells them apart.", 3: "", 4: "", 5: "", 6: "They: יִ...וּ." },
+  rule: { 1: "Future marks the person with a prefix: אֶ- (I), תִּ- (you m. / she), יִ- (he), נִ- (we), תִּ...וּ (you pl.), יִ...וּ (they). The same prefixes serve every binyan; only the vowels change. Verbs like לֶאֱכֹל fold the prefix into the silent alef: אוֹכַל (ochal), also spelled אֹכַל; you will hear the colloquial אֶאֱכֹל, which is not standard.", 2: "You (m.) and she share the form תִּלְמַד; context tells them apart.", 3: "", 4: "", 5: "", 6: "They: יִ...וּ." },
   rows: [["לִלְמֹד", "אֶלְמַד", "תִּלְמַד", "יִלְמַד", "תִּלְמַד", "נִלְמַד", "יִלְמְדוּ", "learn"], ["לִכְתֹּב", "אֶכְתֹּב", "תִּכְתֹּב", "יִכְתֹּב", "תִּכְתֹּב", "נִכְתֹּב", "יִכְתְּבוּ", "write"],
     ["לִשְׁמֹר", "אֶשְׁמֹר", "תִּשְׁמֹר", "יִשְׁמֹר", "תִּשְׁמֹר", "נִשְׁמֹר", "יִשְׁמְרוּ", "guard / keep"], ["לִגְמֹר", "אֶגְמֹר", "תִּגְמֹר", "יִגְמֹר", "תִּגְמֹר", "נִגְמֹר", "יִגְמְרוּ", "finish"],
-    ["לֶאֱכֹל", "אֹכַל", "תֹּאכַל", "יֹאכַל", "תֹּאכַל", "נֹאכַל", "יֹאכְלוּ", "eat"], ["לָלֶכֶת", "אֵלֵךְ", "תֵּלֵךְ", "יֵלֵךְ", "תֵּלֵךְ", "נֵלֵךְ", "יֵלְכוּ", "go"],
+    ["לֶאֱכֹל", "אוֹכַל", "תֹּאכַל", "יֹאכַל", "תֹּאכַל", "נֹאכַל", "יֹאכְלוּ", "eat"], ["לָלֶכֶת", "אֵלֵךְ", "תֵּלֵךְ", "יֵלֵךְ", "תֵּלֵךְ", "נֵלֵךְ", "יֵלְכוּ", "go"],
     ["לִרְאוֹת", "אֶרְאֶה", "תִּרְאֶה", "יִרְאֶה", "תִּרְאֶה", "נִרְאֶה", "יִרְאוּ", "see"], ["לָבוֹא", "אָבוֹא", "תָּבוֹא", "יָבוֹא", "תָּבוֹא", "נָבוֹא", "יָבוֹאוּ", "come"],
     ["לָקוּם", "אָקוּם", "תָּקוּם", "יָקוּם", "תָּקוּם", "נָקוּם", "יָקוּמוּ", "get up"], ["לְדַבֵּר", "אֲדַבֵּר", "תְּדַבֵּר", "יְדַבֵּר", "תְּדַבֵּר", "נְדַבֵּר", "יְדַבְּרוּ", "speak"],
     ["לְשַׂחֵק", "אֲשַׂחֵק", "תְּשַׂחֵק", "יְשַׂחֵק", "תְּשַׂחֵק", "נְשַׂחֵק", "יְשַׂחֲקוּ", "play"], ["לְהַתְחִיל", "אַתְחִיל", "תַּתְחִיל", "יַתְחִיל", "תַּתְחִיל", "נַתְחִיל", "יַתְחִילוּ", "begin"],
@@ -123,7 +123,7 @@ var HE_DIALOGUES = [
     turns: [
       { bot: "שָׁלוֹם, מָה תִּרְצֶה?", botg: "Hello, what would you like?", expect: ["קפה", "תה", "אני רוצה", "בבקשה"], model: "קָפֶה הָפוּךְ, בְּבַקָּשָׁה.", modelg: "A latte, please.", hint: "קפה, בבקשה / אני רוצה ..." },
       { bot: "רוֹצֶה גַּם מַשֶּׁהוּ לֶאֱכֹל?", botg: "Want something to eat too?", expect: ["כן", "לא", "בורקס", "עוגה", "תודה"], model: "כֵּן, בּוּרֶקָס, בְּבַקָּשָׁה.", modelg: "Yes, a burekas, please.", hint: "כן, ... בבקשה / לא, תודה" },
-      { bot: "עֶשְׂרִים וּשְׁמוֹנֶה שֶׁקֶל. אַשְׁרַאי אוֹ מְזֻמָּן?", botg: "Twenty-eight shekels. Card or cash?", expect: ["אשראי", "מזומן", "כרטיס"], model: "אַשְׁרַאי, בְּבַקָּשָׁה.", modelg: "Card, please.", hint: "אשראי / מזומן" },
+      { bot: "עֶשְׂרִים וּשְׁמוֹנֶה שְׁקָלִים. אַשְׁרַאי אוֹ מְזֻמָּן?", botg: "Twenty-eight shekels. Card or cash?", expect: ["אשראי", "מזומן", "כרטיס"], model: "אַשְׁרַאי, בְּבַקָּשָׁה.", modelg: "Card, please.", hint: "אשראי / מזומן" },
       { bot: "בְּבַקָּשָׁה, בְּתֵאָבוֹן!", botg: "Here you go, enjoy!", expect: ["תודה"], model: "תּוֹדָה רַבָּה!", modelg: "Thanks a lot!", hint: "תודה ..." }
     ] },
   { id: "he_d3", title: "Asking the way", setting: "You are lost in Jerusalem and need the central bus station.", level: "A2",
@@ -193,8 +193,8 @@ var HE_WRITING = [
 
 /* ============================================================
    BIBLICAL HEBREW
-   The most frequent words of the Hebrew Bible (the top ~150 cover
-   roughly 60% of the running text), the Qal paradigms, and three
+   The most frequent words of the Hebrew Bible (a few hundred common
+   words make up most of the running text), the Qal paradigms, and three
    texts read word by word. Row: [word, translit, gloss, pos, forms/notes, example (a verse fragment), example gloss]
    ============================================================ */
 var BH_VOCAB = {

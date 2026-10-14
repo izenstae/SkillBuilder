@@ -54,6 +54,18 @@ var promo = C.chFromFen("8/P6k/8/8/8/8/8/K7 w - - 0 1");
 var pm = C.chParseSan(promo, "a8=Q"); ok(pm && pm.promo === C.CH_Q, "promotion parses"); eq(C.chSan(promo, pm), "a8=Q", "promotion san");
 var mateSan = C.chFromFen("6k1/5ppp/8/8/8/8/8/R5K1 w - - 0 1");
 eq(C.chSan(mateSan, C.chParseSan(mateSan, "Ra8")), "Ra8#", "back rank mate gets #");
+/* SAN input: a file-less pawn capture only when one pawn can make it; over-specified origins accepted when they name one move; ambiguity rejected */
+var twoP = C.chFromFen("4k3/8/8/3p4/2P1P3/8/8/4K3 w - - 0 1"), oneP = C.chFromFen("4k3/8/8/3p4/4P3/8/8/4K3 w - - 0 1");
+ok(C.chParseSan(twoP, "xd5") === null, "xd5 with two capturing pawns is rejected");
+eq(C.chMoveName(C.chParseSan(twoP, "cxd5")), "c4d5", "cxd5 names its pawn"); eq(C.chMoveName(C.chParseSan(twoP, "exd5")), "e4d5", "exd5 names its pawn");
+eq(C.chMoveName(C.chParseSan(oneP, "xd5")), "e4d5", "xd5 with one capturing pawn is accepted");
+ok(C.chParseSan(oneP, "ed5") === null && C.chParseSan(oneP, "Nd5") === null, "a capture must say x; a missing piece is no move");
+var oneN = C.chFromFen("4k3/8/8/8/8/8/8/1N2K3 w - - 0 1"), twoN = C.chFromFen("4k3/8/8/8/8/5N2/8/1N2K3 w - - 0 1");
+["Nd2", "Nbd2", "N1d2", "Nb1d2"].forEach(function (san) { var m = C.chParseSan(oneN, san); ok(m && C.chMoveName(m) === "b1d2", "over-specified " + san + " parses"); });
+ok(C.chParseSan(oneN, "Ncd2") === null && C.chParseSan(oneN, "N2d2") === null, "a wrong origin is rejected");
+ok(C.chParseSan(twoN, "Nd2") === null, "Nd2 with two knights is rejected");
+eq(C.chMoveName(C.chParseSan(twoN, "Nbd2")), "b1d2", "Nbd2 picks the b-knight"); eq(C.chMoveName(C.chParseSan(twoN, "Nf3d2")), "f3d2", "Nf3d2 picks the f-knight");
+eq(C.chSan(promo, C.chParseSan(promo, "a8Q")), "a8=Q", "promotion without = parses"); ok(C.chParseSan(promo, "a8") === null, "a promotion must name its piece");
 
 /* en passant */
 var ep = C.chFromFen("4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 2");
@@ -96,6 +108,9 @@ ok(C.chWinProb(300) > 70 && C.chWinProb(-300) < 30, "win prob moves with eval");
 eq(C.chSan(C.chFromFen("4k3/8/8/8/8/8/3n4/4K3 b - - 0 1"), C.chParseSan(C.chFromFen("4k3/8/8/8/8/8/3n4/4K3 b - - 0 1"), "Nf3")), "Nf3+", "check suffix with insufficient material");
 var fifty = C.chFromFen("4k3/8/8/8/8/8/8/R3K3 w - - 99 1");
 eq(C.chSan(fifty, C.chParseSan(fifty, "Ra8")), "Ra8+", "check suffix at the fifty-move mark");
+/* the fifty-move draw is automatic at 100 half-moves (as on online sites; the course says so) */
+eq(C.chStatus(C.chFromFen("4k3/8/8/8/8/8/8/R3K3 w - - 99 80")), "", "99 half-moves: play on");
+eq(C.chStatus(C.chFromFen("4k3/8/8/8/8/8/8/R3K3 w - - 100 80")), "fifty", "100 half-moves: the fifty-move draw");
 var missed = C.chJudge(m1, C.chParseSan(m1, "Ra2"), 3);
 ok(missed.loss <= 4000, "missing a mate costs a bounded loss (" + missed.loss + ")"); eq(missed.grade, "Blunder", "and grades Blunder");
 eq(C.chGrade(C.CH_MATE - 1, 200).loss, 1800, "loss clamps both sides to ±2000");

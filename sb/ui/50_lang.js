@@ -93,7 +93,7 @@ function drawImmersionLog(box, c, full) {
   var p = el("div", "panel"); p.style.marginTop = "16px";
   var logs = (HUB.logs || []).filter(function (l) { return l.c === c.id; }).sort(function (a, b) { return b.t - a.t; });
   var hours = loggedHours(c.id);
-  p.innerHTML = '<div class="ph"><h3>Immersion log</h3><span>' + hours.toFixed(1) + ' h logged · ' + (c.need || 700) + ' h is the FSI estimate to C1</span></div><p class="pnote">Log the minutes of real ' + esc(c.name) + ' you take in and put out: shows, podcasts, reading, a tandem call, shadowing. Past B1 these hours are the level, and the planner schedules them. Drills and lessons are counted automatically; this is for everything else.</p>';
+  p.innerHTML = '<div class="ph"><h3>Immersion log</h3><span>' + hours.toFixed(1) + ' h logged · ' + (c.need || 700) + ' h is the FSI estimate to professional working proficiency (ILR 3, roughly C1)</span></div><p class="pnote">Log the minutes of real ' + esc(c.name) + ' you take in and put out: shows, podcasts, reading, a tandem call, shadowing. Past B1 these hours are the level, and the planner schedules them. Drills and lessons are counted automatically; this is for everything else.</p>';
   var form = el("div", "row"); form.style.margin = "10px 0";
   var sel = el("select"); ["listening", "reading", "speaking", "writing", "shadowing"].forEach(function (k) { var o = el("option", "", k); o.value = k; sel.appendChild(o); }); sel.style.width = "auto";
   var min = el("input"); min.type = "number"; min.placeholder = "minutes"; min.style.width = "110px"; min.min = 1;

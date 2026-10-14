@@ -160,7 +160,7 @@ function drawCalSettings(box) {
   g.appendChild(num("Most study minutes on a day", "cap", 10, 300, 5, "The ceiling on an open day. Reviews, lessons and applied sessions in the hub; school blocks count inside it, homework and assignment blocks are reserved on top."));
   g.appendChild(num("Cap on hockey days", "hockeyCap", 5, 300, 5, "Lower, because you are tired and the day is short."));
   g.appendChild(num("Cap on heavy days (5+ busy hours)", "heavyCap", 5, 300, 5, ""));
-  g.appendChild(num("New lessons a day, at most", "newPerDay", 0, 6, 1, "Across every skill, never two in one skill. Two is the evidence-based default."));
+  g.appendChild(num("New lessons a day, at most", "newPerDay", 0, 6, 1, "Across every skill, never two in one skill. Two is a cautious default: no study fixes the number, but it keeps the reviews from piling up."));
   g.appendChild(num("Smallest block, minutes", "minBlock", 5, 30, 1, ""));
   g.appendChild(num("Buffer around commitments, minutes", "buffer", 0, 60, 5, "Getting there and back."));
   g.appendChild(time("Day starts", "wake", "No block before this."));
@@ -286,7 +286,7 @@ function drawQuant(box, gid) {
   var S = HUB.quant;
   if (!gid) {
     var lv = qtLevel(S);
-    box.innerHTML = '<div class="vhead"><div><h1>Quant games</h1><p>The timed games quant firms screen with, at the sites\' own settings: Zetamac\'s arithmetic and the Optiver 80 in 8, plus sequences, estimation, percentages and odds. No stakes; your score over time is the progress.</p></div></div>';
+    box.innerHTML = '<div class="vhead"><div><h1>Quant games</h1><p>Timed games like the ones quant firms screen with: Zetamac\'s arithmetic at its default settings and the Optiver 80 in 8 as applicants report it, plus sequences, estimation, percentages and odds. No stakes; your score over time is the progress.</p></div></div>';
     var hero = el("div", "hero"); hero.innerHTML = '<div class="kick">Level: ' + esc(lv.name) + '</div><h2>' + (qtPlayedToday(S, todayKey(), dayKey) ? "Played today. Another run is free." : "One game today, before the first real session") + '</h2><p>Zetamac is the one that transfers most; play the 80 in 8 once a week. A run is not counted against your study budget.</p>'; box.appendChild(hero);
     var grid = el("div", "qgrid");
     QT_GAMES.forEach(function (G) { var hist = qtHistory(S, G.id, 5).map(function (r) { return r.score; }); var a = el("a", "qcard"); a.href = "#/quant/" + G.id; a.innerHTML = '<b>' + esc(G.name) + '</b><span>' + esc(G.blurb) + '</span><div class="qb">' + esc(G.about) + '</div><span>target ' + G.target + ' · best ' + qtBest(S, G.id) + ' · last: ' + (hist.length ? hist.join(", ") : "none yet") + '</span>'; grid.appendChild(a); });

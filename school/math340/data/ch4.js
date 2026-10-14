@@ -60,7 +60,7 @@
     {
       id: "c4-g-trap", tag: "Common pitfall",
       front: R`Is \(E(X^2) = [E(X)]^2\)? Is \(E(g(X)) = g(E(X))\)?`,
-      back: R`<b>Not in general.</b> Linearity only lets you pull out <em>constants</em> and split <em>sums</em>. For a nonlinear \(g\) (squares, \(\frac{1}{X}\), \(|X|\), \(\min(X, c)\)) you must use LOTUS. In fact \(E(X^2) - [E(X)]^2 = \text{Var}(X) \ge 0\), so \(E(X^2) \ge [E(X)]^2\), with equality only when \(X\) is constant.`,
+      back: R`<b>Not in general.</b> Linearity only lets you pull out <em>constants</em> and split <em>sums</em>. For a nonlinear \(g\) (squares, \(\frac{1}{X}\), \(|X|\), \(\min(X, c)\)) you must use LOTUS. In fact \(E(X^2) - [E(X)]^2 = \text{Var}(X) \ge 0\), so \(E(X^2) \ge [E(X)]^2\), with equality only when \(X\) is constant with probability 1.`,
     },
     {
       id: "c4-indicator-count", tag: "Linearity · indicators",
@@ -195,7 +195,7 @@
     return { xs, ps, mean: m100 / 100, ex2: s100 / 100, variance: (100 * s100 - m100 * m100) / 10000 };
   }
   const meanTerms = (xs, ps) => xs.map((x, i) => `${paren(x)}(${hund(ps[i])})`).join(" + ");
-  const sqTerms = (xs, ps) => xs.map((x, i) => `${paren(x)}^2(${hund(ps[i])})`).join(" + ");
+  const sqTerms = (xs, ps) => xs.map((x, i) => `{${paren(x)}}^2(${hund(ps[i])})`).join(" + ");
 
   // "aX + b"-style text with sensible signs: lin("X", 3, -2) -> "3X - 2".
   function lin(v, a, b) {
@@ -532,7 +532,7 @@
               answer: ex2, kind: "num",
               sol: R`<div class="sol-step">LOTUS: \(E(g(X)) = \sum_x g(x)P(X = x)\). Square each <b>value</b> and keep the probabilities of \(X\). No need to find the PMF of \(X^2\).</div>
                    <div class="sol-step">$$E(X^2) = ${sqTerms(xs, ps)} = ${f4(ex2)}$$</div>
-                   <div class="sol-step">Compare \([E(X)]^2 = ${f4(mean)}^2 = ${f4(mean * mean)}\). They differ, by exactly \(\text{Var}(X)\).</div>`,
+                   <div class="sol-step">Compare \([E(X)]^2 = ${mean < 0 ? `(${f4(mean)})` : `{${f4(mean)}}`}^2 = ${f4(mean * mean)}\). They differ, by exactly \(\text{Var}(X)\).</div>`,
             };
           },
         },
@@ -748,7 +748,7 @@
               answer: ans, kind: "num",
               sol: R`<div class="sol-step">The PMF is symmetric about 0 (\(f_X(x) = f_X(-x)\)), so \(E(X) = 0\) with no arithmetic. Then \(\text{Var}(X) = E(X^2)\).</div>
                    <div class="sol-step">LOTUS: $$E(X^2) = \sum_x x^2\cdot\frac{${gt}}{${S}} = \frac{${xs.map(x => x * x * g(x)).join(" + ")}}{${S}} = \frac{${num}}{${S}}$$</div>
-                   <div class="sol-step">$$\text{Var}(X) = ${U.fracTex(num, S)} \approx ${f4(ans)}$$</div>`,
+                   <div class="sol-step">$$\text{Var}(X) = ${U.fracTex(num, S)}${Number.isInteger(ans) ? "" : R` \approx ${f4(ans)}`}$$</div>`,
             };
           },
         },
@@ -766,7 +766,7 @@
               answer: ans, kind: "num",
               sol: R`<div class="sol-step">${a === 1 ? R`\(X\) is uniform on \(1, \dots, ${n}\).` : R`Write \(X = ${a - 1} + Y\) with \(Y\) uniform on \(1, \dots, ${n}\). Shifting does not change variance, so \(\text{Var}(X) = \text{Var}(Y)\).`}</div>
                    <div class="sol-step">For \(Y\) uniform on \(1, \dots, ${n}\): \(E(Y) = \frac{${n + 1}}{2}\) and \(E(Y^2) = \frac{1}{${n}}\sum_{k=1}^{${n}} k^2 = \frac{(${n + 1})(${2 * n + 1})}{6}\).</div>
-                   <div class="sol-step">$$\text{Var} = \frac{(${n + 1})(${2 * n + 1})}{6} - \left(\frac{${n + 1}}{2}\right)^2 = \frac{${n}^2 - 1}{12} = ${U.fracTex(n * n - 1, 12)} \approx ${f4(ans)}$$</div>`,
+                   <div class="sol-step">$$\text{Var} = \frac{(${n + 1})(${2 * n + 1})}{6} - \left(\frac{${n + 1}}{2}\right)^2 = \frac{${n}^2 - 1}{12} = ${U.fracTex(n * n - 1, 12)}${Number.isInteger(ans) ? "" : R` \approx ${f4(ans)}`}$$</div>`,
             };
           },
         },
@@ -949,7 +949,7 @@
               answer: ans, kind: "num",
               sol: R`<div class="sol-step">Decide what is being counted. Failures before the first success is \(\text{Geom}(p)\), with mean \(\frac{q}{p}\). Trials up to and including it is that plus 1, with mean \(\frac{1}{p}\).</div>
                    <div class="sol-step">${askVar
-                     ? R`The two counts differ by the constant 1, and shifting does not change variance. Both have \(\text{Var} = \frac{q}{p^2} = \frac{${U.fmt(q1, 2)}}{${U.fmt(p, 2)}^2}\).`
+                     ? R`The two counts differ by the constant 1, and shifting does not change variance. Both have \(\text{Var} = \frac{q}{p^2} = \frac{${U.fmt(q1, 2)}}{{${U.fmt(p, 2)}}^2}\).`
                      : trials ? R`Counting trials: \(E = \frac{1}{p} = \frac{1}{${p}}\).` : R`Counting failures: \(E = \frac{q}{p} = \frac{${U.fmt(q1, 2)}}{${p}}\).`}</div>
                    <div class="sol-step">$$= ${f4(ans)}$$</div>`,
             };
@@ -990,7 +990,7 @@
                    <div class="sol-step">For a Poisson, \(E(X) = \text{Var}(X) = \lambda = ${U.fmt(lam)}\).</div>
                    <div class="sol-step">${ask === "Var" ? R`$$\text{Var}(X) = ${U.fmt(lam)}$$`
                      : ask === "SD" ? R`$$\text{SD}(X) = \sqrt{${U.fmt(lam)}} \approx ${f4(ans)}$$`
-                     : R`$$E(X^2) = \text{Var}(X) + [E(X)]^2 = ${U.fmt(lam)} + ${U.fmt(lam)}^2 = ${U.fmt(ans)}$$`}</div>`,
+                     : R`$$E(X^2) = \text{Var}(X) + [E(X)]^2 = ${U.fmt(lam)} + {${U.fmt(lam)}}^2 = ${U.fmt(ans)}$$`}</div>`,
             };
           },
         },
@@ -1005,7 +1005,7 @@
               answer: ans, kind: "num",
               sol: R`<div class="sol-step">Summing \(k^2\binom{${n}}{k}p^k q^{${n} - k}\) is painful. Run the variance shortcut backwards: \(E(X^2) = \text{Var}(X) + [E(X)]^2\).</div>
                    <div class="sol-step">\(E(X) = np = ${U.fmt(mu)}\), \(\text{Var}(X) = np(1 - p) = ${f4(v)}\).</div>
-                   <div class="sol-step">$$E(X^2) = ${f4(v)} + ${U.fmt(mu)}^2 = ${f4(ans)}$$</div>`,
+                   <div class="sol-step">$$E(X^2) = ${f4(v)} + {${U.fmt(mu)}}^2 = ${f4(ans)}$$</div>`,
             };
           },
         },

@@ -106,7 +106,7 @@ function genCombos() {
       lines: [["Hand class", t]],
       question: "How many combinations exist?",
       kind: "number", unit: "", answer: n, tol: 0.5,
-      bar: { fill: 100 * n / 16, tick: null, fillLabel: n + " of the 16 that a rank pair can hold", tickLabel: "" },
+      bar: { fill: 100 * n / 16, tick: null, fillLabel: t.length === 2 ? n + " (a pocket pair, against 16 for two unpaired ranks)" : n + " of the 16 that two unpaired ranks can make", tickLabel: "" },
       math: [
         t.length === 2 ? "A pocket pair: choose 2 of the 4 suits. C(4,2) = 6." :
         (t[2] === "s" ? "Suited: one combo per suit. 4." : "Offsuit: 4 x 4 minus the 4 suited ones = 12."),

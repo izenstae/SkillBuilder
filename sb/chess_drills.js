@@ -242,17 +242,39 @@ CH_DRILLS.chmate2 = { name: "Mate in two", target: 40, gen: function (ctx) {
     explain: ["<b>" + sans[0] + "</b>" + (sans.length > 1 ? " (also " + sans.slice(1).join(", ") + ")" : "") + "." + (found.note ? " " + found.note : " Every reply allows mate next move."), "Mate in two: find a forcing first move (check, capture or threat) after which every reply allows mate in one. Calculate the opponent's every option, not just the obvious one."] };
 } };
 
+/* the depth-3 verdict re-checked deeper: every accepted move searched to CH_BEST_DEEP plies, and every other move proven at least CH_BEST_MARGIN worse with a null-window search; a budget overrun counts as a failure */
+var CH_BEST_DEEP = 5, CH_BEST_MARGIN = 150, CH_BEST_LIMIT = 120000;
+function chdBestHolds(s, sc, accept) {
+  var v = Infinity, i, r, cx, w;
+  for (i = 0; i < sc.length; i++) {
+    if (accept.indexOf(sc[i].san) < 0) continue;
+    chMake(s, sc[i].move); r = chLegal(s).length ? chSearch(s, CH_BEST_DEEP - 1, CH_BEST_LIMIT) : null; chUnmake(s);
+    if (!r || r.depth < CH_BEST_DEEP - 1) return false;
+    v = Math.min(v, -r.score);
+  }
+  var bound = v - CH_BEST_MARGIN;
+  for (i = 0; i < sc.length; i++) {
+    if (accept.indexOf(sc[i].san) >= 0) continue;
+    chMake(s, sc[i].move);
+    cx = { nodes: 0, limit: CH_BEST_LIMIT, aborted: false, best: null, pvFirst: null };
+    w = chLegal(s).length ? -chAlphaBeta(s, CH_BEST_DEEP - 1, -bound - 1, -bound, cx, 1) : (chInCheck(s) ? CH_MATE : 0);
+    chUnmake(s);
+    if (cx.aborted || w > bound) return false;
+  }
+  return true;
+}
 CH_DRILLS.chbest = { name: "Best move", target: 30, gen: function (ctx) {
   var rnd = chdRnd(ctx), found = null;
+  var acceptOf = function (sc) { return sc.filter(function (x) { return sc[0].score - x.score <= 30; }).map(function (x) { return x.san; }); };
   for (var t = 0; t < 40 && !found; t++) {
     var s = chRandomPosition(16 + ((rnd() * 40) | 0), rnd);
     var st = chStatus(s); if (st === "checkmate" || st === "stalemate") continue;
     var sc = chScoreMoves(s, 3, 60000);
-    if (sc.length >= 4 && sc[0].score - sc[1].score >= 250 && sc[0].score < CH_MATE - 50 && Math.abs(sc[0].score) < 1500) found = { s: s, sc: sc };
+    if (sc.length >= 4 && sc[0].score - sc[1].score >= 250 && sc[0].score < CH_MATE - 50 && Math.abs(sc[0].score) < 1500 && chdBestHolds(s, sc, acceptOf(sc))) found = { s: s, sc: sc };
   }
   if (!found) { var s2 = chFromFen("4k3/8/8/3q4/8/8/8/3RK3 w - - 0 1"); found = { s: s2, sc: chScoreMoves(s2, 3, 60000) }; }
   var S = found.s, top = found.sc[0], second = found.sc[1];
-  var accept = found.sc.filter(function (x) { return top.score - x.score <= 30; }).map(function (x) { return x.san; });
+  var accept = acceptOf(found.sc);
   return { kind: "move", question: chdSide(S) + " to move. <b>Find the best move.</b> There is one clearly best; the engine graded every option.", answer: top.san, accept: accept, target: 30, board: chdPos(S), elo: 1300,
     explain: ["<b>" + top.san + "</b>, worth about " + (top.score / 100).toFixed(1) + " pawns; the next best, " + second.san + ", is worth " + (second.score / 100).toFixed(1) + ".", "Method: list the checks, captures and threats for both sides first (CCT). The best move is usually among them, and the ones you did not consider are the ones that lose games."] };
 } };

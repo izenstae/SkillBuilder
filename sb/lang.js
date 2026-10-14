@@ -50,6 +50,8 @@ function lgOptions(answer, pool, k, rnd, lang) {
 }
 /* accepted answers: "a / b" or "a; b" in a gloss means either is fine */
 function lgSplit(g) { return String(g || "").split(/\s*[\/;]\s*|\s+or\s+/).map(function (x) { return x.trim(); }).filter(Boolean); }
+/* leading words a typed answer may drop, applied in order ("to the" -> ""): English glosses, plus each language's own articles */
+var LG_ARTICLES = { en: [/^(to|the|a|an) /, /^(the|a|an) /], sv: [/^(to|the|a|an|att|en|ett) /, /^(the|a|an) /], he: [/^(to|the|a|an) /, /^(the|a|an) /], es: [/^(el|la|los|las) /] };
 function lgMatch(said, answers, lang) {
   var s = lgNorm(said, lang);
   if (!s) return false;
@@ -59,8 +61,10 @@ function lgMatch(said, answers, lang) {
   return all.some(function (a) {
     var n = lgNorm(a, lang);
     if (n === s) return true;
-    /* articles and "to" are optional in English glosses */
-    var loose = function (x) { return x.replace(/^(to|the|a|an|att|en|ett) /, "").replace(/^(the|a|an) /, ""); };
+    /* a leading article (and the infinitive marker) is optional, per language: in Spanish "en" and "a" are prepositions
+       (en casa is not casa) and un/una can carry meaning (un poco is not poco), so only el/la/los/las drop */
+    var art = LG_ARTICLES[lang] || LG_ARTICLES.en;
+    var loose = function (x) { return art.reduce(function (y, r) { return y.replace(r, ""); }, x); };
     return loose(n) === loose(s);
   });
 }
@@ -93,7 +97,7 @@ function lgPickOthers(item, pool, k, rnd) {
   for (var i = 0; i < src.length && out.length < k; i++) { var key = lgNorm(src[i].g); if (!used[key]) { used[key] = 1; out.push(src[i]); } }
   return out;
 }
-var LG_LANG = { sv: { name: "Swedish", code: "sv-SE", rtl: false }, he: { name: "Hebrew", code: "he-IL", rtl: true }, es: { name: "Spanish", code: "es-ES", rtl: false } };
+var LG_LANG = { sv: { name: "Swedish", code: "sv-SE", rtl: false }, he: { name: "Hebrew", code: "he-IL", rtl: true }, es: { name: "Spanish", code: "es-MX", rtl: false } };
 
 /* the word, as the learner should see it: Hebrew with points early, without later */
 function lgShow(item, box) { return item.lang === "he" && box >= 4 ? lgStrip(item.w) : item.w; }
@@ -209,7 +213,7 @@ function lgDialogueScore(sc, replies, lang) {
 /* ---- the level model: CEFR from what you can do ----
    words: known (box >= 3) and automatic (box >= 5); grammar: lessons passed / total;
    use: average scores 0..1 in conversation, reading, listening, writing (null if none);
-   hours: logged hours of study and immersion; need: the FSI estimate to professional fluency */
+   hours: logged hours of study and immersion; need: the FSI estimate to professional working proficiency (ILR 3, roughly C1) */
 var LG_CEFR = [
   { min: 0,  name: "A0", about: "Starting out. Sounds, the first hundred words." },
   { min: 10, name: "A1", about: "Breakthrough. Simple phrases, introduce yourself, ask and answer basic questions." },

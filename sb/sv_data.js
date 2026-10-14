@@ -289,7 +289,7 @@ var SV_VOCAB = {
     ["hjärta", "heart", "n", "ett hjärta, hjärtat, hjärtan, hjärtana", "Hjärtat slår.", "The heart beats."],
     ["rygg", "back", "n", "en rygg, ryggen, ryggar", "Ont i ryggen.", "Back pain."],
     ["hår", "hair", "n", "ett hår, håret", "Blont hår.", "Blond hair."],
-    ["ont", "pain / hurts", "adj", "ha ont i = have pain in", "Jag har ont i knät.", "My knee hurts."],
+    ["ont", "pain / hurts", "n", "no forms; ha ont i = have pain in, göra ont = to hurt (Det gör ont.)", "Jag har ont i knät.", "My knee hurts."],
     ["sjuk", "ill / sick", "adj", "sjuk, sjukt, sjuka", "Jag är sjuk idag.", "I'm sick today."],
     ["frisk", "healthy / well", "adj", "frisk, friskt, friska", "Han är frisk igen.", "He's well again."],
     ["trött", "tired", "adj", "trött, trött, trötta", "Jag är så trött.", "I'm so tired."],
@@ -649,7 +649,7 @@ var SV_READINGS = [
     ], gloss: [["personer", "people"], ["tillsammans", "together"], ["går i skolan", "goes to school"]],
     qs: [{ q: "Hur många personer är de i familjen?", options: ["Tre", "Fyra", "Fem", "Sex"], answer: "Fem" }, { q: "Vad gör pappa?", options: ["Han är lärare", "Han spelar hockey", "Han arbetar på sjukhus", "Han går i skolan"], answer: "Han är lärare" }, { q: "Vad heter hunden?", options: ["Jonas", "Max", "Lina", "Sara"], answer: "Max" }] },
   { id: "sv_r2", title: "En dag i Stockholm", level: "A2", text: [
-      "Igår åkte jag till Stockholm med tåget. Resan tog ungefär fyrtio minuter. Jag kom fram klockan tio och gick direkt till Gamla stan.",
+      "Jag heter Emma. Igår åkte jag till Stockholm med tåget. Resan tog ungefär fyrtio minuter. Jag kom fram klockan tio och gick direkt till Gamla stan.",
       "I Gamla stan finns det många små gator och gamla hus. Jag drack kaffe på ett litet kafé och åt en kanelbulle. Sedan gick jag till Kungliga slottet. Det var mycket folk där.",
       "På eftermiddagen tog jag båten till Djurgården och besökte Vasamuseet. Skeppet Vasa sjönk år 1628 och bärgades 1961. Det var fantastiskt att se. På kvällen åkte jag hem, trött men nöjd."
     ], gloss: [["kom fram", "arrived"], ["slottet", "the palace"], ["folk", "people"], ["skeppet", "the ship"], ["sjönk", "sank"], ["bärgades", "was raised"]],

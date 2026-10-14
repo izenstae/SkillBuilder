@@ -787,12 +787,14 @@
           make() {
             const days = U.pick([365, 12, 30]);
             const n = days === 365 ? U.randInt(4, 12) : U.randInt(3, 5);
-            const unit = days === 365 ? "birthday" : days === 12 ? "birth month" : "birthday within a 30-day month";
+            const unit = days === 365 ? "birthday" : days === 12 ? "birth month" : "birthday's day of the month";
             let distinct = 1;
             for (let i = 0; i < n; i++) distinct *= (days - i) / days;
             const ans = 1 - distinct;
             return {
-              q: R`${n} people are selected at random, each equally likely to have any of the ${days} possible values of their ${unit}, independently. What is the probability that <b>at least two</b> of them share the same value?`,
+              q: days === 30
+                ? R`${n} people are selected at random. Look only at the day of the month each was born on, and assume birthdays are uniform over the 30 days of a month, independently. What is the probability that <b>at least two</b> of them share the same day?`
+                : R`${n} people are selected at random, each equally likely to have any of the ${days} possible values of their ${unit}, independently. What is the probability that <b>at least two</b> of them share the same value?`,
               answer: ans, kind: "prob",
               sol: R`<div class="sol-step">"At least two share" covers many messy cases; its complement — <b>all ${n} distinct</b> — is a single product.</div>
                    <div class="sol-step">$$P(\text{all distinct}) = ${Array.from({ length: n }, (_, i) => `\\tfrac{${days - i}}{${days}}`).join("\\cdot")} \approx ${U.fmt(distinct)}$$</div>
@@ -810,7 +812,7 @@
               q: R`A building has ${n} independent backup generators. Each one fails to start with probability ${p}. What is the probability that <b>at least one</b> generator starts?`,
               answer: ans, kind: "prob",
               sol: R`<div class="sol-step">Complement: <em>every</em> generator fails. By independence that is a product of the ${n} failure probabilities.</div>
-                   <div class="sol-step">$$P(\text{all fail}) = ${p}^{${n}} = ${U.fmt(Math.pow(p, n), 5)}$$</div>
+                   <div class="sol-step">$$P(\text{all fail}) = {${p}}^{${n}} = ${U.fmt(Math.pow(p, n), 5)}$$</div>
                    <div class="sol-step">$$P(\text{at least one starts}) = 1 - ${U.fmt(Math.pow(p, n), 5)} \approx ${U.fmt(ans)}$$</div>`,
             };
           },
@@ -1013,14 +1015,14 @@
             const pa = U.randInt(15, 40) / 100;
             const pb = U.round(pa + U.randInt(15, 40) / 100, 4);
             const askSubset = Math.random() < 0.5;
-            const ans = askSubset ? U.round(pb - pa, 4) : 1;
+            const ans = askSubset ? U.round(pb - pa, 4) : pb;
             return {
-              q: R`Event \(A\) implies event \(B\) (that is, \(A \subseteq B\)), with \(P(A) = ${pa}\) and \(P(B) = ${U.fmt(pb)}\). Find ${askSubset ? R`\(P(B \cap A^c)\)` : R`\(P(B \mid A)\), the probability of \(B\) given that \(A\) occurred`}.`,
+              q: R`Event \(A\) implies event \(B\) (that is, \(A \subseteq B\)), with \(P(A) = ${pa}\) and \(P(B) = ${U.fmt(pb)}\). Find ${askSubset ? R`\(P(B \cap A^c)\)` : R`\(P(A \cup B)\)`}.`,
               answer: ans, kind: "prob",
               sol: R`<div class="sol-step">Since \(A \subseteq B\), we have \(A \cap B = A\), and monotonicity guarantees \(P(A) \le P(B)\) — consistent with \(${pa} \le ${U.fmt(pb)}\).</div>
                    ${askSubset
                      ? R`<div class="sol-step">\(B\) is the disjoint union of \(A\) and \(B \cap A^c\), so $$P(B \cap A^c) = P(B) - P(A) = ${U.fmt(pb)} - ${pa} = ${U.fmt(ans)}$$</div>`
-                     : R`<div class="sol-step">$$P(B \mid A) = \frac{P(A \cap B)}{P(A)} = \frac{P(A)}{P(A)} = 1$$ If \(A\) occurs then \(B\) must occur too — the numbers are a distraction.</div>`}`,
+                     : R`<div class="sol-step">Since \(A \subseteq B\), also \(A \cup B = B\). $$P(A \cup B) = P(A) + P(B) - P(A \cap B) = ${pa} + ${U.fmt(pb)} - ${pa} = ${U.fmt(pb)}$$ Simply adding \(P(A) + P(B)\) would count \(A\) twice: it is already inside \(B\).</div>`}`,
             };
           },
         },

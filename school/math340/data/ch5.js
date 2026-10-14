@@ -137,6 +137,12 @@
     const s = U.fracTex(Math.abs(x[0]), x[1]);
     return x[0] < 0 ? `-${s}` : s;
   }
+  // "= 1/3 \approx 0.3333", but just "= 6" when the exact value is a whole number.
+  const qtApprox = x => (x[1] === 1 ? qt(x) : `${qt(x)} \\approx ${U.fmt(qv(x), 4)}`);
+  // A constant written in front of a factor: nothing when it is 1.
+  const coefTex = x => (x[0] === 1 && x[1] === 1 ? "" : `${qt(x)}\\,`);
+  // (x/b)^n, written as x^n when b = 1 and without the exponent when n = 1.
+  const xbTex = (b, n) => { const base = b === 1 ? "x" : `\\left(\\frac{x}{${b}}\\right)`; return n === 1 ? base : `${base}^{${n}}`; };
   const f4 = x => U.fmt(x, 4);
 
   /* A polynomial is a list of [rational coefficient, power]. */
@@ -182,7 +188,7 @@
     const ex2 = integ(shift(fpoly, 2), Q(0), B);
     const v = qs(ex2, qm(ex, ex));
     const kTex = U.fracTex(k[0], k[1]);
-    const fTex = R`f(x) = \begin{cases} ${kTex}\,${s.tex}, & 0 \le x \le ${s.b}, \\ 0, & \text{otherwise.} \end{cases}`;
+    const fTex = R`f(x) = \begin{cases} ${coefTex(k)}${s.tex}, & 0 \le x \le ${s.b}, \\ 0, & \text{otherwise.} \end{cases}`;
     return { ...s, B, area, k, kTex, fpoly, F, ex, ex2, v, fTex };
   }
   // A rational point strictly inside (0, b), in quarters.
@@ -225,7 +231,7 @@
               answer: qv(d.k), kind: "num",
               sol: R`<div class="sol-step">A PDF must have total area 1. Integrate over the support and set the result equal to 1.</div>
                    <div class="sol-step">$$\int_0^{${d.b}} \left(${polyTex(d.p)}\right)dx = \Big[${antiTex(d.p)}\Big]_0^{${d.b}} = ${qt(d.area)}$$</div>
-                   <div class="sol-step">$$k \cdot ${qt(d.area)} = 1 \implies k = ${d.kTex} \approx ${f4(qv(d.k))}$$ Also check \(f \ge 0\) on \([0, ${d.b}]\), which it is.</div>`,
+                   <div class="sol-step">$$k \cdot ${qt(d.area)} = 1 \implies k = ${qtApprox(d.k)}$$ Also check \(f \ge 0\) on \([0, ${d.b}]\), which it is.</div>`,
             };
           },
         },
@@ -237,10 +243,10 @@
             const c = qm(d.k, m);
             const total = qm(c, d.area);
             return {
-              q: R`Someone proposes \(f(x) = ${qt(c)}\,${d.tex}\) for \(0 \le x \le ${d.b}\) (and \(0\) otherwise) as a PDF. Compute \(\int_{-\infty}^{\infty} f(x)\,dx\). (The function is a valid PDF only if the answer is exactly 1.)`,
+              q: R`Someone proposes \(f(x) = ${coefTex(c)}${d.tex}\) for \(0 \le x \le ${d.b}\) (and \(0\) otherwise) as a PDF. Compute \(\int_{-\infty}^{\infty} f(x)\,dx\). (The function is a valid PDF only if the answer is exactly 1.)`,
               answer: qv(total), kind: "num",
               sol: R`<div class="sol-step">\(f \ge 0\) holds on \([0, ${d.b}]\), so validity comes down to the total area.</div>
-                   <div class="sol-step">$$\int_0^{${d.b}} ${qt(c)}\,(${polyTex(d.p)})\,dx = ${qt(c)} \cdot ${qt(d.area)} = ${qt(total)}$$</div>
+                   <div class="sol-step">$$\int_0^{${d.b}} ${coefTex(c)}(${polyTex(d.p)})\,dx = ${qt(c)} \cdot ${qt(d.area)} = ${qt(total)}$$</div>
                    <div class="sol-step">${qv(total) === 1 ? "The area is 1: a valid PDF." : R`The area is \(${qt(total)} \ne 1\): <b>not</b> a valid PDF. The constant that would fix it is \(${d.kTex}\).`}</div>`,
             };
           },
@@ -268,7 +274,7 @@
               answer: qv(c), kind: "num",
               sol: R`<div class="sol-step">The area under a step density is a sum of rectangles: height \(\times\) width for each piece.</div>
                    <div class="sol-step">$$c \cdot ${u} + ${r}c \cdot ${w} = ${u + r * w}c = 1$$</div>
-                   <div class="sol-step">$$c = ${qt(c)} \approx ${f4(qv(c))}$$</div>`,
+                   <div class="sol-step">$$c = ${qtApprox(c)}$$</div>`,
             };
           },
         },
@@ -324,7 +330,7 @@
               answer: qv(ans), kind: "prob",
               sol: R`<div class="sol-step">The probability is the area under \(f\) between the two points: \(\int_{${dec(lo)}}^{${dec(hi)}} f(x)\,dx\).</div>
                    <div class="sol-step">An antiderivative of \(f\) is \(${antiTex(d.fpoly)}\), so $$P = \Big[${antiTex(d.fpoly)}\Big]_{${dec(lo)}}^{${dec(hi)}} = ${qt(d.F(hi))} - ${qt(d.F(lo))}$$</div>
-                   <div class="sol-step">$$P(${dec(lo)} \le X \le ${dec(hi)}) = ${qt(ans)} \approx ${f4(qv(ans))}$$</div>`,
+                   <div class="sol-step">$$P(${dec(lo)} \le X \le ${dec(hi)}) = ${qtApprox(ans)}$$</div>`,
             };
           },
         },
@@ -340,7 +346,7 @@
               answer: qv(ans), kind: "prob",
               sol: R`<div class="sol-step">The density is \(0\) beyond \(x = ${d.b}\), so the part of the interval from \(${d.b}\) to \(${hi}\) adds no area: \(P(${dec(lo)} &lt; X \le ${hi}) = P(${dec(lo)} &lt; X \le ${d.b})\).</div>
                    <div class="sol-step">$$\int_{${dec(lo)}}^{${d.b}} f(x)\,dx = 1 - F(${dec(lo)}) = 1 - ${qt(d.F(lo))}$$</div>
-                   <div class="sol-step">$$= ${qt(ans)} \approx ${f4(qv(ans))}$$</div>`,
+                   <div class="sol-step">$$= ${qtApprox(ans)}$$</div>`,
             };
           },
         },
@@ -355,7 +361,7 @@
               answer: qv(ans), kind: "prob",
               sol: R`<div class="sol-step">Either integrate from \(${dec(a)}\) to \(${d.b}\), or use \(P(X > a) = 1 - F(a)\). The second is often less work.</div>
                    <div class="sol-step">$$F(${dec(a)}) = \int_0^{${dec(a)}} f(x)\,dx = ${qt(d.F(a))}$$</div>
-                   <div class="sol-step">$$P(X > ${dec(a)}) = 1 - ${qt(d.F(a))} = ${qt(ans)} \approx ${f4(qv(ans))}$$</div>`,
+                   <div class="sol-step">$$P(X > ${dec(a)}) = 1 - ${qt(d.F(a))} = ${qtApprox(ans)}$$</div>`,
             };
           },
         },
@@ -390,7 +396,7 @@
               answer: qv(ans), kind: "prob",
               sol: R`<div class="sol-step">The definition of conditional probability. Since \(\{X > ${dec(c)}\} \subseteq \{X > ${dec(a)}\}\), the intersection is just \(\{X > ${dec(c)}\}\): $$P(X > ${dec(c)} \mid X > ${dec(a)}) = \frac{P(X > ${dec(c)})}{P(X > ${dec(a)})}$$</div>
                    <div class="sol-step">Both tails via the CDF: \(1 - F(${dec(c)}) = ${qt(tc)}\) and \(1 - F(${dec(a)}) = ${qt(ta)}\).</div>
-                   <div class="sol-step">$$\frac{${qt(tc)}}{${qt(ta)}} = ${qt(ans)} \approx ${f4(qv(ans))}$$</div>`,
+                   <div class="sol-step">$$\frac{${qt(tc)}}{${qt(ta)}} = ${qtApprox(ans)}$$</div>`,
             };
           },
         },
@@ -415,7 +421,7 @@
               q: R`\(X\) has density $$${d.fTex}$$ Find \(P(${dec(lo)} &lt; X &lt; ${dec(hi)})\). (Strict inequalities.)`,
               answer: qv(ans), kind: "prob",
               sol: R`<div class="sol-step">Strict or not makes no difference for a continuous r.v.: the endpoints have probability 0, so \(P(${dec(lo)} &lt; X &lt; ${dec(hi)}) = F(${dec(hi)}) - F(${dec(lo)})\).</div>
-                   <div class="sol-step">$$= ${qt(d.F(hi))} - ${qt(d.F(lo))} = ${qt(ans)} \approx ${f4(qv(ans))}$$</div>`,
+                   <div class="sol-step">$$= ${qt(d.F(hi))} - ${qt(d.F(lo))} = ${qtApprox(ans)}$$</div>`,
             };
           },
         },
@@ -439,7 +445,7 @@
               answer: qv(ans), kind: "prob",
               sol: R`<div class="sol-step">\(F(x) = \int_{-\infty}^x f(y)\,dy\). The density is 0 left of 0, so integrate from 0.</div>
                    <div class="sol-step">For \(0 \le x \le ${d.b}\): \(F(x) = ${antiTex(d.fpoly)}\).</div>
-                   <div class="sol-step">$$F(${dec(x0)}) = ${qt(ans)} \approx ${f4(qv(ans))}$$</div>`,
+                   <div class="sol-step">$$F(${dec(x0)}) = ${qtApprox(ans)}$$</div>`,
             };
           },
         },
@@ -466,7 +472,7 @@
             let Ftex, Fv, lo, hi, cases;
             if (kind === 0) {
               const n = U.randInt(2, 4), b = U.randInt(1, 3);
-              cases = R`\left(\frac{x}{${b}}\right)^{${n}}, & 0 \le x \le ${b}`;
+              cases = R`${xbTex(b, n)}, & 0 \le x \le ${b}`;
               Fv = x => (x <= 0 ? 0 : x >= b ? 1 : Math.pow(x / b, n));
               [lo, hi] = [U.randInt(1, 2 * b - 1) / 4, null];
               hi = lo + U.randInt(1, 2 * b) / 4;
@@ -500,11 +506,11 @@
               const x0 = U.randInt(1, 4 * b - 1) / 4;
               const ans = n * Math.pow(x0, n - 1) / Math.pow(b, n);
               return {
-                q: R`\(X\) has CDF \(F(x) = \left(\frac{x}{${b}}\right)^{${n}}\) for \(0 \le x \le ${b}\) (with \(F = 0\) to the left and \(F = 1\) to the right). Find the density value \(f(${x0})\).`,
+                q: R`\(X\) has CDF \(F(x) = ${xbTex(b, n)}\) for \(0 \le x \le ${b}\) (with \(F = 0\) to the left and \(F = 1\) to the right). Find the density value \(f(${x0})\).`,
                 answer: ans, kind: "num",
                 sol: R`<div class="sol-step">The density is the derivative of the CDF: \(f(x) = F'(x)\).</div>
-                     <div class="sol-step">$$f(x) = \frac{d}{dx}\frac{x^{${n}}}{${Math.pow(b, n)}} = \frac{${n}x^{${n - 1}}}{${Math.pow(b, n)}}, \quad 0 \le x \le ${b}$$</div>
-                     <div class="sol-step">$$f(${x0}) = \frac{${n}(${x0})^{${n - 1}}}{${Math.pow(b, n)}} \approx ${f4(ans)}$$ It is a density value, not a probability.</div>`,
+                     <div class="sol-step">$$f(x) = ${b === 1 ? R`\frac{d}{dx}x^{${n}} = ${n}x^{${n - 1}}` : R`\frac{d}{dx}\frac{x^{${n}}}{${Math.pow(b, n)}} = \frac{${n}x^{${n - 1}}}{${Math.pow(b, n)}}`}, \quad 0 \le x \le ${b}$$</div>
+                     <div class="sol-step">$$f(${x0}) = ${b === 1 ? R`${n}(${x0})^{${n - 1}}` : R`\frac{${n}(${x0})^{${n - 1}}}{${Math.pow(b, n)}}`} ${Number.isInteger(ans) ? "=" : R`\approx`} ${f4(ans)}$$ It is a density value, not a probability.</div>`,
               };
             }
             const lam = U.pick([0.5, 1, 2, 3]);
@@ -528,10 +534,10 @@
               const n = U.randInt(1, 3), b = U.randInt(1, 4);
               const ans = b * Math.pow(p, 1 / n);
               return {
-                q: R`\(X\) has CDF \(F(x) = \left(\frac{x}{${b}}\right)${n === 1 ? "" : `^{${n}}`}\) for \(0 \le x \le ${b}\). Find the ${name} of \(X\).`,
+                q: R`\(X\) has CDF \(F(x) = ${xbTex(b, n)}\) for \(0 \le x \le ${b}\). Find the ${name} of \(X\).`,
                 answer: ans, kind: "num",
                 sol: R`<div class="sol-step">The ${name} is the \(x\) with \(F(x) = ${p}\): ${p === 0.5 ? "half the area lies to its left" : `${Math.round(p * 100)}% of the area lies to its left`}.</div>
-                     <div class="sol-step">$$\left(\frac{x}{${b}}\right)${n === 1 ? "" : `^{${n}}`} = ${p} \implies x = ${b}\cdot${n === 1 ? p : `(${p})^{1/${n}}`}$$</div>
+                     <div class="sol-step">$$${xbTex(b, n)} = ${p} \implies x = ${b === 1 ? "" : R`${b}\cdot`}${n === 1 ? p : `(${p})^{1/${n}}`}$$</div>
                      <div class="sol-step">$$x \approx ${f4(ans)}$$</div>`,
               };
             }
@@ -564,7 +570,7 @@
               answer: qv(d.ex), kind: "num",
               sol: R`<div class="sol-step">Integrate \(x\) times the density over the support: \(E(X) = \int_0^{${d.b}} x f(x)\,dx\).</div>
                    <div class="sol-step">$$\int_0^{${d.b}} \left(${polyTex(shift(d.fpoly, 1))}\right)dx = \Big[${antiTex(shift(d.fpoly, 1))}\Big]_0^{${d.b}}$$</div>
-                   <div class="sol-step">$$E(X) = ${qt(d.ex)} \approx ${f4(qv(d.ex))}$$</div>`,
+                   <div class="sol-step">$$E(X) = ${qtApprox(d.ex)}$$</div>`,
             };
           },
         },
@@ -577,7 +583,7 @@
               answer: qv(d.ex2), kind: "num",
               sol: R`<div class="sol-step">LOTUS: \(E(X^2) = \int x^2 f(x)\,dx\). Multiply the density by \(x^2\) and integrate. You do not need the distribution of \(X^2\).</div>
                    <div class="sol-step">$$\int_0^{${d.b}} \left(${polyTex(shift(d.fpoly, 2))}\right)dx = \Big[${antiTex(shift(d.fpoly, 2))}\Big]_0^{${d.b}}$$</div>
-                   <div class="sol-step">$$E(X^2) = ${qt(d.ex2)} \approx ${f4(qv(d.ex2))}$$</div>`,
+                   <div class="sol-step">$$E(X^2) = ${qtApprox(d.ex2)}$$</div>`,
             };
           },
         },
@@ -590,7 +596,7 @@
               answer: qv(d.v), kind: "num",
               sol: R`<div class="sol-step">\(V(X) = E(X^2) - [E(X)]^2\): two integrals, then subtract.</div>
                    <div class="sol-step">\(E(X) = \int_0^{${d.b}} x f(x)\,dx = ${qt(d.ex)}\), and \(E(X^2) = \int_0^{${d.b}} x^2 f(x)\,dx = ${qt(d.ex2)}\).</div>
-                   <div class="sol-step">$$V(X) = ${qt(d.ex2)} - \left(${qt(d.ex)}\right)^2 = ${qt(d.v)} \approx ${f4(qv(d.v))}$$</div>`,
+                   <div class="sol-step">$$V(X) = ${qt(d.ex2)} - \left(${qt(d.ex)}\right)^2 = ${qtApprox(d.v)}$$</div>`,
             };
           },
         },
@@ -646,7 +652,7 @@
               answer: ans, kind: "num",
               sol: R`<div class="sol-step">The density is \(\frac{1}{${w}}\) on \([${a}, ${b}]\).</div>
                    <div class="sol-step">${askVar
-                     ? R`\(E(X^2) = \int_{${a}}^{${b}} \frac{x^2}{${w}}\,dx\) and \(E(X) = \frac{${a} + ${b < 0 ? `(${b})` : b}}{2}\). The shortcut simplifies to $$V(X) = \frac{(b - a)^2}{12} = \frac{${w}^2}{12} = ${U.fracTex(w * w, 12)} \approx ${f4(ans)}$$`
+                     ? R`\(E(X^2) = \int_{${a}}^{${b}} \frac{x^2}{${w}}\,dx\) and \(E(X) = \frac{${a} + ${b < 0 ? `(${b})` : b}}{2}\). The shortcut simplifies to $$V(X) = \frac{(b - a)^2}{12} = \frac{${w}^2}{12} = ${U.fracTex(w * w, 12)}${Number.isInteger(ans) ? "" : R` \approx ${f4(ans)}`}$$`
                      : R`$$E(X) = \int_{${a}}^{${b}} \frac{x}{${w}}\,dx = \frac{(${b})^2 - (${a})^2}{2\cdot${w}} = \frac{${a} + ${b < 0 ? `(${b})` : b}}{2} = ${U.fmt(ans)}$$`}</div>`,
             };
           },
