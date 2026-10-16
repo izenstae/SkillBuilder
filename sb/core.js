@@ -56,7 +56,8 @@ function lessonSkillIds(c, L) {
   if (L.mode.indexOf("words:") === 0) (c.words[L.mode.slice(6)] || []).forEach(function (it) { out.push(it.id); });
   else if (L.mode === "quiz") out.push(c.id + ":q:" + L.id);
   else if (L.mode !== "mixed" && c.drills[L.mode]) out.push(c.id + ":" + L.mode);
-  if (ruleOf(L)) out.push("rule:" + c.id + ":" + L.id);
+  /* a course with a board drill for every concept (chess) leaves the rule out of the schedule: the drill tests it */
+  if (ruleOf(L) && c.ruleCards !== false) out.push("rule:" + c.id + ":" + L.id);
   return out;
 }
 /* what a skill id is: course, kind, display name, target seconds, its lesson, and a generator */
@@ -66,13 +67,13 @@ function skInfo(id) {
   var info = null, m;
   if ((m = id.match(/^rule:([^:]+):(.+)$/))) {
     var c0 = COURSES[m[1]], L0 = c0 && c0.lessonById[m[2]];
-    if (L0) info = { id: id, course: m[1], kind: "rule", name: "Recall: " + L0.title, target: 25, lesson: L0, text: ruleOf(L0) };
+    if (L0 && c0.ruleCards !== false) info = { id: id, course: m[1], kind: "rule", name: "Recall: " + L0.title, target: 25, lesson: L0, text: ruleOf(L0) };
   } else if ((m = id.match(/^([^:]+):w:([^:]+):(\d+)$/))) {
     var c1 = COURSES[m[1]], it = c1 && c1.wordById[id];
     if (it) info = { id: id, course: m[1], kind: "word", name: it.w + " · " + it.g, target: 8, lesson: c1.lessonById[it.lesson], item: it };
   } else if ((m = id.match(/^([^:]+):q:(.+)$/))) {
     var c2 = COURSES[m[1]], L2 = c2 && c2.lessonById[m[2]];
-    if (L2 && L2.quiz) info = { id: id, course: m[1], kind: "quiz", name: "Reader: " + L2.title, target: 20, lesson: L2 };
+    if (L2 && L2.quiz && L2.mode === "quiz") info = { id: id, course: m[1], kind: "quiz", name: "Reader: " + L2.title, target: 20, lesson: L2 };
   } else if ((m = id.match(/^([^:]+):(.+)$/))) {
     var c3 = COURSES[m[1]], d = c3 && c3.drills[m[2]];
     if (d) {

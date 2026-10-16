@@ -364,8 +364,9 @@ label.f{display:block; font:11px var(--mono); letter-spacing:.08em; text-transfo
 .sq.sel{box-shadow:inset 0 0 0 3px var(--accent)} .sq.mark{box-shadow:inset 0 0 0 3px var(--accent)} .sq.last{box-shadow:inset 0 0 0 3px rgba(47,92,158,.85)}
 .sq.hint:after{content:""; width:28%; height:28%; border-radius:50%; background:rgba(26,24,20,.35); position:absolute} .sq.hint.cap:after{width:92%; height:92%; background:none; border:4px solid rgba(26,24,20,.35); border-radius:50%}
 .sq.check{background:radial-gradient(circle, rgba(185,50,28,.85) 0, rgba(185,50,28,.4) 60%, transparent 70%)}
-.sq .co{position:absolute; left:2px; top:1px; font-size:9px; color:rgba(0,0,0,.45); font-family:var(--mono)} .sq .cf{position:absolute; right:2px; bottom:0; font-size:9px; color:rgba(0,0,0,.45); font-family:var(--mono)}
+.sq .co{position:absolute; left:2px; top:1px; font-size:10px; color:rgba(0,0,0,.6); font-family:var(--mono)} .sq .cf{position:absolute; right:2px; bottom:0; font-size:10px; color:rgba(0,0,0,.6); font-family:var(--mono)}
 .board.nocoords .co,.board.nocoords .cf{display:none}
+#stage .board{margin-bottom:18px} .ask small{display:block; font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--accent); margin-bottom:6px}
 .playgrid{display:grid; grid-template-columns:minmax(0, 440px) 1fr; gap:18px} @media(max-width:860px){ .playgrid{grid-template-columns:1fr} }
 .moves{font:13px var(--mono); line-height:1.8; max-height:260px; overflow:auto; color:var(--ink2)} .moves .mn{color:var(--ink3); margin-right:4px} .moves .mv{color:var(--ink); margin-right:10px} .moves .mv.Best{color:var(--green)} .moves .mv.Good{color:#6FA98A} .moves .mv.Inaccuracy{color:var(--gold)} .moves .mv.Mistake{color:#D0683F} .moves .mv.Blunder{color:var(--red)}
 .gradebar{display:flex; gap:2px; height:10px; overflow:hidden; margin:8px 0} .gradebar i{display:block} .gradebar .Best{background:var(--green)} .gradebar .Good{background:#6FA98A} .gradebar .Inaccuracy{background:var(--gold)} .gradebar .Mistake{background:#D0683F} .gradebar .Blunder{background:var(--red)}

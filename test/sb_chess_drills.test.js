@@ -104,6 +104,73 @@ ok(forkT < 1500, "a fork puzzle generates in under 1.5 s (worst " + forkT + " ms
 var m2T = 0;
 for (k = 0; k < 3; k++) { var mt = Date.now(), q3 = ctx.skQuestion("chess:chmate2", { rnd: rnd, caps: {} }); m2T = Math.max(m2T, Date.now() - mt); var s3 = ctx.chFromFen(q3.board.fen), f3 = ctx.chdMate2Firsts(s3); ok(q3.accept.join(",") === f3.join(","), "mate in 2 accepts every forcing first move: " + q3.accept.join(",")); }
 ok(m2T < 1500, "a mate-in-two puzzle generates in under 1.5 s (worst " + m2T + " ms)");
+/* every lesson that teaches a chess concept is drilled on the board: no rule-recall cards, no stage mix standing in for a drill */
+c.lessonList.forEach(function (L) {
+  if (!ctx.passable(L)) return;
+  ok(L.mode !== "mixed", L.id + " has its own drill, not the stage mix");
+  ok(L.mode !== "quiz" || L.id === "ch_bk_peak", L.id + " is drilled on the board (only Peak, a book about practice, keeps a quiz)");
+  ok(L.mode === "quiz" || c.drills[L.mode], L.id + " names a real drill: " + L.mode);
+  ctx.lessonSkillIds(c, L).forEach(function (id) { ok(id.indexOf("rule:") !== 0, L.id + " schedules no recall card: " + id); });
+  ok(!ctx.skInfo("rule:chess:" + L.id), "old recall card rule:chess:" + L.id + " leaves the schedule");
+});
+ok(!ctx.skInfo("chess:q:ch_kq"), "a lesson that moved from a quiz to a drill drops its quiz skill");
+/* pins: the pinned pieces are exactly the ones that cannot leave their line */
+var sp = ctx.chFromFen("4k3/8/3p4/4n3/8/8/5P2/4R1K1 b - - 0 1");
+ok(ctx.chdPinned(sp, -1).map(function (p) { return ctx.chName(p.sq); }).join() === "e5", "the lesson's pinned knight on e5");
+ok(ctx.chLegal(sp).every(function (m) { return ctx.chName(m.from) !== "e5"; }), "and it has no legal move");
+for (k = 0; k < 30; k++) {
+  var qp = ctx.skQuestion("chess:chline", { rnd: rnd, caps: {} }), sq0 = ctx.chFromFen(qp.board.fen);
+  if (qp.kind === "square") {
+    var side = /White/.test(qp.question) ? 1 : -1;
+    qp.accept.forEach(function (nm) {
+      /* lift the piece: its own king must then be attacked along a line */
+      var at = ctx.chIdx(nm), pc = sq0.b[at]; ok(pc && (pc > 0) === (side > 0), "pinned answer " + nm + " is a " + (side > 0 ? "white" : "black") + " piece");
+      sq0.b[at] = 0; ok(ctx.chInCheck(sq0, side), "removing " + nm + " exposes its king in " + qp.board.fen); sq0.b[at] = pc;
+    });
+  } else {
+    var mvp = ctx.chParseSan(sq0, qp.answer), before = ctx.chEval(sq0);
+    ctx.chMake(sq0, mvp); var gain = -ctx.chSearch(sq0, 3, 200000).score - before; ctx.chUnmake(sq0);
+    ok(gain >= 120, "line tactic " + qp.answer + " in " + qp.board.fen + " wins material (" + gain + ")");
+  }
+}
+/* back-rank and basic mates: every accepted move mates (in one) or forces mate (in two) */
+["chess:chbackrank", "chess:chbasicmate"].forEach(function (id) {
+  for (var k = 0; k < 20; k++) {
+    var q = ctx.skQuestion(id, { rnd: rnd, caps: {} }), s = ctx.chFromFen(q.board.fen);
+    if (q.kind === "move" && /mate in one/i.test(q.question)) q.accept.forEach(function (san) { var m = ctx.chParseSan(s, san); ctx.chMake(s, m); ok(ctx.chStatus(s) === "checkmate", id + " " + san + " mates"); ctx.chUnmake(s); });
+    else if (q.kind === "move" && /mate in two/i.test(q.question)) ok(q.accept.join() === ctx.chdMate2Firsts(s).join() && q.accept.length, id + " mate in two accepts every forcing first move");
+    else if (/stalemate/.test(q.question) && /throws/.test(q.question)) q.options.forEach(function (o) { var m = ctx.chParseSan(s, o); ctx.chMake(s, m); ok((ctx.chStatus(s) === "stalemate") === (o === q.answer), id + " " + o + (o === q.answer ? " stalemates" : " does not stalemate")); ctx.chUnmake(s); });
+    else if (/Checkmate, stalemate/.test(q.question)) { var st = ctx.chStatus(s); ok({ checkmate: "Checkmate", stalemate: "Stalemate", check: "Check, but not mate", "": "Neither: play goes on" }[st] === q.answer, id + " names the status of " + q.board.fen); }
+  }
+});
+/* rook endings: legal positions, every accepted move legal; the curated set covers both results and both techniques */
+ok(ctx.CH_ROOKEND.length >= 40, "at least forty Stockfish-checked rook endings");
+["drop", "block"].forEach(function (k) { ok(ctx.CH_ROOKEND.filter(function (e) { return e.kind === k; }).length >= 10, "ten or more " + k + " positions"); });
+["Win", "Draw"].forEach(function (a) { ok(ctx.CH_ROOKEND.filter(function (e) { return e.answer === a; }).length >= 8, "eight or more " + a + " results"); });
+ctx.CH_ROOKEND.forEach(function (e) {
+  var s = ctx.chFromFen(e.fen); ok(!ctx.chInCheck(s, -s.side) && ctx.chFromFen(e.fen) && ctx.chToFen(s).split(" ")[0] === e.fen.split(" ")[0], "rook ending legal: " + e.fen);
+  var mat = ctx.chPieces(s).map(function (p) { return p.kind; }).sort().join(); ok(mat === "1,4,4,6,6", "rook and pawn against rook: " + e.fen);
+  (e.accept || []).forEach(function (san) { ok(ctx.chParseSan(s, san), "rook ending move " + san + " legal in " + e.fen); });
+});
+/* pawn structure and pieces: the definitions on a known position */
+var ps = ctx.chFromFen("4k3/pp4pp/8/3p4/8/4P3/PPP3PP/4K3 w - - 0 1");
+ok(ctx.chdIsolated(ps, 1).map(ctx.chName).join() === "e3", "isolated: e3");
+ok(ctx.chdIslands(ps, 1) === 3 && ctx.chdIslands(ps, -1) === 3, "islands: three each");
+ok(ctx.chdPassed(ctx.chFromFen("4k3/8/8/8/2p5/8/P6P/4K3 w - - 0 1"), -1).map(ctx.chName).join() === "c4", "passed: Black's c4");
+ok(ctx.chdDoubled(ctx.chFromFen("4k3/8/8/8/8/2P5/2P5/4K3 w - - 0 1"), 1).length === 2, "doubled c-pawns");
+ok(ctx.chdOpenFiles(ps).map(function (f) { return "abcdefgh"[f]; }).join() === "f", "open file: f");
+ok(ctx.chdChainBases(ctx.chFromFen("4k3/8/8/3P4/2P5/1P6/8/4K3 w - - 0 1"), 1).map(ctx.chName).join() === "b3", "chain d5-c4-b3: base b3");
+ok(ctx.chdOutposts(ctx.chFromFen("4k3/pp5p/8/3p4/3P4/8/PP5P/4K3 w - - 0 1"), 1).map(ctx.chName).join() === "e5", "outpost e5: c5 can be hit from b7, e5 cannot");
+ok(ctx.chdOutposts(ctx.chFromFen("4k3/p6p/8/2Pp4/3P4/8/P6P/4K3 w - - 0 1"), 1).map(ctx.chName).sort().join() === "d6,e5", "outposts d6 and e5; b6 is hit from a7");
+/* the principled opening moves and the blunder check agree with the engine they quote */
+for (k = 0; k < 8; k++) {
+  var qd = ctx.skQuestion("chess:chdevelop", { rnd: rnd, caps: {} }), sd = ctx.chFromFen(qd.board.fen);
+  qd.accept.forEach(function (san) { var m = ctx.chParseSan(sd, san); ok(m && ctx.chdPrincipled(sd, m), "opening move " + san + " is principled"); });
+  var qb = ctx.skQuestion("chess:chblunder", { rnd: rnd, caps: {} });
+  if (qb.kind === "choice") { var sb = ctx.chFromFen(qb.board.fen), san = qb.question.match(/play <b>([^<]+)<\/b>/)[1], mb = ctx.chParseSan(sb, san), best = ctx.chSearch(sb, 3, 40000).score;
+    ctx.chMake(sb, mb); var v = ctx.chLegal(sb).length ? -ctx.chSearch(sb, 2, 15000).score : 0; ctx.chUnmake(sb);
+    ok(qb.answer === "Blunder" ? Math.max(best, v) - v >= 250 : Math.max(best, v) - v <= 30, "blunder check on " + san + " is " + qb.answer); }
+}
 /* checkpoints for every lesson */
 c.lessonList.forEach(function (L) {
   if (!ctx.passable(L)) return;

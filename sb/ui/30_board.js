@@ -157,7 +157,7 @@ function finishGame() {
 
 /* ---- tactics rush: ten rated puzzles, the tactics rating moves ---- */
 function startRush() {
-  var pool = ["chess:chmate1", "chess:chfork", "chess:chbest", "chess:chmate2", "chess:chmate1", "chess:chfork", "chess:chbest", "chess:chmate1", "chess:chfork", "chess:chmate2"];
+  var pool = ["chess:chmate1", "chess:chfork", "chess:chline", "chess:chbest", "chess:chbackrank", "chess:chmate2", "chess:chfork", "chess:chline", "chess:chmate1", "chess:chbest"];
   sess = { kind: "rush", course: "chess", pool: pool, ctx: { last: null, retry: [], idle: 1 }, n: 0, ok: 0, secs: 0, cap: 10, from: {}, seq: pool.slice() };
   cp = null; location.hash = "#/drill";
 }
