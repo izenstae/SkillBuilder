@@ -10,6 +10,13 @@
  *         [0, 2], the traffic headway density, the bridge load, the
  *         gravel sold, and the c(1 − (1 − x)²) practice problem) appear
  *         as cards and as problem shapes with fresh numbers.
+ *         Part 2 (C5_2 deck, 25 slides; B&H §5.2, §5.5, §8.4): the Uniform
+ *         (CDF, Unif(1, 5) example), the Exponential (rate vs. mean, CDF,
+ *         mean and variance, link to the Geometric, memorylessness, the
+ *         car-battery, customer and doctor's-office exercises, Poisson
+ *         counts), the gamma function, and the Gamma distribution (PDF,
+ *         Gamma(1, λ) = Expo(λ), sums of Exponentials, mean and variance,
+ *         the second-customer practice problem).
  * ============================================================ */
 (function () {
   const U = MATH340.util;
@@ -116,6 +123,98 @@
       front: R`Translate the discrete toolkit to continuous r.v.s: the PMF, sums over \(x\), point probabilities \(P(X = x)\) and the jumps in the CDF.`,
       back: R`PMF \(p(x)\) \(\to\) PDF \(f(x)\) (a density, not a probability: \(f(x) > 1\) is allowed); \(\sum_x\) \(\to\) \(\int dx\); \(P(X = x) > 0\) at the support points \(\to\) \(P(X = x) = 0\) for every \(x\); jumps in \(F\) \(\to\) a continuous \(F\) with \(F'(x) = f(x)\) wherever \(f\) is continuous. \(E(X)\), \(E[g(X)]\) (LOTUS) and \(V(X)\) keep the same form with \(\sum \to \int\) and \(p \to f\): \(E(X) = \int x f(x)\,dx\). Linearity, \(V(X) = E(X^2) - \mu^2\) and \(V(aX + b) = a^2 V(X)\) carry over unchanged.`,
     },
+
+    /* ---------- part 2: Uniform, Exponential, Gamma ---------- */
+    {
+      id: "c5-unif-cdf", tag: "Definition 5.2.1 · Uniform CDF",
+      front: R`\(U \sim \text{Unif}(a, b)\). Write its CDF for all real \(x\), and say why the PDF is valid.`,
+      back: R`$$F(x) = \begin{cases} 0, & x \le a, \\ \dfrac{x - a}{b - a}, & a &lt; x &lt; b, \\ 1, & x \ge b. \end{cases}$$ The PDF is a rectangle of width \(b - a\) and height \(\frac{1}{b - a}\), so its area is \((b - a)\cdot\frac{1}{b - a} = 1\). The CDF climbs in a straight line from 0 at \(a\) to 1 at \(b\).`,
+    },
+    {
+      id: "c5-ex-unif15", tag: "Example · Unif(1, 5)",
+      front: R`\(X \sim \text{Unif}(1, 5)\). Find \(P(0 \le X \le 3)\), \(P(2 \le X \le 4)\) and \(P(4 \le X \le 6)\).`,
+      back: R`\(F(x) = \frac{x - 1}{4}\) on \([1, 5]\). Clip each interval to \([1, 5]\) first, then divide its length by 4.<br>\(P(0 \le X \le 3) = P(1 \le X \le 3) = \frac{2}{4} = \frac{1}{2}\).<br>\(P(2 \le X \le 4) = \frac{2}{4} = \frac{1}{2}\).<br>\(P(4 \le X \le 6) = P(4 \le X \le 5) = \frac{1}{4}\).`,
+    },
+    {
+      id: "c5-expo-def", tag: "Exponential · PDF and CDF",
+      front: R`\(X \sim \text{Expo}(\lambda)\). Give its PDF and CDF, and say what \(\lambda\) measures.`,
+      back: R`$$f(x) = \lambda e^{-\lambda x}\ \ (x > 0), \qquad F(x) = 1 - e^{-\lambda x}\ \ (x > 0),$$ both \(0\) for \(x \le 0\). \(\lambda > 0\) is the <b>rate</b>: events arrive at \(\lambda\) per unit time, and \(X\) is the waiting time until the first one. The tail is the handiest form: \(P(X > t) = e^{-\lambda t}\).`,
+    },
+    {
+      id: "c5-expo-geom", tag: "Exponential ↔ Geometric",
+      front: R`Why is the Exponential called the continuous counterpart of the Geometric?`,
+      back: R`The Geometric counts the failures before the first success in discrete trials, \(P(X = k) = q^k p\). The Exponential is the waiting time until the first success in <b>continuous</b> time, with successes arriving at rate \(\lambda\). Both tails decay geometrically: \(P(X \ge k) = q^k\) vs. \(P(X > t) = e^{-\lambda t} = (e^{-\lambda})^t\). And both are memoryless.`,
+    },
+    {
+      id: "c5-expo-moments", tag: "Exponential · mean and variance",
+      front: R`Mean and variance of \(X \sim \text{Expo}(\lambda)\)? What integral gives them quickly?`,
+      back: R`$$E(X) = \frac{1}{\lambda}, \qquad \text{Var}(X) = \frac{1}{\lambda^2},$$ so the SD equals the mean. Substitute \(u = \lambda x\) and use $$\int_0^\infty x^n e^{-x}\,dx = n! \quad (n = 0, 1, 2, \dots):$$ \(E(X) = \frac{1!}{\lambda}\) and \(E(X^2) = \frac{2!}{\lambda^2}\), so \(\text{Var}(X) = \frac{2}{\lambda^2} - \frac{1}{\lambda^2}\).`,
+    },
+    {
+      id: "c5-expo-rate-mean", tag: "Common pitfall · rate vs. mean",
+      front: R`"The average waiting time is 10 minutes." What is \(\lambda\)?`,
+      back: R`\(\lambda = \frac{1}{10}\) per minute, because \(E(X) = \frac{1}{\lambda}\). The rate is the <b>reciprocal</b> of the mean. Writing \(\lambda = 10\) is the classic slip: it would mean ten arrivals per minute and an average wait of 6 seconds. Sanity check: \(P(X \le 5) = 1 - e^{-5/10} \approx 0.393\).`,
+    },
+    {
+      id: "c5-memoryless", tag: "Memorylessness",
+      front: R`What does it mean for a distribution to be <em>memoryless</em>? Which distributions are?`,
+      back: R`$$P(X > s + t \mid X > s) = P(X > t), \qquad s, t \ge 0.$$ The chance of waiting another \(t\) does not depend on how long you have already waited. For the Exponential: \(\frac{e^{-\lambda(s + t)}}{e^{-\lambda s}} = e^{-\lambda t}\). The Geometric is memoryless in discrete time, and the Exponential is the only memoryless continuous distribution.`,
+    },
+    {
+      id: "c5-ex-battery", tag: "Example · car batteries",
+      front: R`A car battery is already 3 years old. Is the chance it lasts 2 more years the same as the chance a new battery lasts at least 2 years?`,
+      back: R`If lifetimes were Exponential, yes: memorylessness says \(P(X > 5 \mid X > 3) = P(X > 2)\). Real batteries <b>wear out</b>, so an old battery is less likely to last 2 more years than a new one. Battery lifetimes are not memoryless, and an Exponential model is a poor fit for anything that ages.`,
+    },
+    {
+      id: "c5-ex-customers", tag: "Exercise · customer waits",
+      front: R`Waiting time between customers is Exponential with mean 10 minutes. Find \(\lambda\), the probability the next customer arrives within 5 minutes, and, given no customer in the first 10 minutes, the probability of waiting at least another 5.`,
+      back: R`\(\lambda = \frac{1}{10}\) per minute.<br>\(P(X \le 5) = 1 - e^{-5/10} = 1 - e^{-0.5} \approx 0.3935\).<br>By memorylessness, \(P(X \ge 15 \mid X > 10) = P(X \ge 5) = e^{-0.5} \approx 0.6065\). The first 10 minutes of waiting are irrelevant.`,
+    },
+    {
+      id: "c5-poisson-expo", tag: "Poisson process",
+      front: R`In a Poisson process with rate \(\lambda\), how are the number of arrivals and the waiting times distributed?`,
+      back: R`The number of arrivals in a window of length \(t\) is \(\text{Pois}(\lambda t)\). The waiting time to the first arrival, and every gap between consecutive arrivals, is \(\text{Expo}(\lambda)\), independently. They are linked by $$P(T > t) = P(\text{no arrivals in } [0, t]) = e^{-\lambda t}.$$ Keep the time unit consistent: a mean gap of 20 minutes is \(\lambda = 3\) per hour.`,
+    },
+    {
+      id: "c5-ex-patients", tag: "Exercise · doctor's office",
+      front: R`Patients arrive at a doctor's office as a Poisson process, with an average of 20 minutes between patients. Find (a) \(P(\text{wait} &lt; 30)\), (b) the chance of waiting at least another 10 minutes after already waiting 20, (c) the chance exactly 2 patients arrive in one hour.`,
+      back: R`\(\lambda = \frac{1}{20}\) per minute.<br>(a) \(1 - e^{-30/20} = 1 - e^{-1.5} \approx 0.7769\).<br>(b) Memoryless: \(P(X \ge 10) = e^{-0.5} \approx 0.6065\).<br>(c) Count in 60 minutes \(\sim \text{Pois}(60/20) = \text{Pois}(3)\): \(\frac{e^{-3}3^2}{2!} \approx 0.2240\).`,
+    },
+    {
+      id: "c5-gamma-fn", tag: "Gamma function",
+      front: R`Define the gamma function \(\Gamma(a)\) and give its key properties.`,
+      back: R`$$\Gamma(a) = \int_0^\infty x^{a - 1} e^{-x}\,dx = \int_0^\infty x^a e^{-x}\,\frac{dx}{x}, \qquad a > 0.$$ \(\Gamma(a + 1) = a\,\Gamma(a)\) (integration by parts), and \(\Gamma(n) = (n - 1)!\) for positive integers \(n\), so \(\Gamma(1) = 1\), \(\Gamma(5) = 24\). Off by one: \(\Gamma(n)\) is \((n - 1)!\), not \(n!\).`,
+    },
+    {
+      id: "c5-gamma-def", tag: "Gamma distribution · PDF",
+      front: R`Give the PDF of \(Y \sim \text{Gamma}(a, \lambda)\), with \(a > 0\), \(\lambda > 0\).`,
+      back: R`$$f(y) = \frac{\lambda^a}{\Gamma(a)}\,y^{a - 1} e^{-\lambda y}, \qquad y > 0,$$ and \(0\) otherwise. Equivalently \(f(y) = \frac{1}{\Gamma(a)}(\lambda y)^a e^{-\lambda y}\frac{1}{y}\). \(a\) is the shape (how many arrivals you wait for) and \(\lambda\) the rate.`,
+    },
+    {
+      id: "c5-gamma-expo", tag: "Gamma ↔ Exponential",
+      front: R`What is \(\text{Gamma}(1, \lambda)\)?`,
+      back: R`With \(a = 1\) and \(\Gamma(1) = 1\): \(f(y) = \frac{\lambda}{\Gamma(1)}y^0 e^{-\lambda y} = \lambda e^{-\lambda y}\). So $$\text{Gamma}(1, \lambda) = \text{Expo}(\lambda).$$ Waiting for the first arrival is waiting for one arrival.`,
+    },
+    {
+      id: "c5-gamma-sum", tag: "Gamma as a sum of Exponentials",
+      front: R`\(X_1, \dots, X_k \overset{\text{iid}}{\sim} \text{Expo}(\lambda)\). What is the distribution of \(X_1 + \dots + X_k\), and what does it mean in a Poisson process?`,
+      back: R`$$Y = X_1 + X_2 + \dots + X_k \sim \text{Gamma}(k, \lambda).$$ In a Poisson process the \(X_i\) are the gaps between consecutive arrivals, so \(Y\) is the <b>total waiting time until the \(k\)th arrival</b>. The rate \(\lambda\) is shared; the shape \(k\) counts the gaps.`,
+    },
+    {
+      id: "c5-gamma-moments", tag: "Gamma · mean and variance",
+      front: R`Mean and variance of \(Y \sim \text{Gamma}(a, \lambda)\)?`,
+      back: R`$$E(Y) = \frac{a}{\lambda}, \qquad \text{Var}(Y) = \frac{a}{\lambda^2}.$$ For integer \(a\) these are \(a\) copies of the Exponential's \(\frac{1}{\lambda}\) and \(\frac{1}{\lambda^2}\), added up (means add; variances add because the gaps are independent). With \(a = 1\) you get the Exponential back. The SD is \(\frac{\sqrt{a}}{\lambda}\), not \(\frac{a}{\lambda}\).`,
+    },
+    {
+      id: "c5-gamma-cdf", tag: "Gamma · probabilities via Poisson",
+      front: R`\(Y \sim \text{Gamma}(k, \lambda)\) with integer \(k\) is the time of the \(k\)th arrival. How do you find \(P(Y \le t)\) without integrating?`,
+      back: R`The \(k\)th arrival has happened by time \(t\) exactly when at least \(k\) arrivals fall in \([0, t]\), and that count is \(N \sim \text{Pois}(\lambda t)\): $$P(Y \le t) = P(N \ge k) = 1 - \sum_{j=0}^{k-1} \frac{e^{-\lambda t}(\lambda t)^j}{j!}.$$ For \(k = 1\) this is the Exponential CDF \(1 - e^{-\lambda t}\).`,
+    },
+    {
+      id: "c5-ex-store", tag: "Practice · second customer",
+      front: R`Customers arrive as a Poisson process at 3 per hour. \(Y\) is the wait until the second customer. Identify \(Y\)'s distribution, its PDF, \(E(Y)\) and \(\text{Var}(Y)\). What is the wait \(X\) until the first customer?`,
+      back: R`\(Y \sim \text{Gamma}(2, 3)\), the sum of two \(\text{Expo}(3)\) gaps.<br>\(f(y) = \frac{3^2}{\Gamma(2)}y\,e^{-3y} = 9y\,e^{-3y}\) for \(y > 0\).<br>\(E(Y) = \frac{2}{3}\) hour (40 minutes), \(\text{Var}(Y) = \frac{2}{9}\).<br>\(X \sim \text{Expo}(3) = \text{Gamma}(1, 3)\), mean \(\frac{1}{3}\) hour.`,
+    },
   ];
 
   /* ---------------- exact rational arithmetic ----------------
@@ -213,6 +312,36 @@
     const fTex = R`f(x) = \begin{cases} ${lam}\,e^{-${lam}${ex}}, & x \ge ${a}, \\ 0, & \text{otherwise.} \end{cases}`;
     const F = t => (t <= a ? 0 : 1 - Math.exp(-lam * (t - a)));
     return { lam, a, ctx, ex, fTex, F };
+  }
+
+  /* Part 2 helpers: named continuous distributions in context. */
+  const neg = x => (x < 0 ? `(${x})` : `${x}`);          // b - (-2), not b - -2
+  const UNIF_CTX = [
+    (a, b) => R`A bus arrives at a uniformly random time between ${a} and ${b} minutes after the hour. Let \(X\) be its arrival time (minutes after the hour).`,
+    (a, b) => R`A wire of length ${b} cm has a flaw at a uniformly random point beyond its first ${a} cm. Let \(X\) be the flaw's distance from the left end, so \(X \sim \text{Unif}(${a}, ${b})\).`,
+    (a, b) => R`\(X \sim \text{Unif}(${a}, ${b})\).`,
+  ];
+  function unif() {
+    const a = U.randInt(-4, 8), w = U.randInt(3, 12), b = a + w;
+    const intro = (a < 0 ? UNIF_CTX[2] : U.pick(UNIF_CTX))(a, b);
+    return { a, b, w, v: "X", intro };
+  }
+  const EXPO_CTX = [
+    { Intro: "The waiting time between customers at a service counter", Arrivals: "Customers", unit: "minutes", per: "minute", means: [5, 8, 10, 12, 20] },
+    { Intro: "The time between patients arriving at a clinic", Arrivals: "Patients", unit: "minutes", per: "minute", means: [10, 15, 20, 30] },
+    { Intro: "The time between calls to a help line", Arrivals: "Calls", unit: "minutes", per: "minute", means: [2, 4, 5, 6] },
+    { Intro: "The time between major earthquakes in a region", Arrivals: "Major earthquakes", unit: "years", per: "year", means: [10, 20, 40, 50] },
+  ];
+  function expo() {
+    const c = U.pick(EXPO_CTX);
+    const m = U.pick(c.means);
+    return { ...c, m, lam: 1 / m };
+  }
+  const tOf = m => U.pick([0.5, 1, 1.5, 2, 3]) * m;      // a time on the scale of the mean
+  const ORD = ["", "first", "second", "third", "fourth", "fifth"];
+  const ord = k => ORD[k];
+  function arrivals() {
+    return { k: U.randInt(2, 4), r: U.pick([2, 3, 4, 5, 6]), Who: U.pick(["Customers", "Emails", "Calls", "Taxis"]) };
   }
 
   const generators = [
@@ -678,6 +807,396 @@
         },
       ],
     }),
+
+    /* ========== 5. The Uniform distribution ========== */
+    MATH340.makeGenerator({
+      id: "c5-gen-unif",
+      name: "The Uniform distribution",
+      blurb: "Probability is length over length: clipping to the support, the CDF, conditioning, percentiles, and recovering the interval.",
+      variants: [
+        {
+          name: "Length over length",
+          make() {
+            const u = unif();
+            let c, d;
+            do { c = U.randInt(u.a, u.b - 1); d = U.randInt(c + 1, u.b); } while (c === u.a && d === u.b);
+            const ans = (d - c) / u.w;
+            return {
+              q: R`${u.intro} Find \(P(${c} \le ${u.v} \le ${d})\).`,
+              answer: ans, kind: "prob",
+              sol: R`<div class="sol-step">The density is flat, so probability is proportional to length: the length of the event over the length of the whole interval.</div>
+                   <div class="sol-step">$$P(${c} \le ${u.v} \le ${d}) = \frac{${d} - ${neg(c)}}{${u.b} - ${neg(u.a)}} = \frac{${d - c}}{${u.w}} = ${U.fracTex(d - c, u.w)}${Number.isInteger(ans) ? "" : R` \approx ${f4(ans)}`}$$</div>`,
+            };
+          },
+        },
+        {
+          name: "Clip the interval to the support",
+          make() {
+            const u = unif();
+            const left = Math.random() < 0.5;
+            const c = left ? u.a - U.randInt(1, 3) : U.randInt(u.a + 1, u.b - 1);
+            const d = left ? U.randInt(u.a + 1, u.b - 1) : u.b + U.randInt(1, 3);
+            const lo = Math.max(c, u.a), hi = Math.min(d, u.b);
+            const ans = (hi - lo) / u.w;
+            return {
+              q: R`${u.intro} Find \(P(${c} \le ${u.v} \le ${d})\).`,
+              answer: ans, kind: "prob",
+              sol: R`<div class="sol-step">Part of \([${c}, ${d}]\) lies outside \([${u.a}, ${u.b}]\), where the density is 0. Clip the interval to the support first.</div>
+                   <div class="sol-step">\(P(${c} \le ${u.v} \le ${d}) = P(${lo} \le ${u.v} \le ${hi})\).</div>
+                   <div class="sol-step">$$\frac{${hi} - ${neg(lo)}}{${u.w}} = ${U.fracTex(hi - lo, u.w)} \approx ${f4(ans)}$$ Using \(${d} - ${neg(c)} = ${d - c}\) as the length would give the wrong answer.</div>`,
+            };
+          },
+        },
+        {
+          name: "Uniform CDF: F(x) = (x − a)/(b − a)",
+          make() {
+            const u = unif();
+            const x = U.randInt(u.a + 1, u.b - 1) + U.pick([0, 0.5]);
+            const ans = (x - u.a) / u.w;
+            return {
+              q: R`${u.intro} Find \(F(${x}) = P(${u.v} \le ${x})\).`,
+              answer: ans, kind: "prob",
+              sol: R`<div class="sol-step">On the interval the CDF climbs linearly from 0 to 1: \(F(x) = \frac{x - a}{b - a}\).</div>
+                   <div class="sol-step">$$F(${x}) = \frac{${x} - ${neg(u.a)}}{${u.w}} = \frac{${U.fmt(x - u.a)}}{${u.w}} \approx ${f4(ans)}$$</div>`,
+            };
+          },
+        },
+        {
+          name: "Conditioning a uniform keeps it uniform",
+          make() {
+            const u = unif();
+            const s = U.randInt(u.a + 1, u.b - 2);
+            const c = U.randInt(s + 1, u.b - 1);
+            const ans = (u.b - c) / (u.b - s);
+            return {
+              q: R`${u.intro} Given that \(${u.v} > ${s}\), find the probability that \(${u.v} > ${c}\).`,
+              answer: ans, kind: "prob",
+              sol: R`<div class="sol-step">Given \(${u.v} > ${s}\), \(${u.v}\) is uniform on the shorter interval \([${s}, ${u.b}]\). (Or use the definition: \(\frac{P(${u.v} > ${c})}{P(${u.v} > ${s})}\), and the \(\frac{1}{${u.w}}\)s cancel.)</div>
+                   <div class="sol-step">$$\frac{${u.b} - ${neg(c)}}{${u.b} - ${neg(s)}} = ${U.fracTex(u.b - c, u.b - s)} \approx ${f4(ans)}$$ Unlike the Exponential, a uniform wait is <b>not</b> memoryless: the time already waited changes the answer.</div>`,
+            };
+          },
+        },
+        {
+          name: "Percentile of a uniform",
+          make() {
+            const u = unif();
+            const p = U.pick([0.5, 0.25, 0.75, 0.9, 0.1, 0.8]);
+            const name = p === 0.5 ? "median" : `${Math.round(p * 100)}th percentile`;
+            const ans = u.a + p * u.w;
+            return {
+              q: R`${u.intro} Find the ${name} of \(${u.v}\).`,
+              answer: ans, kind: "num",
+              sol: R`<div class="sol-step">Solve \(F(x) = ${p}\), with \(F(x) = \frac{x - a}{b - a}\) on the interval.</div>
+                   <div class="sol-step">$$\frac{x - ${neg(u.a)}}{${u.w}} = ${p} \implies x = ${u.a} + ${p}\cdot${u.w} = ${U.fmt(ans)}$$ The point ${Math.round(p * 100)}% of the way along the interval.</div>`,
+            };
+          },
+        },
+        {
+          name: "Recover the interval from the mean or variance",
+          make() {
+            if (Math.random() < 0.5) {
+              const b = U.pick([3, 6, 12, 2, 4, 9]);
+              const v = b * b / 12;
+              return {
+                q: R`\(X \sim \text{Unif}(0, b)\) has variance \(${U.fracTex(b * b, 12)}\). Find \(b\).`,
+                answer: b, kind: "num",
+                sol: R`<div class="sol-step">Use \(V(X) = \frac{(b - a)^2}{12}\) backwards, with \(a = 0\).</div>
+                     <div class="sol-step">$$\frac{b^2}{12} = ${U.fracTex(b * b, 12)} \implies b^2 = ${U.fmt(12 * v)} \implies b = ${b}$$ (the positive root, since \(b > a = 0\)).</div>`,
+              };
+            }
+            const a = U.randInt(-4, 6), w = U.randInt(2, 12);
+            const m = a + w / 2;
+            return {
+              q: R`\(X \sim \text{Unif}(${a}, b)\) has mean \(${U.fmt(m)}\). Find \(b\).`,
+              answer: a + w, kind: "num",
+              sol: R`<div class="sol-step">The mean of a uniform is the midpoint: \(E(X) = \frac{a + b}{2}\). Solve it for \(b\).</div>
+                   <div class="sol-step">$$\frac{${a} + b}{2} = ${U.fmt(m)} \implies b = 2(${U.fmt(m)}) - ${neg(a)} = ${a + w}$$</div>`,
+            };
+          },
+        },
+      ],
+    }),
+
+    /* ========== 6. The Exponential distribution ========== */
+    MATH340.makeGenerator({
+      id: "c5-gen-expo",
+      name: "Exponential waiting times & memorylessness",
+      blurb: "Rate = 1/mean, P(X ≤ t) = 1 − e^(−λt), tails, windows, memorylessness, solving for the rate, and Poisson counts.",
+      variants: [
+        {
+          name: "Rate from the mean: λ = 1/mean",
+          make() {
+            const e = expo();
+            return {
+              q: R`${e.Intro} is Exponential, with an average of ${e.m} ${e.unit}. Find the rate parameter \(\lambda\) (per ${e.per}).`,
+              answer: e.lam, kind: "num",
+              sol: R`<div class="sol-step">For \(X \sim \text{Expo}(\lambda)\), \(E(X) = \frac{1}{\lambda}\). The rate is the reciprocal of the mean, not the mean itself.</div>
+                   <div class="sol-step">$$\lambda = \frac{1}{${e.m}} = ${U.fmt(e.lam, 4)} \text{ per ${e.per}}$$ On average ${U.fmt(e.lam, 4)} events per ${e.per}.</div>`,
+            };
+          },
+        },
+        {
+          name: "P(X ≤ t) from the CDF",
+          make() {
+            const e = expo();
+            const t = tOf(e.m);
+            const arg = t / e.m;
+            const ans = 1 - Math.exp(-arg);
+            return {
+              q: R`${e.Intro} is Exponential with mean ${e.m} ${e.unit}. Find the probability that it is at most ${U.fmt(t)} ${e.unit}.`,
+              answer: ans, kind: "prob",
+              sol: R`<div class="sol-step">First the rate: \(\lambda = \frac{1}{${e.m}}\). Then the CDF \(F(t) = 1 - e^{-\lambda t}\).</div>
+                   <div class="sol-step">$$P(X \le ${U.fmt(t)}) = 1 - e^{-${U.fmt(t)}/${e.m}} = 1 - e^{-${U.fmt(arg, 4)}}$$</div>
+                   <div class="sol-step">$$\approx ${f4(ans)}$$</div>`,
+            };
+          },
+        },
+        {
+          name: "Tail: P(X > t) = e^(−λt)",
+          make() {
+            const e = expo();
+            const t = tOf(e.m);
+            const arg = t / e.m;
+            const ans = Math.exp(-arg);
+            return {
+              q: R`${e.Intro} is Exponential with mean ${e.m} ${e.unit}. Find the probability that it exceeds ${U.fmt(t)} ${e.unit}.`,
+              answer: ans, kind: "prob",
+              sol: R`<div class="sol-step">The tail of an Exponential needs no integral and no complement: \(P(X > t) = e^{-\lambda t}\), with \(\lambda = \frac{1}{${e.m}}\).</div>
+                   <div class="sol-step">$$P(X > ${U.fmt(t)}) = e^{-${U.fmt(t)}/${e.m}} = e^{-${U.fmt(arg, 4)}} \approx ${f4(ans)}$$</div>`,
+            };
+          },
+        },
+        {
+          name: "Between two times",
+          make() {
+            const e = expo();
+            const [t1, t2] = U.sample([0.5, 1, 1.5, 2, 3], 2).sort((x, y) => x - y).map(x => x * e.m);
+            const ans = Math.exp(-t1 / e.m) - Math.exp(-t2 / e.m);
+            return {
+              q: R`${e.Intro} is Exponential with mean ${e.m} ${e.unit}. Find the probability that it lies between ${U.fmt(t1)} and ${U.fmt(t2)} ${e.unit}.`,
+              answer: ans, kind: "prob",
+              sol: R`<div class="sol-step">\(P(t_1 \le X \le t_2) = F(t_2) - F(t_1)\), and with \(F(t) = 1 - e^{-\lambda t}\) the 1s cancel: it is \(e^{-\lambda t_1} - e^{-\lambda t_2}\).</div>
+                   <div class="sol-step">$$e^{-${U.fmt(t1)}/${e.m}} - e^{-${U.fmt(t2)}/${e.m}} = ${f4(Math.exp(-t1 / e.m))} - ${f4(Math.exp(-t2 / e.m))}$$</div>
+                   <div class="sol-step">$$\approx ${f4(ans)}$$</div>`,
+            };
+          },
+        },
+        {
+          name: "Memoryless: the time already waited drops out",
+          make() {
+            const e = expo();
+            const s = tOf(e.m), t = tOf(e.m);
+            const ans = Math.exp(-t / e.m);
+            const total = Math.random() < 0.5;
+            const ask = total
+              ? R`Given that it has already exceeded ${U.fmt(s)} ${e.unit}, find the probability that it exceeds ${U.fmt(s + t)} ${e.unit} in total.`
+              : R`Given that nothing has happened in the first ${U.fmt(s)} ${e.unit}, find the probability of waiting at least another ${U.fmt(t)} ${e.unit}.`;
+            return {
+              q: R`${e.Intro} is Exponential with mean ${e.m} ${e.unit}. ${ask}`,
+              answer: ans, kind: "prob",
+              sol: R`<div class="sol-step">The Exponential is memoryless: \(P(X > s + t \mid X > s) = P(X > t)\). Only the <b>additional</b> time matters${total ? R`, here \(${U.fmt(s + t)} - ${U.fmt(s)} = ${U.fmt(t)}\)` : ""}.</div>
+                   <div class="sol-step">$$P(X > ${U.fmt(s + t)} \mid X > ${U.fmt(s)}) = \frac{e^{-${U.fmt(s + t)}/${e.m}}}{e^{-${U.fmt(s)}/${e.m}}} = e^{-${U.fmt(t)}/${e.m}}$$</div>
+                   <div class="sol-step">$$\approx ${f4(ans)}$$ The ${U.fmt(s)} ${e.unit} already waited make no difference.</div>`,
+            };
+          },
+        },
+        {
+          name: "Solve for the rate from a tail probability",
+          make() {
+            const p = U.pick([0.5, 0.25, 0.1, 0.8, 0.6]);
+            const t = U.pick([2, 5, 10, 30]);
+            const lam = -Math.log(p) / t;
+            const askMean = Math.random() < 0.5;
+            const ans = askMean ? 1 / lam : lam;
+            return {
+              q: R`A waiting time \(X\) (in minutes) is Exponential, and the probability that it exceeds ${t} minutes is ${p}. Find ${askMean ? R`the mean \(E(X)\)` : R`the rate \(\lambda\) (per minute)`}.`,
+              answer: ans, kind: "num",
+              sol: R`<div class="sol-step">Write the given tail with the formula \(P(X > t) = e^{-\lambda t}\) and take logs.</div>
+                   <div class="sol-step">$$e^{-${t}\lambda} = ${p} \implies \lambda = \frac{-\ln ${p}}{${t}} \approx ${f4(lam)}$$</div>
+                   <div class="sol-step">${askMean ? R`$$E(X) = \frac{1}{\lambda} = \frac{${t}}{-\ln ${p}} \approx ${f4(ans)} \text{ minutes}$$` : R`So \(\lambda \approx ${f4(ans)}\) per minute.`}</div>`,
+            };
+          },
+        },
+        {
+          name: "Variance and SD of an Exponential",
+          make() {
+            const e = expo();
+            const askVar = Math.random() < 0.5;
+            const ans = askVar ? e.m * e.m : e.m;
+            return {
+              q: R`${e.Intro} is Exponential with mean ${e.m} ${e.unit}. Find its ${askVar ? "variance" : "standard deviation"}.`,
+              answer: ans, kind: "num",
+              sol: R`<div class="sol-step">\(\text{Var}(X) = \frac{1}{\lambda^2}\), and \(\frac{1}{\lambda}\) is the mean. So the variance is the mean squared, and the SD equals the mean.</div>
+                   <div class="sol-step">$$${askVar ? R`\text{Var}(X) = ${e.m}^2 = ${ans}` : R`\text{SD}(X) = \sqrt{${e.m}^2} = ${ans}`}$$</div>`,
+            };
+          },
+        },
+        {
+          name: "Counting arrivals in a window: Poisson",
+          make() {
+            const e = expo();
+            const mult = U.pick([1, 2, 3, 4, 1.5]);
+            const T = e.m * mult;
+            const mu = mult;
+            const k = U.randInt(0, 4);
+            const ans = Math.exp(-mu) * Math.pow(mu, k) / U.factorial(k);
+            return {
+              q: R`${e.Arrivals} arrive as a Poisson process, with an average of ${e.m} ${e.unit} between arrivals. Find the probability that exactly ${k} arrive${k === 1 ? "s" : ""} in a ${U.fmt(T)}-${e.per} window.`,
+              answer: ans, kind: "prob",
+              sol: R`<div class="sol-step">The gaps are \(\text{Expo}(\lambda)\) with \(\lambda = \frac{1}{${e.m}}\); the <b>count</b> in a window of length \(t\) is \(\text{Pois}(\lambda t)\).</div>
+                   <div class="sol-step">$$\lambda t = \frac{${U.fmt(T)}}{${e.m}} = ${U.fmt(mu)}, \qquad N \sim \text{Pois}(${U.fmt(mu)})$$</div>
+                   <div class="sol-step">$$P(N = ${k}) = \frac{e^{-${U.fmt(mu)}}(${U.fmt(mu)})^{${k}}}{${k}!} \approx ${f4(ans)}$$</div>`,
+            };
+          },
+        },
+      ],
+    }),
+
+    /* ========== 7. The Gamma distribution ========== */
+    MATH340.makeGenerator({
+      id: "c5-gen-gamma",
+      name: "The Gamma function & distribution",
+      blurb: "Γ(n) = (n − 1)!, Gamma integrals, waiting for the k-th arrival, sums of Exponentials, the PDF and its constant, and P(Y ≤ t) by counting.",
+      variants: [
+        {
+          name: "Γ(n) = (n − 1)! and Γ(a + 1) = aΓ(a)",
+          make() {
+            if (Math.random() < 0.5) {
+              const n = U.randInt(2, 7);
+              return {
+                q: R`Evaluate \(\Gamma(${n})\).`,
+                answer: U.factorial(n - 1), kind: "count",
+                sol: R`<div class="sol-step">For a positive integer, \(\Gamma(n) = (n - 1)!\). Watch the off-by-one.</div>
+                     <div class="sol-step">$$\Gamma(${n}) = ${n - 1}! = ${U.factorial(n - 1)}$$</div>`,
+              };
+            }
+            const n = U.randInt(2, 8);
+            return {
+              q: R`Evaluate \(\dfrac{\Gamma(${n + 2})}{\Gamma(${n})}\).`,
+              answer: n * (n + 1), kind: "count",
+              sol: R`<div class="sol-step">Use \(\Gamma(a + 1) = a\,\Gamma(a)\) twice rather than computing either factorial.</div>
+                   <div class="sol-step">$$\Gamma(${n + 2}) = ${n + 1}\cdot\Gamma(${n + 1}) = ${n + 1}\cdot${n}\cdot\Gamma(${n})$$</div>
+                   <div class="sol-step">$$\frac{\Gamma(${n + 2})}{\Gamma(${n})} = ${n + 1}\cdot${n} = ${n * (n + 1)}$$</div>`,
+            };
+          },
+        },
+        {
+          name: "Integral by the gamma function",
+          make() {
+            const n = U.randInt(1, 4), c = U.pick([1, 2, 3, 0.5]);
+            const ans = U.factorial(n) / Math.pow(c, n + 1);
+            return {
+              q: R`Evaluate \(\displaystyle\int_0^\infty x^{${n}} e^{-${rate(c)}x}\,dx\).`,
+              answer: ans, kind: "num",
+              sol: R`<div class="sol-step">Substitute \(u = ${rate(c)}x\) to turn it into \(\int_0^\infty u^n e^{-u}\,du = \Gamma(n + 1) = n!\).</div>
+                   <div class="sol-step">$$\int_0^\infty x^{${n}} e^{-${rate(c)}x}\,dx = \frac{1}{${c}^{${n + 1}}}\int_0^\infty u^{${n}} e^{-u}\,du = \frac{${n}!}{${c}^{${n + 1}}}$$</div>
+                   <div class="sol-step">$$= \frac{${U.factorial(n)}}{${U.fmt(Math.pow(c, n + 1))}} ${Number.isInteger(ans) ? "=" : R`\approx`} ${f4(ans)}$$</div>`,
+            };
+          },
+        },
+        {
+          name: "Waiting for the k-th arrival: the mean",
+          make() {
+            const g = arrivals();
+            const ans = g.k / g.r;
+            return {
+              q: R`${g.Who} arrive as a Poisson process at an average rate of ${g.r} per hour. Let \(Y\) be the time (in hours) until the ${ord(g.k)} arrival. Find \(E(Y)\).`,
+              answer: ans, kind: "num",
+              sol: R`<div class="sol-step">\(Y\) is the sum of ${g.k} independent \(\text{Expo}(${g.r})\) gaps, so \(Y \sim \text{Gamma}(${g.k}, ${g.r})\).</div>
+                   <div class="sol-step">$$E(Y) = \frac{a}{\lambda} = \frac{${g.k}}{${g.r}} ${Number.isInteger(ans) ? "=" : R`\approx`} ${f4(ans)} \text{ hours}$$ That is ${g.k} gaps of \(\frac{1}{${g.r}}\) hour each.</div>`,
+            };
+          },
+        },
+        {
+          name: "Waiting for the k-th arrival: variance and SD",
+          make() {
+            const g = arrivals();
+            const askSd = Math.random() < 0.5;
+            const v = g.k / (g.r * g.r);
+            const ans = askSd ? Math.sqrt(v) : v;
+            return {
+              q: R`${g.Who} arrive as a Poisson process at an average rate of ${g.r} per hour. Let \(Y\) be the time (in hours) until the ${ord(g.k)} arrival. Find ${askSd ? "the standard deviation of \\(Y\\)" : R`\(\text{Var}(Y)\)`}.`,
+              answer: ans, kind: "num",
+              sol: R`<div class="sol-step">\(Y \sim \text{Gamma}(${g.k}, ${g.r})\), and \(\text{Var}(Y) = \frac{a}{\lambda^2}\): ${g.k} independent gaps, each with variance \(\frac{1}{${g.r}^2}\).</div>
+                   <div class="sol-step">$$\text{Var}(Y) = \frac{${g.k}}{${g.r}^2} = ${U.fracTex(g.k, g.r * g.r)}${askSd ? R`, \qquad \text{SD}(Y) = \frac{\sqrt{${g.k}}}{${g.r}}` : ""} \approx ${f4(ans)}$$${askSd ? R` Not \(\frac{${g.k}}{${g.r}}\): SDs of independent pieces do not add.` : ""}</div>`,
+            };
+          },
+        },
+        {
+          name: "Sum of Exponential lifetimes",
+          make() {
+            const k = U.randInt(2, 5);
+            const m = U.pick([100, 200, 500, 50, 1000]);
+            const ctx = U.pick([
+              { thing: "a smoke-detector battery", life: "lifetime (in hours)" },
+              { thing: "a light bulb", life: "lifetime (in hours)" },
+              { thing: "a pump filter", life: "life (in hours of use)" },
+            ]);
+            const askSd = Math.random() < 0.5;
+            const ans = askSd ? Math.sqrt(k) * m : k * m;
+            return {
+              q: R`The ${ctx.life} of ${ctx.thing} is Exponential with mean ${m}. You have ${k} of them and use them one after another, replacing each the moment it fails. Let \(Y\) be the total time covered. Find ${askSd ? "the standard deviation of \\(Y\\)" : R`\(E(Y)\)`}.`,
+              answer: ans, kind: "num",
+              sol: R`<div class="sol-step">\(Y\) is a sum of ${k} independent \(\text{Expo}(\lambda)\) lifetimes with \(\lambda = \frac{1}{${m}}\), so \(Y \sim \text{Gamma}(${k}, \frac{1}{${m}})\).</div>
+                   <div class="sol-step">${askSd
+                     ? R`$$\text{Var}(Y) = \frac{a}{\lambda^2} = ${k}\cdot${m}^2, \qquad \text{SD}(Y) = \sqrt{${k}}\cdot${m} \approx ${f4(ans)}$$`
+                     : R`$$E(Y) = \frac{a}{\lambda} = ${k}\cdot${m} = ${ans}$$`}</div>`,
+            };
+          },
+        },
+        {
+          name: "Gamma PDF value",
+          make() {
+            const a = U.randInt(2, 4), lam = U.pick([0.5, 1, 2, 3]), y = U.pick([0.5, 1, 1.5, 2]);
+            const ans = Math.pow(lam, a) * Math.pow(y, a - 1) * Math.exp(-lam * y) / U.factorial(a - 1);
+            return {
+              q: R`\(Y \sim \text{Gamma}(${a}, ${lam})\). Find the density value \(f(${y})\).`,
+              answer: ans, kind: "num",
+              sol: R`<div class="sol-step">\(f(y) = \frac{\lambda^a}{\Gamma(a)}y^{a - 1}e^{-\lambda y}\), with \(\Gamma(${a}) = ${a - 1}! = ${U.factorial(a - 1)}\).</div>
+                   <div class="sol-step">$$f(${y}) = \frac{${lam}^{${a}}}{${U.factorial(a - 1)}}\,(${y})^{${a - 1}}\,e^{-${U.fmt(lam * y)}}$$</div>
+                   <div class="sol-step">$$\approx ${f4(ans)}$$ A density value, not a probability.</div>`,
+            };
+          },
+        },
+        {
+          name: "Normalising constant of a Gamma shape",
+          make() {
+            const n = U.randInt(1, 4), lam = U.pick([1, 2, 3, 0.5]);
+            const ans = Math.pow(lam, n + 1) / U.factorial(n);
+            return {
+              q: R`\(f(y) = k\,y^{${n}}e^{-${rate(lam)}y}\) for \(y > 0\), and \(0\) otherwise. Find \(k\) so that \(f\) is a valid PDF.`,
+              answer: ans, kind: "num",
+              sol: R`<div class="sol-step">Recognise the shape: \(y^{a - 1}e^{-\lambda y}\) with \(a = ${n + 1}\), \(\lambda = ${lam}\). It is a \(\text{Gamma}(${n + 1}, ${lam})\) density, so \(k\) must be \(\frac{\lambda^a}{\Gamma(a)}\).</div>
+                   <div class="sol-step">$$k = \frac{${lam}^{${n + 1}}}{\Gamma(${n + 1})} = \frac{${U.fmt(Math.pow(lam, n + 1))}}{${n}!}$$ (the same as \(1 / \int_0^\infty y^{${n}}e^{-${rate(lam)}y}\,dy\)).</div>
+                   <div class="sol-step">$$k ${Number.isInteger(ans) ? "=" : R`\approx`} ${f4(ans)}$$</div>`,
+            };
+          },
+        },
+        {
+          name: "k-th arrival by time t: count the arrivals",
+          make() {
+            const g = arrivals();
+            const t = U.pick([0.5, 1, 1.5, 2]);
+            const mu = g.r * t;
+            let below = 0;
+            const terms = [];
+            for (let j = 0; j < g.k; j++) {
+              below += Math.exp(-mu) * Math.pow(mu, j) / U.factorial(j);
+              terms.push(R`\frac{e^{-${U.fmt(mu)}}(${U.fmt(mu)})^{${j}}}{${j}!}`);
+            }
+            const late = Math.random() < 0.4;
+            const ans = late ? below : 1 - below;
+            return {
+              q: R`${g.Who} arrive as a Poisson process at an average rate of ${g.r} per hour. Find the probability that the ${ord(g.k)} arrival comes ${late ? "after" : "within"} the first ${U.fmt(t)} hour${t === 1 ? "" : "s"}.`,
+              answer: ans, kind: "prob",
+              sol: R`<div class="sol-step">The time of the ${ord(g.k)} arrival is \(\text{Gamma}(${g.k}, ${g.r})\), but there is no need to integrate it: the ${ord(g.k)} arrival comes by time \(t\) exactly when at least ${g.k} arrivals fall in \([0, t]\).</div>
+                   <div class="sol-step">The count in \(${U.fmt(t)}\) hour${t === 1 ? "" : "s"} is \(N \sim \text{Pois}(${g.r}\cdot${U.fmt(t)}) = \text{Pois}(${U.fmt(mu)})\), and $$P(N \le ${g.k - 1}) = ${terms.join(" + ")} \approx ${f4(below)}$$</div>
+                   <div class="sol-step">$$P(\text{${late ? "after" : "within"}}) = ${late ? R`P(N \le ${g.k - 1})` : R`1 - P(N \le ${g.k - 1})`} \approx ${f4(ans)}$$</div>`,
+            };
+          },
+        },
+      ],
+    }),
   ];
 
   const methodGuide = [
@@ -719,7 +1238,32 @@
     {
       when: R`"uniformly distributed on \([a, b]\)", "at a random time between …"`,
       use: R`\(f = \frac{1}{b - a}\); mean \(\frac{a + b}{2}\); variance \(\frac{(b - a)^2}{12}\)`,
-      why: R`Probability is proportional to length. The height \(\frac{1}{b - a}\) exceeds 1 whenever the interval is shorter than 1.`,
+      why: R`Probability is proportional to length. The height \(\frac{1}{b - a}\) exceeds 1 whenever the interval is shorter than 1. Clip any interval to \([a, b]\) before measuring it; conditioning on a sub-interval leaves a uniform on that sub-interval.`,
+    },
+    {
+      when: R`"waiting time", "lifetime", "time between arrivals" with an <b>average</b> given`,
+      use: R`\(X \sim \text{Expo}(\lambda)\) with \(\lambda = \frac{1}{\text{mean}}\); \(P(X \le t) = 1 - e^{-\lambda t}\), \(P(X > t) = e^{-\lambda t}\)`,
+      why: R`The rate is the reciprocal of the mean. Mean \(\frac{1}{\lambda}\), variance \(\frac{1}{\lambda^2}\), so the SD equals the mean. A tail probability given in the question can be solved for \(\lambda\) by taking logs.`,
+    },
+    {
+      when: R`"given that it has already lasted / no one has come in the first \(s\)", "at least another \(t\)"`,
+      use: R`Memorylessness: \(P(X > s + t \mid X > s) = P(X > t) = e^{-\lambda t}\)`,
+      why: R`Only the additional time matters for an Exponential (or Geometric). Not for a uniform, and not for anything that wears out, like a car battery.`,
+    },
+    {
+      when: R`"Poisson process", "exactly \(k\) arrive in an hour" with the average gap given`,
+      use: R`Count in a window of length \(t\): \(N \sim \text{Pois}(\lambda t)\); gaps: \(\text{Expo}(\lambda)\)`,
+      why: R`Counts are discrete (Poisson), waiting times continuous (Exponential, Gamma). Convert to one time unit first: a 20-minute mean gap is 3 per hour.`,
+    },
+    {
+      when: R`"time until the \(k\)th arrival", "total lifetime of \(k\) spares used in turn"`,
+      use: R`\(\text{Gamma}(k, \lambda)\): mean \(\frac{k}{\lambda}\), variance \(\frac{k}{\lambda^2}\); \(P(Y \le t) = P(\text{Pois}(\lambda t) \ge k)\)`,
+      why: R`A sum of \(k\) independent \(\text{Expo}(\lambda)\) gaps. The variances add, so the SD is \(\frac{\sqrt{k}}{\lambda}\). \(\text{Gamma}(1, \lambda)\) is the Exponential.`,
+    },
+    {
+      when: R`\(\Gamma(n)\), \(\int_0^\infty x^n e^{-cx}\,dx\), or a density \(k\,y^{n}e^{-\lambda y}\)`,
+      use: R`\(\Gamma(n) = (n - 1)!\), \(\Gamma(a + 1) = a\Gamma(a)\), \(\int_0^\infty x^n e^{-cx}\,dx = \frac{n!}{c^{n + 1}}\)`,
+      why: R`Recognise a Gamma kernel instead of integrating by parts: \(y^{a - 1}e^{-\lambda y}\) needs the constant \(\frac{\lambda^a}{\Gamma(a)}\).`,
     },
   ];
 
@@ -729,7 +1273,7 @@
     short: "Ch 5 · Continuous",
     week: 5,
     order: 5,
-    description: "Continuous random variables: probability density functions and their validity, probabilities as areas, the CDF and f = F′, percentiles, and the mean and variance of a continuous r.v.",
+    description: "Continuous random variables: probability density functions and their validity, probabilities as areas, the CDF and f = F′, percentiles, the mean and variance of a continuous r.v., and the Uniform, Exponential (memorylessness, Poisson processes) and Gamma distributions.",
     flashcards,
     generators,
     methodGuide,
