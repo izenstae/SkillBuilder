@@ -43,7 +43,20 @@ function hubHydrate(st) {
   HUB.plan.priority = Object.assign(plDefault().priority, (st.plan || {}).priority || {});
   HUB.quant = Object.assign(qtNew(), st.quant || {});
   rebind();
+  ensureLessonSkills();
   return HUB;
+}
+/* a passed lesson whose drills changed (a new drill replacing a recall card or a quiz) gets the new skills on its schedule, due now */
+function ensureLessonSkills() {
+  if (typeof COURSES === "undefined") return;
+  var now = Date.now();
+  Object.keys(COURSES).forEach(function (cid) {
+    var c = COURSES[cid]; if (!c.lessonList) return;
+    c.lessonList.forEach(function (L) {
+      if (!progress[cid + ":" + L.id]) return;
+      lessonSkillIds(c, L).forEach(function (id) { if (skills[id]) return; var s = skillOf(id); srsGraduate(s, now); s.due = now; });
+    });
+  });
 }
 hubHydrate(null);
 function hubLoad() {

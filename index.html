@@ -364,8 +364,9 @@ label.f{display:block; font:11px var(--mono); letter-spacing:.08em; text-transfo
 .sq.sel{box-shadow:inset 0 0 0 3px var(--accent)} .sq.mark{box-shadow:inset 0 0 0 3px var(--accent)} .sq.last{box-shadow:inset 0 0 0 3px rgba(47,92,158,.85)}
 .sq.hint:after{content:""; width:28%; height:28%; border-radius:50%; background:rgba(26,24,20,.35); position:absolute} .sq.hint.cap:after{width:92%; height:92%; background:none; border:4px solid rgba(26,24,20,.35); border-radius:50%}
 .sq.check{background:radial-gradient(circle, rgba(185,50,28,.85) 0, rgba(185,50,28,.4) 60%, transparent 70%)}
-.sq .co{position:absolute; left:2px; top:1px; font-size:9px; color:rgba(0,0,0,.45); font-family:var(--mono)} .sq .cf{position:absolute; right:2px; bottom:0; font-size:9px; color:rgba(0,0,0,.45); font-family:var(--mono)}
+.sq .co{position:absolute; left:2px; top:1px; font-size:10px; color:rgba(0,0,0,.6); font-family:var(--mono)} .sq .cf{position:absolute; right:2px; bottom:0; font-size:10px; color:rgba(0,0,0,.6); font-family:var(--mono)}
 .board.nocoords .co,.board.nocoords .cf{display:none}
+#stage .board{margin-bottom:18px} .ask small{display:block; font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--accent); margin-bottom:6px}
 .playgrid{display:grid; grid-template-columns:minmax(0, 440px) 1fr; gap:18px} @media(max-width:860px){ .playgrid{grid-template-columns:1fr} }
 .moves{font:13px var(--mono); line-height:1.8; max-height:260px; overflow:auto; color:var(--ink2)} .moves .mn{color:var(--ink3); margin-right:4px} .moves .mv{color:var(--ink); margin-right:10px} .moves .mv.Best{color:var(--green)} .moves .mv.Good{color:#6FA98A} .moves .mv.Inaccuracy{color:var(--gold)} .moves .mv.Mistake{color:#D0683F} .moves .mv.Blunder{color:var(--red)}
 .gradebar{display:flex; gap:2px; height:10px; overflow:hidden; margin:8px 0} .gradebar i{display:block} .gradebar .Best{background:var(--green)} .gradebar .Good{background:#6FA98A} .gradebar .Inaccuracy{background:var(--gold)} .gradebar .Mistake{background:#D0683F} .gradebar .Blunder{background:var(--red)}
@@ -1538,7 +1539,8 @@ function lessonSkillIds(c, L) {
   if (L.mode.indexOf("words:") === 0) (c.words[L.mode.slice(6)] || []).forEach(function (it) { out.push(it.id); });
   else if (L.mode === "quiz") out.push(c.id + ":q:" + L.id);
   else if (L.mode !== "mixed" && c.drills[L.mode]) out.push(c.id + ":" + L.mode);
-  if (ruleOf(L)) out.push("rule:" + c.id + ":" + L.id);
+  /* a course with a board drill for every concept (chess) leaves the rule out of the schedule: the drill tests it */
+  if (ruleOf(L) && c.ruleCards !== false) out.push("rule:" + c.id + ":" + L.id);
   return out;
 }
 /* what a skill id is: course, kind, display name, target seconds, its lesson, and a generator */
@@ -1548,13 +1550,13 @@ function skInfo(id) {
   var info = null, m;
   if ((m = id.match(/^rule:([^:]+):(.+)$/))) {
     var c0 = COURSES[m[1]], L0 = c0 && c0.lessonById[m[2]];
-    if (L0) info = { id: id, course: m[1], kind: "rule", name: "Recall: " + L0.title, target: 25, lesson: L0, text: ruleOf(L0) };
+    if (L0 && c0.ruleCards !== false) info = { id: id, course: m[1], kind: "rule", name: "Recall: " + L0.title, target: 25, lesson: L0, text: ruleOf(L0) };
   } else if ((m = id.match(/^([^:]+):w:([^:]+):(\d+)$/))) {
     var c1 = COURSES[m[1]], it = c1 && c1.wordById[id];
     if (it) info = { id: id, course: m[1], kind: "word", name: it.w + " · " + it.g, target: 8, lesson: c1.lessonById[it.lesson], item: it };
   } else if ((m = id.match(/^([^:]+):q:(.+)$/))) {
     var c2 = COURSES[m[1]], L2 = c2 && c2.lessonById[m[2]];
-    if (L2 && L2.quiz) info = { id: id, course: m[1], kind: "quiz", name: "Reader: " + L2.title, target: 20, lesson: L2 };
+    if (L2 && L2.quiz && L2.mode === "quiz") info = { id: id, course: m[1], kind: "quiz", name: "Reader: " + L2.title, target: 20, lesson: L2 };
   } else if ((m = id.match(/^([^:]+):(.+)$/))) {
     var c3 = COURSES[m[1]], d = c3 && c3.drills[m[2]];
     if (d) {
@@ -3536,6 +3538,73 @@ var CH_OPENINGS = [
   ["1.e4 e5 2.Nf3 Nc6 3.d4", "Scotch Game", "White opens the centre at once."]
 ];
 
+/* rook and pawn against rook. Each position was generated from a Lucena or Philidor setup (shifted along the board,
+   mirrored and colour-swapped) and every legal move scored by Stockfish 10 at depth 18 (the opening Philidor check at 26):
+   accept = the moves that keep the result, and a position was kept only if every other move clearly changes it.
+   drop: the pawn has reached the sixth, the defender holds by dropping the rook back to check from behind.
+   block: Lucena, the attacking king has stepped out and is checked; the rook blocks on the fourth rank (the bridge).
+   result: a win (Lucena: defending king cut off) or a draw (Philidor: defending king in front of the pawn). */
+var CH_ROOKEND = [
+  { kind: "drop", fen: "4k3/8/r3P3/5K2/8/8/8/7R b - - 0 1", accept: ["Ra4","Ra3","Ra2"] },
+  { kind: "drop", fen: "7r/8/8/8/5k2/R3p3/8/4K3 w - - 0 1", accept: ["Ra6","Ra7","Ra5"] },
+  { kind: "drop", fen: "3k4/8/3P3r/2K5/8/8/8/R7 b - - 0 1", accept: ["Rh4","Rh3","Rh2"] },
+  { kind: "drop", fen: "r7/8/8/8/2k5/3p3R/8/3K4 w - - 0 1", accept: ["Rh6","Rh7","Rh5"] },
+  { kind: "drop", fen: "4k3/8/r3P3/5K2/8/8/8/1R6 b - - 0 1", accept: ["Ra4","Ra3","Ra2"] },
+  { kind: "drop", fen: "1r6/8/8/8/5k2/R3p3/8/4K3 w - - 0 1", accept: ["Ra5","Ra6","Ra7"] },
+  { kind: "drop", fen: "5k2/8/1r3P2/6K1/8/8/8/2R5 b - - 0 1", accept: ["Rb4","Rb3","Rb2"] },
+  { kind: "drop", fen: "2r5/8/8/8/6k1/1R3p2/8/5K2 w - - 0 1", accept: ["Rb5","Rb6","Rb7"] },
+  { kind: "drop", fen: "2k5/8/2P3r1/1K6/8/8/8/5R2 b - - 0 1", accept: ["Rg4","Rg3","Rg2"] },
+  { kind: "drop", fen: "5r2/8/8/8/1k6/2p3R1/8/2K5 w - - 0 1", accept: ["Rg5","Rg6","Rg7"] },
+  { kind: "drop", fen: "3k4/8/3P3r/2K5/8/8/8/6R1 b - - 0 1", accept: ["Rh4","Rh3","Rh2"] },
+  { kind: "drop", fen: "6r1/8/8/8/2k5/3p3R/8/3K4 w - - 0 1", accept: ["Rh5","Rh6","Rh7"] },
+  { kind: "drop", fen: "4k3/8/4P2r/3K4/8/8/8/R7 b - - 0 1", accept: ["Rh4","Rh3","Rh2"] },
+  { kind: "drop", fen: "r7/8/8/8/3k4/4p2R/8/4K3 w - - 0 1", accept: ["Rh5","Rh6","Rh7"] },
+  { kind: "drop", fen: "3k4/8/r2P4/4K3/8/8/8/7R b - - 0 1", accept: ["Ra4","Ra3","Ra2"] },
+  { kind: "drop", fen: "7r/8/8/8/4k3/R2p4/8/3K4 w - - 0 1", accept: ["Ra5","Ra6","Ra7"] },
+  { kind: "block", fen: "8/1P2k3/8/1K6/3R4/8/8/1r6 w - - 0 1", accept: ["Rb4","Ka6","Kc6"] },
+  { kind: "block", fen: "1R6/8/8/3r4/1k6/8/1p2K3/8 b - - 0 1", accept: ["Rb5","Ka3","Kc3"] },
+  { kind: "block", fen: "8/2P2k2/8/2K5/4R3/8/8/2r5 w - - 0 1", accept: ["Rc4","Kb6","Kd6"] },
+  { kind: "block", fen: "2R5/8/8/4r3/2k5/8/2p2K2/8 b - - 0 1", accept: ["Rc5","Kb3","Kd3"] },
+  { kind: "block", fen: "8/3P2k1/8/3K4/5R2/8/8/3r4 w - - 0 1", accept: ["Rd4","Kc6","Ke6"] },
+  { kind: "block", fen: "3R4/8/8/5r2/3k4/8/3p2K1/8 b - - 0 1", accept: ["Rd5","Kc3","Ke3"] },
+  { kind: "block", fen: "8/4P2k/8/4K3/6R1/8/8/4r3 w - - 0 1", accept: ["Re4","Kf6","Kd6"] },
+  { kind: "block", fen: "4R3/8/8/6r1/4k3/8/4p2K/8 b - - 0 1", accept: ["Re5","Kf3","Kd3"] },
+  { kind: "block", fen: "8/k2P4/8/3K4/1R6/8/8/3r4 w - - 0 1", accept: ["Rd4","Kc6","Ke6"] },
+  { kind: "block", fen: "3R4/8/8/1r6/3k4/8/K2p4/8 b - - 0 1", accept: ["Rd5","Kc3","Ke3"] },
+  { kind: "block", fen: "8/1k2P3/8/4K3/2R5/8/8/4r3 w - - 0 1", accept: ["Re4","Kf6","Kd6"] },
+  { kind: "block", fen: "4R3/8/8/2r5/4k3/8/1K2p3/8 b - - 0 1", accept: ["Re5","Kd3","Kf3"] },
+  { kind: "block", fen: "8/2k2P2/8/5K2/3R4/8/8/5r2 w - - 0 1", accept: ["Rf4","Ke6","Kg6"] },
+  { kind: "block", fen: "5R2/8/8/3r4/5k2/8/2K2p2/8 b - - 0 1", accept: ["Rf5","Ke3","Kg3"] },
+  { kind: "block", fen: "8/3k2P1/8/6K1/4R3/8/8/6r1 w - - 0 1", accept: ["Rg4","Kf6","Kh6"] },
+  { kind: "block", fen: "6R1/8/8/4r3/6k1/8/3K2p1/8 b - - 0 1", accept: ["Rg5","Kf3","Kh3"] },
+  { kind: "result", fen: "1K1k4/1P6/8/8/8/8/r7/2R5 w - - 0 1", answer: "Win" },
+  { kind: "result", fen: "3K1k2/3P4/8/8/8/8/2r5/4R3 w - - 0 1", answer: "Win" },
+  { kind: "result", fen: "5K1k/5P2/8/8/8/8/4r3/6R1 w - - 0 1", answer: "Win" },
+  { kind: "result", fen: "1k1K4/3P4/8/8/8/8/4r3/2R5 w - - 0 1", answer: "Win" },
+  { kind: "result", fen: "3k1K2/5P2/8/8/8/8/6r1/4R3 w - - 0 1", answer: "Win" },
+  { kind: "result", fen: "1K6/1P1k4/8/8/8/8/r7/2R5 w - - 0 1", answer: "Win" },
+  { kind: "result", fen: "3K4/3P1k2/8/8/8/8/2r5/4R3 w - - 0 1", answer: "Win" },
+  { kind: "result", fen: "5K2/5P1k/8/8/8/8/4r3/6R1 w - - 0 1", answer: "Win" },
+  { kind: "result", fen: "3K4/1k1P4/8/8/8/8/4r3/2R5 w - - 0 1", answer: "Win" },
+  { kind: "result", fen: "5K2/3k1P2/8/8/8/8/6r1/4R3 w - - 0 1", answer: "Win" },
+  { kind: "result", fen: "4k3/8/r7/4PK2/8/8/8/1R6 w - - 0 1", answer: "Draw" },
+  { kind: "result", fen: "1r6/8/8/8/4pk2/R7/8/4K3 b - - 0 1", answer: "Draw" },
+  { kind: "result", fen: "5k2/8/1r6/5PK1/8/8/8/2R5 w - - 0 1", answer: "Draw" },
+  { kind: "result", fen: "2r5/8/8/8/5pk1/1R6/8/5K2 b - - 0 1", answer: "Draw" },
+  { kind: "result", fen: "6k1/8/2r5/6PK/8/8/8/3R4 w - - 0 1", answer: "Draw" },
+  { kind: "result", fen: "3r4/8/8/8/6pk/2R5/8/6K1 b - - 0 1", answer: "Draw" },
+  { kind: "result", fen: "1k6/8/5r2/KP6/8/8/8/4R3 w - - 0 1", answer: "Draw" },
+  { kind: "result", fen: "4r3/8/8/8/kp6/5R2/8/1K6 b - - 0 1", answer: "Draw" },
+  { kind: "result", fen: "2k5/8/6r1/1KP5/8/8/8/5R2 w - - 0 1", answer: "Draw" },
+  { kind: "result", fen: "5r2/8/8/8/1kp5/6R1/8/2K5 b - - 0 1", answer: "Draw" },
+  { kind: "result", fen: "3k4/8/7r/2KP4/8/8/8/6R1 w - - 0 1", answer: "Draw" },
+  { kind: "result", fen: "6r1/8/8/8/2kp4/7R/8/3K4 b - - 0 1", answer: "Draw" },
+  { kind: "result", fen: "4k3/8/8/4P3/4K3/8/r7/7R w - - 0 1", answer: "Draw" },
+  { kind: "result", fen: "7r/R7/8/4k3/4p3/8/8/4K3 b - - 0 1", answer: "Draw" },
+  { kind: "result", fen: "3k4/8/8/3P4/3K4/8/7r/R7 w - - 0 1", answer: "Draw" },
+  { kind: "result", fen: "r7/7R/8/3k4/3p4/8/8/3K4 b - - 0 1", answer: "Draw" }
+];
+
 /* ---- generators ---- */
 var CH_DRILLS = {};
 
@@ -3803,6 +3872,507 @@ CH_DRILLS.chopen = { name: "Openings", target: 10, gen: function (ctx) {
 } };
 
 /* ============================================================
+   CONCEPT DRILLS: one per lesson, on the board
+   Every answer is either an exact property of the position (a pin,
+   an isolated pawn, an outpost, a stalemate) or the engine's verdict
+   (a tactic that wins material, a move that is safe or a blunder).
+   ============================================================ */
+
+/* build a position piece by piece: list = [[square name, piece code]]; null if illegal (side not to move in check, pawns on the end ranks) */
+function chdPlace(list, side) {
+  var s = chNew(); s.side = side;
+  for (var i = 0; i < list.length; i++) {
+    var sq = chIdx(list[i][0]), p = list[i][1];
+    if (s.b[sq]) return null;
+    if (Math.abs(p) === CH_P && (chRank(sq) === 0 || chRank(sq) === 7)) return null;
+    s.b[sq] = p;
+  }
+  if (chKingSq(s, 1) < 0 || chKingSq(s, -1) < 0 || chInCheck(s, -side)) return null;
+  return s;
+}
+function chdRandSq(rnd) { return chSq((rnd() * 8) | 0, (rnd() * 8) | 0); }
+function chdKingDist(a, b) { return Math.max(Math.abs(chFile(a) - chFile(b)), Math.abs(chRank(a) - chRank(b))); }
+/* a few loose pawns for scenery, never giving check, never on the given squares */
+function chdScatter(s, rnd, n, avoid) {
+  for (var k = 0; k < n; k++) {
+    var sq = chSq((rnd() * 8) | 0, 1 + ((rnd() * 6) | 0));
+    if (s.b[sq] || (avoid || []).indexOf(sq) >= 0) continue;
+    s.b[sq] = rnd() < 0.5 ? CH_P : -CH_P;
+    if (chInCheck(s, 1) || chInCheck(s, -1)) s.b[sq] = 0;
+  }
+  return s;
+}
+/* the engine's verdict on a built tactic: every move within CH_FORK_SLACK of the best at depth 3 (as for the forks), provided the best wins at least CH_FORK_GAIN over the static count and a theme move is among them */
+function chdTacticAccept(s, isTheme) {
+  if (chInCheck(s) || chStatus(s) !== "") return null;
+  var before = chEval(s), themes = chLegal(s).filter(isTheme);
+  /* cheap first: does a theme move win material at all? */
+  if (!themes.some(function (m) { chMake(s, m); var r = chSearch(s, 2, 8000); chUnmake(s); return -r.score - before >= CH_FORK_GAIN; })) return null;
+  var sc = chScoreMoves(s, 3, 20000);
+  if (!sc.length || sc[0].score >= CH_MATE - 50 || sc[0].score - before < CH_FORK_GAIN) return null;
+  var acc = sc.filter(function (x) { return sc[0].score - x.score <= CH_FORK_SLACK; });
+  if (!acc.some(function (x) { return isTheme(x.move); })) return null;
+  return { accept: acc.map(function (x) { return x.san; }), best: sc[0], theme: acc.filter(function (x) { return isTheme(x.move); })[0] };
+}
+
+/* ---- pins: which pieces of a side are pinned to their own king ---- */
+function chdPinned(s, side) {
+  var k = chKingSq(s, side), out = [];
+  if (k < 0) return out;
+  CH_ROOK.concat(CH_BISHOP).forEach(function (d) {
+    var t = k + d, mine = -1;
+    while (s.b[t] === 0) t += d;
+    if (s.b[t] === CH_OFF || !s.b[t] || (s.b[t] > 0) !== (side > 0)) return;
+    mine = t; t += d;
+    while (s.b[t] === 0) t += d;
+    var p = s.b[t]; if (!p || p === CH_OFF || (p > 0) === (side > 0)) return;
+    var kind = Math.abs(p), straight = CH_ROOK.indexOf(d) >= 0;
+    if (kind === CH_Q || (straight ? kind === CH_R : kind === CH_B)) out.push({ sq: mine, by: t });
+  });
+  return out;
+}
+function chdLineDir(a, b) {
+  var df = chFile(b) - chFile(a), dr = chRank(b) - chRank(a);
+  if (df && dr && Math.abs(df) !== Math.abs(dr)) return 0;
+  if (!df && !dr) return 0;
+  return Math.sign(dr) * 10 + Math.sign(df);
+}
+/* a skewer: our slider checks along a line with a rook or queen behind the king */
+function chdBuildSkewer(rnd) {
+  var side = rnd() < 0.5 ? 1 : -1;
+  for (var t = 0; t < 60; t++) {
+    var slider = chdPick([CH_R, CH_B, CH_Q], rnd), dirs = slider === CH_R ? CH_ROOK : slider === CH_B ? CH_BISHOP : CH_ROOK.concat(CH_BISHOP);
+    var ek = chdRandSq(rnd), d = chdPick(dirs, rnd), behind = ek - d * (1 + ((rnd() * 2) | 0));
+    var to = ek + d * (2 + ((rnd() * 3) | 0));
+    if (!chOnBoard(behind) || !chOnBoard(to)) continue;
+    var mid = ek - d; if (behind !== mid && !chOnBoard(mid)) continue;
+    /* the slider arrives on `to` from somewhere off the line */
+    var from = null, dirs2 = lgShuffle(dirs.filter(function (x) { return x !== d && x !== -d; }), rnd);
+    for (var i = 0; i < dirs2.length && from == null; i++) { var f = to + dirs2[i] * (1 + ((rnd() * 3) | 0)), ok = chOnBoard(f); for (var u = to + dirs2[i]; ok && u !== f; u += dirs2[i]) if (!chOnBoard(u)) ok = false; if (ok) from = f; }
+    if (from == null) continue;
+    var target = chdPick([CH_Q, CH_R, CH_Q], rnd);
+    if (slider === CH_Q && target !== CH_Q) target = CH_Q;
+    var mk = chdRandSq(rnd);
+    var list = [[chName(ek), -CH_K * side], [chName(behind), -target * side], [chName(from), slider * side], [chName(mk), CH_K * side]];
+    if (chdKingDist(mk, ek) < 2) continue;
+    var s = chdPlace(list, side); if (!s) continue;
+    /* the line between must be empty, and nothing between `from` and `to` */
+    if (chInCheck(s, side)) continue;
+    chdScatter(s, rnd, 2 + ((rnd() * 4) | 0), [to, mid].concat(CH_KING.map(function (x) { return ek + x; })));
+    for (var w = to - d; w !== ek; w -= d) if (s.b[w]) { s = null; break; }
+    if (!s) continue;
+    var r = chdTacticAccept(s, function (m) { return m.from === from && m.to === to; });
+    if (r) return { s: s, r: r, theme: "skewer" };
+  }
+  return null;
+}
+/* a discovered check: our piece masks our slider's line to the king, then jumps to attack the queen */
+function chdBuildDiscovery(rnd) {
+  var side = rnd() < 0.5 ? 1 : -1;
+  for (var t = 0; t < 80; t++) {
+    var slider = chdPick([CH_R, CH_B, CH_Q], rnd), dirs = slider === CH_R ? CH_ROOK : slider === CH_B ? CH_BISHOP : CH_ROOK.concat(CH_BISHOP);
+    var ek = chdRandSq(rnd), d = chdPick(dirs, rnd), mask = ek + d * (1 + ((rnd() * 2) | 0)), sl = mask + d * (1 + ((rnd() * 2) | 0));
+    if (!chOnBoard(mask) || !chOnBoard(sl) || chdKingDist(mask, ek) < 2) continue;
+    var gaps = []; for (var g = ek + d; g !== sl; g += d) if (!chOnBoard(g)) { gaps = null; break; }
+    if (!gaps) continue;
+    var maskKind = chdPick([CH_N, CH_N, CH_B], rnd), jumps = maskKind === CH_N ? CH_KNIGHT : CH_BISHOP;
+    var to = mask + chdPick(jumps, rnd);
+    if (!chOnBoard(to) || chdLineDir(ek, to) === d) continue;
+    var qsq = to + chdPick(maskKind === CH_N ? CH_KNIGHT : CH_ROOK.concat(CH_BISHOP).filter(function (x) { return maskKind !== CH_B || CH_BISHOP.indexOf(x) >= 0; }), rnd) * (maskKind === CH_N ? 1 : 2);
+    if (!chOnBoard(qsq)) continue;
+    var mk = chdRandSq(rnd);
+    var list = [[chName(ek), -CH_K * side], [chName(mask), maskKind * side], [chName(sl), slider * side], [chName(qsq), -CH_Q * side], [chName(mk), CH_K * side]];
+    var s = chdPlace(list, side); if (!s || chInCheck(s, side) || chdKingDist(mk, ek) < 2) continue;
+    /* the queen must not be capturable at once: the point is the discovery */
+    if (chAttacked(s, qsq, side)) continue;
+    chdScatter(s, rnd, 2 + ((rnd() * 3) | 0), [to].concat(CH_KING.map(function (x) { return ek + x; })));
+    var lineClear = true; for (g = ek + d; g !== mask; g += d) if (s.b[g]) lineClear = false;
+    if (!lineClear || chAttacked(s, qsq, side)) continue;
+    var r = chdTacticAccept(s, function (m) { if (m.from !== mask) return false; chMake(s, m); var disc = chInCheck(s); chUnmake(s); return disc; });
+    if (r) return { s: s, r: r, theme: "discovery" };
+  }
+  return null;
+}
+/* a pin to exploit: a minor piece pinned to its king, and a pawn that can attack it */
+function chdBuildPinWin(rnd) {
+  var side = rnd() < 0.5 ? 1 : -1;
+  for (var t = 0; t < 80; t++) {
+    var slider = chdPick([CH_R, CH_B, CH_Q], rnd), dirs = slider === CH_R ? CH_ROOK : slider === CH_B ? CH_BISHOP : CH_ROOK.concat(CH_BISHOP);
+    var ek = chdRandSq(rnd), d = chdPick(dirs, rnd), pin = ek + d * (1 + ((rnd() * 2) | 0)), sl = pin + d * (2 + ((rnd() * 3) | 0));
+    if (!chOnBoard(pin) || !chOnBoard(sl)) continue;
+    var okLine = true; for (var g = ek + d; g !== sl; g += d) if (!chOnBoard(g)) okLine = false;
+    if (!okLine) continue;
+    /* our pawn: two squares below the pinned piece diagonally (from our side), pushing one attacks it */
+    var pf = chFile(pin) + (rnd() < 0.5 ? -1 : 1), pr = chRank(pin) - 2 * side;
+    if (pf < 0 || pf > 7 || pr < 1 || pr > 6) continue;
+    var paw = chSq(pf, pr);
+    var mk = chdRandSq(rnd), pinned = chdPick([CH_N, CH_B, CH_N], rnd);
+    var list = [[chName(ek), -CH_K * side], [chName(pin), -pinned * side], [chName(sl), slider * side], [chName(paw), CH_P * side], [chName(mk), CH_K * side]];
+    var s = chdPlace(list, side); if (!s || chInCheck(s, side) || chdKingDist(mk, ek) < 2) continue;
+    chdScatter(s, rnd, 2 + ((rnd() * 3) | 0), [paw + 10 * side].concat(CH_KING.map(function (x) { return ek + x; })));
+    if (!chdPinned(s, -side).some(function (p) { return p.sq === pin; })) continue;
+    var r = chdTacticAccept(s, function (m) { return m.from === paw; });
+    if (r) return { s: s, r: r, theme: "pin" };
+  }
+  return null;
+}
+var CH_LINE_TXT = {
+  skewer: ["Find the <b>skewer</b>: check along a line, and take what stands behind the king.", "A skewer is a pin in reverse: the valuable piece is in front, it must move, and the piece behind it falls. Two enemy pieces on one line is the cue."],
+  discovery: ["Find the <b>discovered check</b>: move the front piece so the piece behind it gives check, and let the moving piece win something.", "The moving piece is free to attack anything, because the opponent must answer the check first. Look for your own piece standing between your line piece and the enemy king."],
+  pin: ["A piece is <b>pinned</b> to its king. Win it.", "A piece pinned to the king cannot legally move, so attack it again, ideally with a pawn: it cannot run."]
+};
+CH_DRILLS.chline = { name: "Pins, skewers, discoveries", target: 20, gen: function (ctx) {
+  var rnd = chdRnd(ctx), pick = rnd(), t0 = Date.now();
+  /* one in four: spot the pinned piece in a game position (an exact property, no engine needed) */
+  if (pick < 0.25) {
+    for (var t = 0; t < 80; t++) {
+      var s = chRandomPosition(14 + ((rnd() * 40) | 0), rnd);
+      if (chStatus(s) === "checkmate" || chStatus(s) === "stalemate") continue;
+      var side = rnd() < 0.5 ? 1 : -1, pins = chdPinned(s, side);
+      if (!pins.length) { side = -side; pins = chdPinned(s, side); }
+      if (!pins.length) continue;
+      var names = pins.map(function (p) { return chName(p.sq); }), p0 = pins[0];
+      return { kind: "square", question: "Click the <b>" + (side > 0 ? "White" : "Black") + "</b> piece that is <b>pinned</b> to its king.", answer: names[0], accept: names, target: 12, board: chdPos(s, { flip: false }),
+        explain: ["The " + CH_NAMES[Math.abs(s.b[p0.sq])] + " on <b>" + names[0] + "</b> stands between its king and the " + CH_NAMES[Math.abs(s.b[p0.by])] + " on " + chName(p0.by) + (names.length > 1 ? " (also pinned: " + names.slice(1).join(", ") + ")" : "") + ". It may not move off that line.", "Scan out from the king along the eight lines: the first piece you meet of the king's own colour, with an enemy rook, bishop or queen of the right kind behind it, is pinned. A pinned piece does not defend either."] };
+    }
+  }
+  var builders = pick < 0.5 ? [chdBuildSkewer, chdBuildDiscovery, chdBuildPinWin] : pick < 0.75 ? [chdBuildDiscovery, chdBuildPinWin, chdBuildSkewer] : [chdBuildPinWin, chdBuildSkewer, chdBuildDiscovery];
+  var got = null;
+  for (var b = 0; b < builders.length * 2 && !got && Date.now() - t0 < 1500; b++) got = builders[b % builders.length](rnd);
+  if (!got) { var s0 = chFromFen("4k3/8/3p4/4n3/8/8/5P2/4R1K1 w - - 0 1"); got = { s: s0, r: chdTacticAccept(s0, function (m) { return chName(m.from) === "f2"; }), theme: "pin" }; }
+  var S = got.s, R = got.r, T = CH_LINE_TXT[got.theme];
+  return { kind: "move", question: chdSide(S) + " to move. " + T[0], answer: R.theme.san, accept: R.accept, target: 20, board: chdPos(S), elo: 1150,
+    explain: ["<b>" + R.theme.san + "</b> wins about " + Math.max(1, Math.round((R.best.score - chEval(S)) / 100)) + " points of material against the best defence" + (R.accept.length > 1 ? " (the engine also accepts " + R.accept.filter(function (x) { return x !== R.theme.san; }).join(", ") + ")" : "") + ".", T[1]] };
+} };
+
+/* ---- the back rank (Fischer): a king boxed in by its own pawns ---- */
+function chdBuildBackRank(rnd, two) {
+  for (var t = 0; t < 80; t++) {
+    var side = rnd() < 0.5 ? 1 : -1, home = side > 0 ? 7 : 0, fwd = -side;   /* the defender's back rank and the direction it faces */
+    var kf = 1 + ((rnd() * 6) | 0), list = [[chName(chSq(kf, home)), -CH_K * side]];
+    [-1, 0, 1].forEach(function (df) { var f = kf + df; if (f >= 0 && f <= 7) list.push([chName(chSq(f, home + fwd)), -CH_P * side]); });
+    var used = {}; list.forEach(function (x) { used[x[0]] = 1; });
+    var free = function () { for (var k = 0; k < 30; k++) { var f = (rnd() * 8) | 0; if (Math.abs(f - kf) > 1) return f; } return null; };
+    var f1 = free(); if (f1 == null) continue;
+    var heavy = [];
+    if (two) {
+      /* a defending rook on the back rank, two heavy pieces of ours on its file: take, retake, mate */
+      list.push([chName(chSq(f1, home)), -CH_R * side]);
+      var r1 = home + fwd * (2 + ((rnd() * 3) | 0)), r2 = home + fwd * (5 + ((rnd() * 2) | 0));
+      if (r2 < 0 || r2 > 7 || r1 < 0 || r1 > 7) continue;
+      heavy = [[chName(chSq(f1, r1)), chdPick([CH_R, CH_Q], rnd) * side], [chName(chSq(f1, r2)), CH_R * side]];
+    } else {
+      var rr = home + fwd * (1 + ((rnd() * 5) | 0)); if (rr < 0 || rr > 7) continue;
+      heavy = [[chName(chSq(f1, rr)), chdPick([CH_R, CH_R, CH_Q], rnd) * side]];
+    }
+    list = list.concat(heavy);
+    var mf = (rnd() * 8) | 0, mr = side > 0 ? 0 : 7, mk = chSq(mf, mr);
+    list.push([chName(mk), CH_K * side]);
+    /* our king gets luft so the defender has no back-rank trick of its own */
+    [-1, 0, 1].forEach(function (df) { var f = mf + df; if (f >= 0 && f <= 7 && df !== 0 && rnd() < 0.5) list.push([chName(chSq(f, mr + side)), CH_P * side]); });
+    var s = chdPlace(list, side); if (!s || chInCheck(s, side)) continue;
+    chdScatter(s, rnd, (rnd() * 4) | 0, []);
+    var mates = chMatingMoves(s);
+    if (!two) { if (mates.length) return { s: s, accept: mates.map(function (m) { return chSan(s, m); }), n: 1 }; continue; }
+    if (mates.length) continue;
+    var firsts = chdMate2Firsts(s);
+    if (firsts.length) return { s: s, accept: firsts, n: 2 };
+  }
+  return null;
+}
+CH_DRILLS.chbackrank = { name: "Back-rank mates", target: 20, gen: function (ctx) {
+  var rnd = chdRnd(ctx), two = rnd() < 0.45, got = chdBuildBackRank(rnd, two) || chdBuildBackRank(rnd, false);
+  if (!got) { var s = chFromFen(CH_MATE1[0][0]); got = { s: s, accept: chMatingMoves(s).map(function (m) { return chSan(s, m); }), n: 1 }; }
+  var S = got.s;
+  return { kind: "move", question: chdSide(S) + " to move. " + (got.n === 1 ? "<b>Mate in one</b> on the back rank." : "<b>Mate in two</b>: the back rank has one defender. Play the first move."), answer: got.accept[0], accept: got.accept, target: got.n === 1 ? 12 : 30, board: chdPos(S), elo: got.n === 1 ? 1000 : 1300,
+    explain: ["<b>" + got.accept[0] + "</b>" + (got.accept.length > 1 ? " (also " + got.accept.slice(1).join(", ") + ")" : "") + ".", got.n === 1 ? "The king is boxed in by its own pawns: a rook or queen that reaches the back rank with nothing to block or capture it is mate." : "Take the defender with check; it must be retaken, and the second heavy piece mates on the rank it just left. Remove the guard, then mate: Fischer's programmed lesson in one position."] };
+} };
+
+/* ---- the basic mates: king and queen, king and rook, and the stalemate trap ---- */
+function chdBareMate(rnd, piece) {
+  var side = rnd() < 0.5 ? 1 : -1;
+  for (var t = 0; t < 100; t++) {
+    var ek = chdRandSq(rnd), mk = chdRandSq(rnd), pq = chdRandSq(rnd);
+    var edge = chFile(ek) === 0 || chFile(ek) === 7 || chRank(ek) === 0 || chRank(ek) === 7;
+    if (!edge && rnd() < 0.8) continue;
+    var s = chdPlace([[chName(ek), -CH_K * side], [chName(mk), CH_K * side], [chName(pq), piece * side]], side);
+    if (!s || chInCheck(s, side) || chdKingDist(ek, mk) < 2) continue;
+    return s;
+  }
+  return null;
+}
+CH_DRILLS.chbasicmate = { name: "Basic mates", target: 20, gen: function (ctx) {
+  var rnd = chdRnd(ctx), pick = rnd(), piece = rnd() < 0.55 ? CH_Q : CH_R, nm = piece === CH_Q ? "queen" : "rook";
+  if (pick < 0.3) {
+    /* the stalemate trap: which of four moves leaves the lone king no move and no check? */
+    for (var t = 0; t < 300; t++) {
+      var s = chdBareMate(rnd, CH_Q); if (!s) continue;
+      var ms = chLegal(s).filter(function (m) { return Math.abs(m.piece) === CH_Q; }), stale = [], fine = [];
+      ms.forEach(function (m) { chMake(s, m); var st = chStatus(s); chUnmake(s); if (st === "stalemate") stale.push(m); else if (st === "" && !chAttacked(s, m.to, -s.side)) fine.push(m); });
+      if (!stale.length || fine.length < 3) continue;
+      var bad = chdPick(stale, rnd), opts = [chSan(s, bad)].concat(lgShuffle(fine, rnd).slice(0, 3).map(function (m) { return chSan(s, m); }));
+      return { kind: "choice", question: chdSide(s) + " to move, king and queen against king. Which queen move throws the win away by <b>stalemate</b>?", options: lgShuffle(opts, rnd), answer: chSan(s, bad), target: 15, board: chdPos(s),
+        explain: ["<b>" + chSan(s, bad) + "</b> leaves the lone king no legal move while it is not in check: stalemate, a draw.", "Shrink the box but always leave the king a square until your own king has arrived. Before any quiet queen move, count the enemy king's squares."] };
+    }
+  }
+  if (pick < 0.55) {
+    /* mate, stalemate or neither: the defender to move */
+    var want = chdPick(["checkmate", "stalemate", "", "check"], rnd);
+    for (t = 0; t < 2000; t++) {
+      var s2 = chdBareMate(rnd, piece); if (!s2) continue;
+      s2.side = -s2.side; if (chInCheck(s2, -s2.side)) continue;
+      var st2 = chStatus(s2); if (st2 !== want && t < 1900) continue;
+      var ans = st2 === "checkmate" ? "Checkmate" : st2 === "stalemate" ? "Stalemate" : st2 === "check" ? "Check, but not mate" : "Neither: play goes on";
+      return { kind: "choice", question: chdSide(s2) + " to move. Checkmate, stalemate, or neither?", options: ["Checkmate", "Stalemate", "Check, but not mate", "Neither: play goes on"], answer: ans, target: 10, board: chdPos(s2, { flip: false }),
+        explain: ["<b>" + ans + "</b>. " + (st2 === "checkmate" ? "The king is in check and every square is covered." : st2 === "stalemate" ? "The king is not in check but has no legal move: a draw." : st2 === "check" ? "The king is in check but has a square (or can capture the " + nm + ")." : "Not in check, and the king has a legal move."), "Two questions, every time: is the king attacked now, and does it have a legal move?"] };
+    }
+  }
+  /* deliver the mate: in one, or in two with the quiet move */
+  for (t = 0; t < 400; t++) {
+    var s3 = chdBareMate(rnd, piece); if (!s3) continue;
+    var mm = chMatingMoves(s3);
+    if (mm.length && rnd() < 0.5) return { kind: "move", question: chdSide(s3) + " to move. King and " + nm + ": <b>mate in one</b>.", answer: chSan(s3, mm[0]), accept: mm.map(function (m) { return chSan(s3, m); }), target: 12, board: chdPos(s3), elo: 900,
+      explain: ["<b>" + chSan(s3, mm[0]) + "</b>.", piece === CH_Q ? "The queen mates on the edge, protected by the king or from a distance with the king taking the escape squares." : "The rook checks along the edge while your king faces the enemy king (opposition): the king has nowhere to go."] };
+    if (mm.length) continue;
+    var f2 = chdMate2Firsts(s3);
+    if (f2.length && f2.length <= 6) return { kind: "move", question: chdSide(s3) + " to move. King and " + nm + ": <b>mate in two</b>. Play the first move.", answer: f2[0], accept: f2, target: 30, board: chdPos(s3), elo: 1150,
+      explain: ["<b>" + f2[0] + "</b>" + (f2.length > 1 ? " (also " + f2.slice(1).join(", ") + ")" : "") + ".", "Often the first move is quiet: it takes the last squares away without stalemate, and the mate follows. Check that the lone king has exactly the moves you expect."] };
+  }
+  return CH_DRILLS.chmate1.gen(ctx);
+} };
+
+/* ---- rook endings: Lucena and Philidor, every answer checked by Stockfish at depth 30 (see CH_ROOKEND) ---- */
+CH_DRILLS.chrookend = { name: "Lucena and Philidor", target: 25, gen: function (ctx) {
+  var rnd = chdRnd(ctx), e = chdPick(CH_ROOKEND, rnd), s = chFromFen(e.fen);
+  if (e.kind === "result") return { kind: "choice", question: chdSide(s) + " to move. With best play, is this a <b>win</b> for the side with the pawn, or a <b>draw</b>?", options: ["Win", "Draw"], answer: e.answer, target: 20, board: chdPos(s, { flip: false }),
+    explain: [e.answer === "Win" ? "<b>Win.</b> The attacking king stands in front of its pawn on the seventh and the defending king is cut off: the Lucena position. The rook builds a bridge on the fourth rank and the pawn queens." : "<b>Draw.</b> The defending king is in front of the pawn: the Philidor position. The rook holds the third rank, then checks from behind once the pawn advances.", "The first question in every rook ending: where is the defending king? In front of the pawn, a draw; cut off from it, usually a win."] };
+  var drop = e.kind === "drop";
+  return { kind: "move", question: chdSide(s) + " to move. " + (drop ? "The pawn has just reached the sixth rank. <b>Hold the draw.</b>" : "The king has stepped out of the Lucena box and is being checked. <b>Keep the win.</b>"), answer: e.accept[0], accept: e.accept, target: 25, board: chdPos(s), elo: 1400,
+    explain: ["<b>" + e.accept[0] + "</b>" + (e.accept.length > 1 ? " (also " + e.accept.slice(1).join(", ") + ")" : "") + ".", drop ? "Philidor's second phase: the pawn on the sixth has taken the attacking king's shelter, so the rook drops back down its file and checks from behind; the king can never hide. Every other move here loses (Stockfish)." : "The rook interposes on the fourth rank: the bridge. The checks are over and the pawn queens. Stepping the king back toward the pawn also keeps the win, but only repeats the position; walking away from the pawn lets the defender check forever (Stockfish)."] };
+} };
+
+/* ---- opening principles: develop, take the centre, castle, without hanging anything ---- */
+function chdPrincipled(s, m) {
+  var kind = Math.abs(m.piece), back = s.side > 0 ? 0 : 7, fr = chRank(m.from);
+  if (m.flag === "castle" || (kind === CH_K && Math.abs(chFile(m.to) - chFile(m.from)) === 2)) return "castles";
+  if ((kind === CH_N || kind === CH_B) && fr === back && !m.cap && (kind === CH_B || (chFile(m.to) > 0 && chFile(m.to) < 7))) return "develops";
+  if (kind === CH_P && (chFile(m.from) === 3 || chFile(m.from) === 4) && fr === (s.side > 0 ? 1 : 6) && !m.cap) return "a centre pawn";
+  return null;
+}
+CH_DRILLS.chdevelop = { name: "Opening principles", target: 15, gen: function (ctx) {
+  var rnd = chdRnd(ctx);
+  for (var t = 0; t < 40; t++) {
+    var o = chdPick(CH_OPENINGS, rnd), toks = o[0].split(/\s+/).map(function (x) { return x.replace(/^\d+\./, ""); }).filter(Boolean);
+    var n = 1 + ((rnd() * toks.length) | 0), s = chStart();
+    for (var i = 0; i < n; i++) { var m = chParseSan(s, toks[i]); if (m) chMake(s, m); }
+    var sc = chScoreMoves(s, 3, 30000), best = sc[0].score;
+    var good = sc.filter(function (x) { return chdPrincipled(s, x.move) && best - x.score <= 60; });
+    if (!good.length) continue;
+    var shown = toks.slice(0, n), line = shown.map(function (x, k) { return (k % 2 === 0 ? (k / 2 + 1) + "." : "") + x; }).join(" ");
+    return { kind: "move", question: "After <b>" + line + "</b>, " + chdSide(s) + " to move. Play a move that follows the <b>opening principles</b>: develop a knight or bishop, move the d- or e-pawn, or castle, without losing material.", answer: good[0].san, accept: good.map(function (x) { return x.san; }), target: 15, board: chdPos(s),
+      explain: ["Good here: " + good.map(function (x) { return "<b>" + x.san + "</b> (" + chdPrincipled(s, x.move) + ")"; }).join(", ") + ".", "Not now: moving a developed piece again, an early queen trip, a rim pawn. Every principled move above was checked by the engine not to drop material."] };
+  }
+  return CH_DRILLS.chopen.gen(ctx);
+} };
+
+/* ---- pawn structure: exact definitions ---- */
+function chdPawns(s, side) { return chPieces(s).filter(function (p) { return p.kind === CH_P && p.side === side; }).map(function (p) { return p.sq; }); }
+function chdIsolated(s, side) { var P = chdPawns(s, side); return P.filter(function (a) { return !P.some(function (b) { return Math.abs(chFile(b) - chFile(a)) === 1; }); }); }
+function chdDoubled(s, side) { var P = chdPawns(s, side); return P.filter(function (a) { return P.some(function (b) { return b !== a && chFile(b) === chFile(a); }); }); }
+function chdPassed(s, side) { var P = chdPawns(s, side), E = chdPawns(s, -side); return P.filter(function (a) { return !E.some(function (b) { return Math.abs(chFile(b) - chFile(a)) <= 1 && (chRank(b) - chRank(a)) * side > 0; }); }); }
+function chdIslands(s, side) { var files = [0, 0, 0, 0, 0, 0, 0, 0], n = 0; chdPawns(s, side).forEach(function (a) { files[chFile(a)] = 1; }); for (var f = 0; f < 8; f++) if (files[f] && (f === 0 || !files[f - 1])) n++; return n; }
+var CH_PAWN_DEF = {
+  isolated: [chdIsolated, "an <b>isolated</b> pawn (no friendly pawn on either neighbouring file)", "It cannot be defended by a pawn: blockade the square in front of it and attack it with pieces."],
+  doubled: [chdDoubled, "a <b>doubled</b> pawn (two friendly pawns on one file)", "Doubled pawns cannot protect each other, and the front one usually falls in the endgame."],
+  passed: [chdPassed, "a <b>passed</b> pawn (no enemy pawn in front of it on its own or a neighbouring file)", "Only pieces can stop it: push it, put a rook behind it, and blockade the enemy's."]
+};
+CH_DRILLS.chpawns = { name: "Pawn structure", target: 12, gen: function (ctx) {
+  var rnd = chdRnd(ctx), kind = chdPick(["isolated", "doubled", "passed", "passed", "islands"], rnd);
+  for (var t = 0; t < 200; t++) {
+    var s = chRandomPosition(20 + ((rnd() * 50) | 0), rnd), side = rnd() < 0.5 ? 1 : -1, nm = side > 0 ? "White" : "Black";
+    if (chdPawns(s, side).length < 3) continue;
+    if (kind === "islands") {
+      var n = chdIslands(s, side);
+      return { kind: "num", question: "How many <b>pawn islands</b> does <b>" + nm + "</b> have? (An island is a group of pawns on neighbouring files.)", answer: n, tol: 0, target: 12, board: chdPos(s, { flip: false }),
+        explain: [nm + " has <b>" + n + "</b>: files with pawns are " + chdPawns(s, side).map(function (a) { return CH_FILES[chFile(a)]; }).filter(function (x, i, A) { return A.indexOf(x) === i; }).sort().join(", ") + "; each break between occupied files starts a new island.", "Fewer islands is usually the healthier structure: every island has a weak end that pieces must defend (Capablanca)."] };
+    }
+    var D = CH_PAWN_DEF[kind], hits = D[0](s, side);
+    if (!hits.length || hits.length === chdPawns(s, side).length) continue;
+    var names = hits.map(chName);
+    return { kind: "square", question: "Click " + D[1].replace("a <b>", "a <b>") + " of <b>" + nm + "</b>.", answer: names[0], accept: names, target: 12, board: chdPos(s, { flip: false }),
+      explain: [nm + "'s " + kind + " pawn" + (names.length > 1 ? "s: " : ": ") + "<b>" + names.join(", ") + "</b>.", D[2]] };
+  }
+  return CH_DRILLS.chmat.gen(ctx);
+} };
+
+/* ---- good and bad pieces: open files, outposts, good and bad bishops ---- */
+function chdOpenFiles(s) { var out = []; for (var f = 0; f < 8; f++) { var any = false; for (var r = 0; r < 8; r++) { var p = s.b[chSq(f, r)]; if (Math.abs(p) === CH_P) any = true; } if (!any) out.push(f); } return out; }
+/* an outpost for side: in the enemy half (rank 4–6 from its side), defended by its own pawn, and no enemy pawn on a neighbouring file can ever attack it */
+function chdOutposts(s, side) {
+  var E = chdPawns(s, -side), out = [];
+  for (var f = 0; f < 8; f++) for (var rr = 3; rr <= 5; rr++) {
+    var r = side > 0 ? rr : 7 - rr, sq = chSq(f, r);
+    if (Math.abs(s.b[sq]) === CH_P) continue;
+    var defended = s.b[sq - 9 * side] === CH_P * side || s.b[sq - 11 * side] === CH_P * side;
+    var safe = !E.some(function (b) { return Math.abs(chFile(b) - f) === 1 && (chRank(b) - r) * side > 0; });
+    if (defended && safe) out.push(sq);
+  }
+  return out;
+}
+CH_DRILLS.chpiece = { name: "Good and bad pieces", target: 15, gen: function (ctx) {
+  var rnd = chdRnd(ctx), pick = rnd();
+  if (pick < 0.35) {
+    /* rooks to the open file */
+    for (var t = 0; t < 120; t++) {
+      var s = chRandomPosition(24 + ((rnd() * 50) | 0), rnd); if (chStatus(s) !== "") continue;
+      var open = chdOpenFiles(s); if (!open.length || open.length > 3) continue;
+      var rooks = chLegal(s).filter(function (m) { return Math.abs(m.piece) === CH_R && open.indexOf(chFile(m.to)) >= 0 && open.indexOf(chFile(m.from)) < 0; });
+      if (!rooks.length) continue;
+      var best = chSearch(s, 2, 20000).score;
+      var good = rooks.map(function (m) { chMake(s, m); var r = chLegal(s).length ? -chSearch(s, 1, 8000).score : (chInCheck(s) ? CH_MATE : 0); chUnmake(s); return { move: m, san: chSan(s, m), score: r }; }).filter(function (x) { return best - x.score <= 80; });
+      if (!good.length) continue;
+      return { kind: "move", question: chdSide(s) + " to move. Put a <b>rook on an open file</b> (a file with no pawns), without losing material.", answer: good[0].san, accept: good.map(function (x) { return x.san; }), target: 15, board: chdPos(s),
+        explain: ["Open file" + (open.length > 1 ? "s" : "") + ": <b>" + open.map(function (f) { return CH_FILES[f]; }).join(", ") + "</b>. Accepted: " + good.map(function (x) { return x.san; }).join(", ") + ".", "A rook on an open file reaches the seventh rank and the enemy camp; behind its own pawns it is a spectator."] };
+    }
+  }
+  if (pick < 0.7) {
+    /* outposts */
+    for (t = 0; t < 200; t++) {
+      var s2 = chRandomPosition(16 + ((rnd() * 50) | 0), rnd), side = rnd() < 0.5 ? 1 : -1, op = chdOutposts(s2, side);
+      if (!op.length || op.length > 6) continue;
+      var nm = side > 0 ? "White" : "Black";
+      return { kind: "square", question: "Click an <b>outpost</b> for " + nm + "'s knight: a square in the enemy half, defended by " + nm + "'s pawn, that no enemy pawn can ever attack.", answer: chName(op[0]), accept: op.map(chName), target: 15, board: chdPos(s2, { flip: false }),
+        explain: ["Outposts for " + nm + ": <b>" + op.map(chName).join(", ") + "</b>.", "Check three things: it is in the enemy half, your pawn guards it, and no enemy pawn on a neighbouring file is still behind it to kick a piece out. A knight there cannot be dislodged except by a trade."] };
+    }
+  }
+  /* good or bad bishop: own pawns on the bishop's colour */
+  for (t = 0; t < 300; t++) {
+    var side2 = rnd() < 0.5 ? 1 : -1, bad = rnd() < 0.5, list = [], used = {};
+    var bsq = chdRandSq(rnd), col = (chFile(bsq) + chRank(bsq)) % 2;
+    list.push([chName(bsq), CH_B * side2]); used[bsq] = 1;
+    var placed = 0, tries = 0;
+    while (placed < 6 && tries++ < 200) {
+      var f = (rnd() * 8) | 0, r = 2 + ((rnd() * 4) | 0), sq = chSq(f, r), same = (f + r) % 2 === col;
+      if (used[sq]) continue;
+      if (same !== (placed < 5 ? bad : !bad)) continue;
+      list.push([chName(sq), CH_P * side2]); used[sq] = 1; placed++;
+    }
+    var k1 = chdRandSq(rnd), k2 = chdRandSq(rnd);
+    if (used[k1] || used[k2] || chdKingDist(k1, k2) < 2) continue;
+    list.push([chName(k1), CH_K * side2], [chName(k2), -CH_K * side2]);
+    var s3 = chdPlace(list, side2); if (!s3 || chInCheck(s3, side2)) continue;
+    var P = chdPawns(s3, side2), on = P.filter(function (a) { return (chFile(a) + chRank(a)) % 2 === col; }).length;
+    var isBad = on >= 5, isGood = on <= 1; if (!isBad && !isGood) continue;
+    var nm2 = side2 > 0 ? "White" : "Black";
+    return { kind: "choice", question: "Is " + nm2 + "'s bishop on " + chName(bsq) + " a <b>good</b> or a <b>bad</b> bishop?", options: ["Good bishop", "Bad bishop"], answer: isBad ? "Bad bishop" : "Good bishop", target: 10, board: chdPos(s3, { flip: false }),
+      explain: [on + " of " + nm2 + "'s " + P.length + " pawns stand on " + (col ? "light" : "dark") + " squares, the bishop's colour: " + (isBad ? "it is hemmed in by its own pawns, a 'tall pawn'." : "the pawns leave its diagonals open."), "Put your pawns on the opposite colour from your bishop; against a bad bishop, fix the pawns where they are."] };
+  }
+  return CH_DRILLS.chpawns.gen(ctx);
+} };
+
+/* ---- Nimzowitsch: blockade the passed pawn, attack the chain at its base ---- */
+function chdChainBases(s, side) {
+  /* a chain: pawns linked diagonally; its base is a pawn with a linked pawn diagonally in front and none diagonally behind */
+  var P = chdPawns(s, side), out = [];
+  P.forEach(function (a) {
+    var ahead = P.some(function (b) { return Math.abs(chFile(b) - chFile(a)) === 1 && chRank(b) - chRank(a) === side; });
+    var behind = P.some(function (b) { return Math.abs(chFile(b) - chFile(a)) === 1 && chRank(a) - chRank(b) === side; });
+    if (ahead && !behind) out.push(a);
+  });
+  return out;
+}
+CH_DRILLS.chnimzo = { name: "Blockade and the chain", target: 12, gen: function (ctx) {
+  var rnd = chdRnd(ctx), blockade = rnd() < 0.55;
+  for (var t = 0; t < 200; t++) {
+    var s = chRandomPosition(20 + ((rnd() * 50) | 0), rnd), side = rnd() < 0.5 ? 1 : -1, nm = side > 0 ? "White" : "Black", them = side > 0 ? "Black" : "White";
+    if (blockade) {
+      var passed = chdPassed(s, -side).filter(function (a) { var r = chRank(a) + (-side); return r >= 0 && r <= 7; });
+      if (!passed.length) continue;
+      var a = chdPick(passed, rnd), sq = a - 10 * side;
+      return { kind: "square", question: them + " has a passed pawn on <b>" + chName(a) + "</b>. Click the square where " + nm + " should <b>blockade</b> it.", answer: chName(sq), accept: [chName(sq)], target: 10, board: chdPos(s, { flip: false, mark: [chName(a)] }),
+        explain: ["<b>" + chName(sq) + "</b>, the square directly in front of the pawn.", "Nimzowitsch: the passed pawn has a 'lust to expand', so restrain it, blockade it, then destroy it. A knight is the ideal blockader: it loses none of its range standing there."] };
+    }
+    var bases = chdChainBases(s, -side);
+    if (!bases.length) continue;
+    return { kind: "square", question: "Click the <b>base</b> of a " + them + " pawn chain: the rearmost pawn of a diagonal chain, the point " + nm + " should attack.", answer: chName(bases[0]), accept: bases.map(chName), target: 12, board: chdPos(s, { flip: false }),
+      explain: [them + "'s chain base" + (bases.length > 1 ? "s" : "") + ": <b>" + bases.map(chName).join(", ") + "</b>.", "Every pawn in a chain is defended by the one diagonally behind it, except the base. Attack the base with a pawn break and the whole chain loses its support."] };
+  }
+  return CH_DRILLS.chpawns.gen(ctx);
+} };
+
+/* ---- Silman's imbalances: what is different between the two sides ---- */
+CH_DRILLS.chimbalance = { name: "Imbalances", target: 12, gen: function (ctx) {
+  var rnd = chdRnd(ctx), kind = chdPick(["pair", "passed", "islands", "material"], rnd);
+  var opts = ["White", "Black", "Neither"];
+  for (var t = 0; t < 200; t++) {
+    var s = chRandomPosition(20 + ((rnd() * 60) | 0), rnd), w, b, ans, q, why;
+    if (kind === "pair") {
+      var bish = function (side) { var cs = chPieces(s).filter(function (p) { return p.kind === CH_B && p.side === side; }).map(function (p) { return (chFile(p.sq) + chRank(p.sq)) % 2; }); return cs.indexOf(0) >= 0 && cs.indexOf(1) >= 0; };
+      w = bish(1); b = bish(-1); ans = w && !b ? "White" : b && !w ? "Black" : "Neither";
+      q = "Which side has the <b>bishop pair</b> (and the other side does not)?"; why = "Two bishops on opposite colours, against a side without them, are worth about half a pawn in an open position: open the position for them.";
+    } else if (kind === "passed") {
+      w = chdPassed(s, 1).length; b = chdPassed(s, -1).length; ans = w && !b ? "White" : b && !w ? "Black" : w && b ? "Both" : "Neither"; opts = ["White", "Black", "Both", "Neither"];
+      q = "Which side has a <b>passed pawn</b>?"; why = "Passed: White " + (chdPassed(s, 1).map(chName).join(", ") || "none") + "; Black " + (chdPassed(s, -1).map(chName).join(", ") || "none") + ". A passed pawn is a static plus: it lasts into the endgame.";
+    } else if (kind === "islands") {
+      w = chdIslands(s, 1); b = chdIslands(s, -1); ans = w < b ? "White" : b < w ? "Black" : "Neither";
+      q = "Which side has the healthier structure: <b>fewer pawn islands</b>?"; why = "Islands: White " + w + ", Black " + b + ". Each island has a weak end to defend.";
+    } else {
+      var m = chMaterial(s); w = m.white; b = m.black; ans = w > b ? "White" : b > w ? "Black" : "Neither";
+      q = "Which side is <b>ahead in material</b> on the 1/3/3/5/9 count?"; why = "White " + w + ", Black " + b + ". Material is the first imbalance and the most permanent one.";
+    }
+    if (ans === "Neither" && rnd() < 0.7) continue;
+    return { kind: "choice", question: q, options: opts, answer: ans, target: 12, board: chdPos(s, { flip: false }), explain: ["<b>" + ans + "</b>.", why] };
+  }
+  return CH_DRILLS.chmat.gen(ctx);
+} };
+
+/* ---- the blunder check: is this candidate safe, or does it lose material to a forcing reply? ---- */
+CH_DRILLS.chblunder = { name: "Blunder check", target: 25, gen: function (ctx) {
+  var rnd = chdRnd(ctx), wantBad = rnd() < 0.5, t0 = Date.now();
+  /* the candidate's score after a depth-2 reply search, against the best move at depth 3: the same comparison chScoreMoves makes */
+  var after = function (s, m) { chMake(s, m); var r = chLegal(s).length ? chSearch(s, 2, 15000) : { score: chInCheck(s) ? -CH_MATE : 0, move: null }; var reply = r.move ? chSan(s, r.move) : null; chUnmake(s); return { v: -r.score, reply: reply }; };
+  for (var t = 0; t < 60 && Date.now() - t0 < 1500; t++) {
+    var s = chRandomPosition(14 + ((rnd() * 40) | 0), rnd); if (chStatus(s) !== "") continue;
+    var ms = chLegal(s); if (ms.length < 5) continue;
+    /* natural-looking candidates: captures and piece moves */
+    var b = chSearch(s, 3, 40000); if (!b.move || Math.abs(b.score) > 600) continue;
+    var cands = lgShuffle(ms.filter(function (m) { return m.cap || Math.abs(m.piece) !== CH_P; }), rnd).slice(0, 8), m = null, c = null, best = 0, loss = 0;
+    for (var k = 0; k < cands.length && !m; k++) {
+      c = after(s, cands[k]); best = Math.max(b.score, c.v); loss = best - c.v;
+      if (wantBad ? loss >= 250 : loss <= 30) m = cands[k];
+    }
+    if (!m) continue;
+    var san = chSan(s, m), bestSan = chSan(s, b.move);
+    return { kind: "choice", question: chdSide(s) + " to move. You are about to play <b>" + san + "</b> (marked). Blunder check: is it <b>safe</b> (within half a pawn of the best move) or a <b>blunder</b> (losing 2.5 pawns or more)?", options: ["Safe", "Blunder"], answer: wantBad ? "Blunder" : "Safe", target: 25, board: chdPos(s, { mark: [chName(m.from), chName(m.to)] }),
+      explain: [wantBad ? "<b>Blunder.</b> " + (c.reply ? "After " + san + ", <b>" + c.reply + "</b> is the punishing reply" : "It loses material") + "; the engine rates it about " + (loss / 100).toFixed(1) + " pawns worse than " + bestSan + "." : "<b>Safe.</b> " + san + " is within " + (loss / 100).toFixed(1) + " pawns of the engine's best" + (bestSan !== san ? " (" + bestSan + ")" : "") + (c.reply ? "; the main reply, " + c.reply + ", wins nothing." : "."), "Before you touch a piece: what are their checks, captures and threats after my move? Look at every piece the move leaves unguarded and every line it opens."] };
+  }
+  return CH_DRILLS.chbest.gen(ctx);
+} };
+
+/* ---- CCT: count the forcing moves ---- */
+CH_DRILLS.chcct = { name: "Checks, captures, threats", target: 20, gen: function (ctx) {
+  var rnd = chdRnd(ctx), what = rnd() < 0.5 ? "checks" : "captures";
+  for (var t = 0; t < 100; t++) {
+    var s = chRandomPosition(14 + ((rnd() * 50) | 0), rnd); if (chStatus(s) !== "") continue;
+    var ms = chLegal(s), hits = ms.filter(function (m) { if (what === "captures") return !!m.cap; chMake(s, m); var c = chInCheck(s); chUnmake(s); return c; });
+    if (!hits.length && rnd() < 0.7) continue;
+    var sans = hits.map(function (m) { return chSan(s, m); });
+    return { kind: "num", question: chdSide(s) + " to move. How many legal <b>" + what + "</b> does " + chdSide(s) + " have?", answer: sans.length, tol: 0, target: 20, board: chdPos(s),
+      explain: ["<b>" + sans.length + "</b>" + (sans.length ? ": " + sans.join(", ") : "") + ".", "The candidate list starts with the forcing moves: every check, every capture, then every threat, for both sides. List them all before calculating any; the move you never list is the one that loses the game."] };
+  }
+  return CH_DRILLS.chmat.gen(ctx);
+} };
+
+/* ---- mixtures for the book lessons ---- */
+CH_DRILLS.chtactics = { name: "Tactics by theme", target: 20, gen: function (ctx) {
+  var m = chdPick(["chfork", "chline", "chline", "chbackrank", "chmate1"], chdRnd(ctx)), q = CH_DRILLS[m].gen(ctx);
+  q.question = "<small>" + CH_DRILLS[m].name + "</small> " + q.question; return q;
+} };
+CH_DRILLS.chendgame = { name: "Endgame technique", target: 20, gen: function (ctx) {
+  var m = chdPick(["chsquare", "chopp", "chbasicmate", "chrookend", "chrookend"], chdRnd(ctx)); return CH_DRILLS[m].gen(ctx);
+} };
+
+/* ============================================================
    PLAY: a game against the engine, every move graded
    ============================================================ */
 var CH_LEVELS_ENGINE = [
@@ -3972,7 +4542,7 @@ function chlPuzzle(L, elo, ok) {
       { t: "key", x: "Loose pieces drop off (Nunn). Before every move, list your opponent's undefended pieces and ask which square attacks two of them." },
       { t: "how", drill: "Forks", ask: "Find the knight fork.", steps: ["List the enemy pieces worth more than a knight, and the king.", "Find the squares that attack two of them.", "Check the forking square is not attacked, then play it."], tip: "Knight forks come from the squares a knight's move away from both targets. Picture the two L-shapes and look for where they cross." }
     ] });
-  add({ id: "ch_pin", mode: "mixed", pass: 7, of: 10, title: "Pins, skewers, discovered attacks", sub: "The line tactics", gist: "A pin fixes a piece in front of a more valuable one; a skewer is a pin in reverse; a discovered attack unmasks a line by moving a piece off it. All three come from the sliding pieces.",
+  add({ id: "ch_pin", mode: "chline", pass: 7, of: 10, title: "Pins, skewers, discovered attacks", sub: "The line tactics", gist: "A pin fixes a piece in front of a more valuable one; a skewer is a pin in reverse; a discovered attack unmasks a line by moving a piece off it. All three come from the sliding pieces.",
     blocks: [
       { t: "p", x: "A pin: a bishop, rook or queen attacks a piece that cannot move without exposing something worth more behind it. Against the king the pin is absolute (the pinned piece may not legally move at all). A pinned piece is a target: attack it again, it cannot run. A skewer is the same geometry the other way round: the valuable piece is in front, and when it moves the piece behind is taken." },
       board("4k3/8/3p4/4n3/8/8/5P2/4R1K1 w - - 0 1", "The black knight on e5 is pinned to the king by the rook: it cannot move. White attacks it again with f4 and it falls.", { mark: ["e5"] }),
@@ -3980,7 +4550,7 @@ function chlPuzzle(L, elo, ok) {
       { t: "rule", x: "pin: attacker — pinned piece — bigger piece behind\nskewer: attacker — bigger piece — smaller piece behind\ndiscovery: move the front piece, the back piece attacks", note: "All three need a line. Rooks on files, bishops on diagonals, queens on both: look for two enemy pieces on one line, and the line tactic is usually there." },
       { t: "warn", x: "A pinned piece does not defend. If your knight is pinned to your king, the square it 'guards' is not guarded, and the opponent can walk in. Count pinned pieces out of your defence." },
       { t: "key", x: "Two enemy pieces on one line: pin, skewer or discovery. Pinned pieces are targets and do not defend. Discovered checks win material." },
-      { t: "how", drill: "Mixed tactics", ask: "Find the fork, the mate, or the best move.", steps: ["Checks, captures, threats, in that order.", "Look for enemy pieces sharing a line.", "Calculate the forcing reply before you play."], tip: "The checkpoint mixes this stage's drills, like a real game does." }
+      { t: "how", drill: "Pins, skewers, discoveries", ask: "Click the pinned piece, or win material with a pin, a skewer or a discovered check.", steps: ["Look for two enemy pieces on one line, or the enemy king on a line with one of your pieces in the way.", "Pin: attack the pinned piece again. Skewer: check, then take what is behind. Discovery: move the front piece with check and let it attack something.", "Check the forcing replies; the engine accepts every move that wins as much."], tip: "Every position is built for the theme and then checked by the engine: the answer wins material against the best defence." }
     ] });
   add({ id: "ch_mate1", mode: "chmate1", pass: 7, of: 10, title: "Mate in one", sub: "The patterns", gist: "Back rank, smothered, queen-and-king, bishop-and-queen on h7: a dozen patterns cover most mates you will ever play or allow. Learn them so you see them without looking.",
     blocks: [
@@ -4007,19 +4577,13 @@ function chlPuzzle(L, elo, ok) {
     ] });
 
   /* ---------------- stage 3: openings ---------------- */
-  add({ id: "ch_openprin", mode: "quiz", pass: 4, of: 5, title: "Opening principles", sub: "Centre, development, king safety", gist: "Three principles cover the first ten moves of every opening ever played: fight for the centre, bring the pieces out, castle. Memorised lines come later, and only on top of these.",
-    quiz: [
-      { q: "In the opening, which should usually come first?", options: ["Castling", "Developing the knights and bishops", "Moving the queen out early", "Pushing the a- and h-pawns"], answer: "Developing the knights and bishops", explain: "Pieces before pawns and queen; knights before bishops is the old rule of thumb." },
-      { q: "Why is the centre (d4, e4, d5, e5) worth fighting for?", options: ["Pieces there control the most squares and reach both wings", "It is closest to the opponent's king", "Pawns there cannot be attacked", "It wins material automatically"], answer: "Pieces there control the most squares and reach both wings", explain: "A knight in the centre reaches eight squares; in the corner, two." },
-      { q: "Which is the usual mistake?", options: ["Castling by move ten", "Moving the same piece twice in the opening without reason", "Playing e4 or d4 first", "Developing a knight to f3"], answer: "Moving the same piece twice in the opening without reason", explain: "Every tempo spent moving a developed piece again is a tempo the opponent spends developing a new one." },
-      { q: "A 'gambit' is", options: ["A pawn sacrificed in the opening for development or initiative", "A checkmate pattern", "A trade of queens", "An endgame technique"], answer: "A pawn sacrificed in the opening for development or initiative", explain: "Queen's Gambit, King's Gambit, Evans Gambit: a pawn for time." },
-      { q: "After 1.e4 e5 2.Nf3, what does Nf3 do?", options: ["Attacks the e5 pawn and develops toward the centre", "Prepares to castle queenside", "Threatens mate", "Defends d4"], answer: "Attacks the e5 pawn and develops toward the centre", explain: "Develop with a threat when you can: the opponent must respond, and you gain time." }
-    ],
+  add({ id: "ch_openprin", mode: "chdevelop", pass: 7, of: 10, title: "Opening principles", sub: "Centre, development, king safety", gist: "Three principles cover the first ten moves of every opening ever played: fight for the centre, bring the pieces out, castle. Memorised lines come later, and only on top of these.",
     blocks: [
       { t: "p", x: "The opening is about getting the pieces to good squares quickly and safely. Control the centre with pawns (e4, d4 or their mirror), develop knights and bishops toward it, castle early, connect the rooks, and only then start a plan. Do not move the queen out early (it gets chased and you lose time), do not move the same piece twice without reason, and do not grab pawns that cost development." },
       { t: "tbl", head: ["Principle", "Why"], rows: [["Occupy or control the centre", "Central pieces reach both wings; the opponent's are cramped"], ["Develop knights and bishops, then castle", "Every undeveloped piece is a piece that cannot fight"], ["Don't move the same piece twice", "Tempo: each move is a unit of time, and time is the opening's currency"], ["Keep the queen home until the minors are out", "An early queen gets attacked by developing moves and loses tempi"], ["Castle by move ten, usually short", "An uncastled king in an open centre loses to tactics"], ["Connect the rooks", "Development is complete when the back rank is clear between them"]] },
       { t: "rule", x: "tempo = one move of time\na developing move that also threatens something gains a tempo", note: "Gambits trade a pawn for two or three tempi. In an open position, a tempo is worth about a third of a pawn, so the trade can be fair." },
-      { t: "key", x: "Centre, development, king safety, connect the rooks. Pieces before pawns, knights before bishops, castle before move ten." }
+      { t: "key", x: "Centre, development, king safety, connect the rooks. Pieces before pawns, knights before bishops, castle before move ten." },
+      { t: "how", drill: "Opening principles", ask: "Play a move that follows the principles.", steps: ["Is a knight or bishop still at home? Develop it toward the centre.", "Is the d- or e-pawn unmoved? It may take the centre.", "Castle if you can.", "Check it does not hang a piece: the engine rejects moves that lose material."], tip: "Name the principle as you play the move: 'develops', 'takes the centre', 'castles'. A move with no name is usually a lost tempo." }
     ] });
   add({ id: "ch_openings", mode: "chopen", pass: 8, of: 10, title: "The openings you will meet", sub: "Sixteen names and their ideas", gist: "You do not need to memorise lines to recognise the families: the Italian, the Spanish, the Sicilian, the French, the Queen's Gambit, the Indians. Each has one idea.",
     blocks: [
@@ -4031,19 +4595,13 @@ function chlPuzzle(L, elo, ok) {
     ] });
 
   /* ---------------- stage 4: endgames ---------------- */
-  add({ id: "ch_kq", mode: "quiz", pass: 4, of: 5, title: "King and queen, king and rook", sub: "The basic mates", gist: "Drive the king to the edge with the big piece, bring your own king up, deliver mate without stalemating. Every player must be able to do both in under a minute.",
-    quiz: [
-      { q: "In the king-and-queen mate, the queen should", options: ["Stay a knight's move away from the enemy king and shrink its box", "Check on every move", "Stay on the back rank", "Trade itself for the last pawn"], answer: "Stay a knight's move away from the enemy king and shrink its box", explain: "The knight's-move distance means the queen is never capturable and cuts off the most squares; no checks are needed until the end." },
-      { q: "The biggest danger in the king-and-queen mate is", options: ["Stalemate", "Losing the queen to a fork", "Running out of moves", "Perpetual check"], answer: "Stalemate", explain: "Always leave the lone king one square until your own king arrives." },
-      { q: "In the king-and-rook mate, the rook mates the king", options: ["On the edge, with the kings facing each other in opposition", "In the centre", "By checking on every move", "Only with help from a pawn"], answer: "On the edge, with the kings facing each other in opposition", explain: "Cut the king off with the rook, bring your king to the opposition, then check along the edge." },
-      { q: "If the enemy king steps away from the opposition in the rook mate, you should", options: ["Make a waiting move with the rook along its rank", "Give check at once", "Move your king back", "Offer a draw"], answer: "Make a waiting move with the rook along its rank", explain: "The rook tempo move forces the king back into opposition or further to the edge." },
-      { q: "Which of these cannot force mate against a lone king?", options: ["King and two bishops", "King and bishop", "King and rook", "King and queen"], answer: "King and bishop", explain: "A single minor piece, or two knights (without help), cannot force mate." }
-    ],
+  add({ id: "ch_kq", mode: "chbasicmate", pass: 7, of: 10, title: "King and queen, king and rook", sub: "The basic mates", gist: "Drive the king to the edge with the big piece, bring your own king up, deliver mate without stalemating. Every player must be able to do both in under a minute.",
     blocks: [
       { t: "p", x: "King and queen versus king: use the queen a knight's move away from the enemy king to shrink its box without checking (no stalemate possible while it has squares), bring your king up to the opposition, and mate on the edge. Ten moves at most. King and rook: cut the king off on a rank or file with the rook, bring your king to the opposition, and check along the edge; when the king steps aside, make a rook waiting move. Sixteen moves at most." },
       board("7k/8/4Q1K1/8/8/8/8/8 w - - 0 1", "Queen on e6, kings on h8 and g6: Qe8 or Qc8 is mate. The queen covered the box without ever checking, the king arrived, and the mate took one move."),
       { t: "rule", x: "queen: knight's move away, shrink the box, king up, mate on the edge\nrook: cut off, opposition, check on the edge, waiting move if needed", note: "Practise both against the engine in Play from a bare position until you can do each in under a minute without thought." },
-      { t: "key", x: "Big piece shrinks the box, king comes up, mate on the edge. Leave a square until the end. Never stalemate." }
+      { t: "key", x: "Big piece shrinks the box, king comes up, mate on the edge. Leave a square until the end. Never stalemate." },
+      { t: "how", drill: "Basic mates", ask: "Mate, spot the stalemate, or name the result.", steps: ["Count the lone king's squares before every quiet move.", "With the queen: a knight's move away, shrink the box, bring the king.", "With the rook: opposition, then the check on the edge."], tip: "The stalemate questions show four queen moves; three keep the win. Find the one that leaves the king no move and no check." }
     ] });
   add({ id: "ch_square", mode: "chsquare", pass: 8, of: 10, title: "The square of the pawn", sub: "Can the king catch it?", gist: "A passed pawn races a king. Draw a square from the pawn to its queening square: if the king is in it, or can step in, the pawn is caught.",
     blocks: [
@@ -4062,64 +4620,40 @@ function chlPuzzle(L, elo, ok) {
       { t: "key", x: "Face the king with one square between and make them move. Key squares in front of the pawn win; the opposition gets you there." },
       { t: "how", drill: "The opposition", ask: "Click the square that takes the opposition.", steps: ["Find the enemy king.", "The square two away on the same file or rank, if your king can reach it.", "Click it."], tip: "The square of the same colour, when it is their move. Check the colour before you count." }
     ] });
-  add({ id: "ch_rook", mode: "quiz", pass: 4, of: 5, title: "Rook endings: Lucena and Philidor", sub: "The two positions every player must know", gist: "Rook and pawn against rook is the most common ending in chess. Lucena wins it, Philidor draws it, and both are three moves of technique.",
-    quiz: [
-      { q: "In the Lucena position (attacking king in front of its pawn on the seventh, defending king cut off), the winning method is", options: ["Build a bridge: put the rook on the fourth rank to shield the king from checks", "Push the pawn immediately", "Trade rooks", "Give perpetual check"], answer: "Build a bridge: put the rook on the fourth rank to shield the king from checks", explain: "Rook to the fourth (or fifth) rank, king steps out, the rook interposes against the checks, the pawn queens." },
-      { q: "In the Philidor position (defender's king in front of the pawn, pawn not yet on the sixth), the drawing method is", options: ["Keep the rook on the third rank until the pawn advances, then check from behind", "Attack the pawn with the king", "Trade rooks at once", "Check from the side immediately"], answer: "Keep the rook on the third rank until the pawn advances, then check from behind", explain: "The third-rank rook stops the attacking king from advancing; once the pawn reaches the sixth, the rook goes to the first rank and checks from behind forever." },
-      { q: "Rook endings are drawn most often because", options: ["Rooks give endless checks and a lone king cannot hide", "Rooks are weak pieces", "Pawns cannot promote with rooks on the board", "The fifty-move rule"], answer: "Rooks give endless checks and a lone king cannot hide", explain: "Activity and checking distance decide rook endings; an active rook draws a pawn down." },
-      { q: "'Rooks belong behind passed pawns' means", options: ["Behind your own passed pawn to push it, behind the enemy's to stop it", "In front of the pawn", "Beside the king", "On the same file as the enemy king"], answer: "Behind your own passed pawn to push it, behind the enemy's to stop it", explain: "Tarrasch's rule: behind the pawn the rook gains scope as the pawn advances." },
-      { q: "In a rook ending, a rook on the seventh rank", options: ["Attacks pawns and ties the king to the back rank", "Is usually a mistake", "Only matters with a queen", "Cannot give check"], answer: "Attacks pawns and ties the king to the back rank", explain: "The 'pig on the seventh' is worth a pawn in most positions." }
-    ],
+  add({ id: "ch_rook", mode: "chrookend", pass: 7, of: 10, title: "Rook endings: Lucena and Philidor", sub: "The two positions every player must know", gist: "Rook and pawn against rook is the most common ending in chess. Lucena wins it, Philidor draws it, and both are three moves of technique.",
     blocks: [
-      { t: "p", x: "Rook endings are half of all endings. Two positions carry most of the theory. Lucena: the attacker's king is in front of its pawn on the seventh rank and the defender's king is cut off; the win is to 'build a bridge' with the rook on the fourth rank so the king can step out of the checks. Philidor: the defender's king sits in front of the pawn and the rook stays on the third rank, preventing the enemy king from crossing; when the pawn advances to the sixth, the rook drops to the first rank and checks from behind. Draw." },
-      board("1K1k4/1P6/8/8/8/8/r7/2R5 w - - 0 1", "Lucena: White's king is stuck in front of its pawn, the black rook guards the a-file and the black king is cut off by the rook on the c-file. Rd1+! drives the king a file further (Ke7), then Rd4 (the bridge) and Kc7; the checks come from behind, Rc2+ Kb6, Rb2+ Kc6, Rc2+ Kb5, Rb2+, and now Rb4 blocks the last check. The pawn queens."),
-      board("4k3/8/r7/4PK2/8/8/8/1R6 b - - 0 1", "Philidor: Black's rook on a6, the third rank counted from Black's side, keeps the white king off the sixth. If e6, then Ra1 and checks from behind: the white king has no shelter. A draw."),
+      { t: "p", x: "Rook endings are half of all endings. Two positions carry most of the theory. Lucena: the attacker's king is in front of its pawn on the seventh rank and the defender's king is cut off; the win is to 'build a bridge' with the rook on the fourth rank so the king can step out of the checks. Philidor: the defender's king sits in front of the pawn and the rook stays on the third rank, preventing the enemy king from crossing; when the pawn advances to the sixth, the rook drops back down its file and checks from behind. Draw." },
+      board("1K1k4/1P6/8/8/8/8/r7/2R5 w - - 0 1", "Lucena: White's king is stuck in front of its pawn, the black rook guards the a-file and the black king is cut off by the rook on the c-file. Rd1+ drives the king a file further (Ke7), then Rd4 (the bridge) and Kc7; the checks come from behind, Rc2+ Kb6, Rb2+ Kc6, Rc2+ Kb5, Rb2+, and now Rb4 blocks the last check. The pawn queens."),
+      board("4k3/8/r7/4PK2/8/8/8/1R6 b - - 0 1", "Philidor: Black's rook on a6, the third rank counted from Black's side, keeps the white king off the sixth. If e6, the rook drops back down the a-file and checks from behind: the white king has no shelter. A draw. (Ra4, Ra3 or Ra2 all hold; in this exact position Stockfish finds a forced mate after Ra1.)"),
       { t: "rule", x: "Lucena: rook to the 4th, king out, bridge → win\nPhilidor: rook on the 3rd until the pawn hits the 6th, then checks from behind → draw\nTarrasch: rooks behind passed pawns", note: "Learn these two cold; then Dvoretsky's Endgame Manual for the rest. Rook activity beats a pawn." },
-      { t: "key", x: "Lucena wins, Philidor draws, rooks behind passed pawns, active rook over material." }
+      { t: "key", x: "Lucena wins, Philidor draws, rooks behind passed pawns, active rook over material." },
+      { t: "how", drill: "Lucena and Philidor", ask: "Find the move that keeps the win or holds the draw, or name the result.", steps: ["Whose king is in front of the pawn? In front: Philidor, a draw. Cut off: Lucena, a win.", "Defending: rook on the third rank until the pawn advances, then checks from behind.", "Attacking: cut the king off, rook to the fourth rank, build the bridge."], tip: "Every answer here was checked by Stockfish at depth 18 or more; a move that throws away the result is marked wrong even if it looks natural." }
     ] });
 
   /* ---------------- stage 5: strategy ---------------- */
-  add({ id: "ch_pawns", mode: "quiz", pass: 4, of: 5, title: "Pawn structure", sub: "Philidor: pawns are the soul of chess", gist: "Pawns cannot go back, so their arrangement is the long-term truth of a position. Isolated, doubled, backward, passed: each kind has a value and a plan.",
-    quiz: [
-      { q: "An isolated pawn (no friendly pawn on either adjacent file) is", options: ["A weakness to blockade and attack, but it gives its owner open files and space", "Always winning", "Impossible to attack", "Worth two pawns"], answer: "A weakness to blockade and attack, but it gives its owner open files and space", explain: "Blockade it with a knight and attack it; the side with the isolani must attack before the endgame." },
-      { q: "A passed pawn is", options: ["A pawn with no enemy pawn in front of it or on the adjacent files ahead", "Any advanced pawn", "A pawn that has captured", "A pawn on the seventh rank"], answer: "A pawn with no enemy pawn in front of it or on the adjacent files ahead", explain: "Nothing but pieces can stop it; its value rises every rank it advances." },
-      { q: "'Doubled pawns' are", options: ["Two friendly pawns on the same file", "Two pawns side by side", "A pawn pair in the centre", "Pawns on the second rank"], answer: "Two friendly pawns on the same file", explain: "They cannot defend each other and one is often lost in the endgame; but they can open files and control squares." },
-      { q: "A backward pawn is weak because", options: ["It cannot be defended by another pawn and the square in front of it is an outpost for the enemy", "It cannot move", "It is doubled", "It is on the edge"], answer: "It cannot be defended by another pawn and the square in front of it is an outpost for the enemy", explain: "The 'hole' in front of a backward pawn is where enemy knights live." },
-      { q: "A pawn majority on one wing suggests", options: ["Advancing it to create a passed pawn", "Trading it off", "Keeping it still", "Moving the king there"], answer: "Advancing it to create a passed pawn", explain: "A healthy majority produces a passed pawn; the minority on the other wing can attack to create weaknesses (the minority attack)." }
-    ],
+  add({ id: "ch_pawns", mode: "chpawns", pass: 8, of: 10, title: "Pawn structure", sub: "Philidor: pawns are the soul of chess", gist: "Pawns cannot go back, so their arrangement is the long-term truth of a position. Isolated, doubled, backward, passed: each kind has a value and a plan.",
     blocks: [
       { t: "p", x: "Pieces move; pawn structures last. Learn the kinds: isolated (no neighbour on either side, a weakness and a source of activity), doubled (two on a file, cannot protect each other), backward (left behind its neighbours, the square in front is a hole), passed (nothing can stop it but pieces), and the chain (pawns on a diagonal, attacked at the base). Each kind tells both sides what to do for the next twenty moves." },
       { t: "tbl", head: ["Structure", "Weakness", "Plan for the owner", "Plan against"], rows: [["Isolated pawn", "cannot be defended by a pawn", "attack with pieces before the endgame; use the open files", "blockade the square in front, trade pieces, win it in the ending"], ["Doubled pawns", "one is usually lost late", "use the half-open file they created", "fix them and attack the front one"], ["Backward pawn", "the hole in front", "trade it or advance it when possible", "occupy the hole with a knight"], ["Passed pawn", "none; it is a strength", "push it, support it with rooks behind", "blockade it with a knight or king"], ["Pawn chain", "the base", "attack on the side the chain points to", "attack the base with pawn breaks"]] },
       { t: "rule", x: "attack a chain at its base · blockade a passed pawn · pieces belong where the pawns point\nan outpost = a square that cannot be attacked by an enemy pawn", note: "Nimzowitsch's My System is the book on all of this: blockade, overprotection, the passed pawn's 'lust to expand'." },
-      { t: "key", x: "Read the pawns first. Weaknesses are permanent; pieces are not. Put knights on outposts, rooks on open files, bishops on long diagonals, and pawns in a plan." }
+      { t: "key", x: "Read the pawns first. Weaknesses are permanent; pieces are not. Put knights on outposts, rooks on open files, bishops on long diagonals, and pawns in a plan." },
+      { t: "how", drill: "Pawn structure", ask: "Click the isolated, doubled or passed pawn, or count the islands.", steps: ["Isolated: no friendly pawn on either neighbouring file.", "Doubled: two friendly pawns on one file.", "Passed: no enemy pawn in front of it on its own or a neighbouring file."], tip: "Read the pawns before the pieces in every position you look at. The structure tells you the plan." }
     ] });
-  add({ id: "ch_pieces2", mode: "quiz", pass: 4, of: 5, title: "Good pieces, bad pieces", sub: "Activity, the bishop pair, knights vs bishops", gist: "Material is the count; activity is the quality. A bad bishop behind its own pawns is worth less than a knight on an outpost, and the position tells you which.",
-    quiz: [
-      { q: "A 'bad bishop' is one", options: ["Whose own pawns stand on its colour, blocking it", "That has been traded", "On the long diagonal", "That gives check"], answer: "Whose own pawns stand on its colour, blocking it", explain: "Pawns on the bishop's colour make it a 'tall pawn'. Put your pawns on the opposite colour from your bishop." },
-      { q: "Knights are usually better than bishops when", options: ["The position is closed and there are outposts", "The position is open", "Pawns are on both wings", "The endgame is near"], answer: "The position is closed and there are outposts", explain: "Knights jump over blocked pawns; bishops need open diagonals and love pawns on both wings." },
-      { q: "The bishop pair is strong because", options: ["Together they cover both colours and no square is safe", "They are worth four each", "They cannot be traded", "They attack the king directly"], answer: "Together they cover both colours and no square is safe", explain: "About half a pawn's worth in open positions; the side without the pair should keep it closed or trade one." },
-      { q: "'Rooks on open files' matters because", options: ["An open file leads to the seventh rank and the enemy camp", "Rooks cannot move on closed files", "It protects the king", "It wins pawns automatically"], answer: "An open file leads to the seventh rank and the enemy camp", explain: "Doubled rooks on an open file invade the seventh and tie the enemy to defence." },
-      { q: "The principle of two weaknesses says", options: ["One weakness can be defended; attack a second and the defence breaks", "Never have two weaknesses", "Trade when you have two weaknesses", "Weaknesses only matter in the endgame"], answer: "One weakness can be defended; attack a second and the defence breaks", explain: "Switch the attack between two targets faster than the defender can switch the defence." }
-    ],
+  add({ id: "ch_pieces2", mode: "chpiece", pass: 7, of: 10, title: "Good pieces, bad pieces", sub: "Activity, the bishop pair, knights vs bishops", gist: "Material is the count; activity is the quality. A bad bishop behind its own pawns is worth less than a knight on an outpost, and the position tells you which.",
     blocks: [
       { t: "p", x: "Positional judgement is the habit of asking, for each piece, how many useful squares it has and whether it can get more. Bishops want open diagonals and pawns on the opposite colour. Knights want outposts (squares no enemy pawn can attack) and closed positions. Rooks want open files and the seventh rank. The king wants pawn cover in the middlegame and activity in the endgame. The side with better-placed pieces has the initiative, and the initiative is worth material." },
       { t: "rule", x: "bishop: pawns on the other colour · knight: outposts, closed centre · rook: open files, 7th rank\nbishop pair ≈ +0.5 in open positions · two weaknesses beat one", note: "Steinitz: the side with the advantage must attack, or the advantage evaporates. Evaluate, then act on what you found." },
-      { t: "key", x: "Count the material, then grade each piece's activity. Improve your worst piece. Create a second weakness." }
+      { t: "key", x: "Count the material, then grade each piece's activity. Improve your worst piece. Create a second weakness." },
+      { t: "how", drill: "Good and bad pieces", ask: "Find the open file, the outpost, or judge the bishop.", steps: ["Open file: no pawns at all on it.", "Outpost: enemy half, your pawn guards it, no enemy pawn can ever attack it.", "Bad bishop: most of its own pawns on its colour."], tip: "Ask of each piece: how many useful squares does it have, and where would it have more?" }
     ] });
 
   /* ---------------- stage 6: calculation and the numbers ---------------- */
-  add({ id: "ch_calc", mode: "quiz", pass: 4, of: 5, title: "Calculation and blunder-proofing", sub: "Candidate moves, the tree, time", gist: "How strong players think: list the candidates, calculate each once to a quiet position, evaluate, then run the blunder check before touching a piece.",
-    quiz: [
-      { q: "Kotov's method begins with", options: ["Listing the candidate moves before calculating any of them", "Calculating the first move you see as deeply as possible", "Checking the clock", "Counting material"], answer: "Listing the candidate moves before calculating any of them", explain: "Think Like a Grandmaster: the tree is wide first, then deep, and each branch is calculated once." },
-      { q: "A 'quiet position' at the end of a line is one where", options: ["There are no more forcing moves to consider, so it can be evaluated", "Both sides have castled", "No pieces have been traded", "The queens are off"], answer: "There are no more forcing moves to consider, so it can be evaluated", explain: "Calculate until the forcing moves run out, then judge the position; the engine's quiescence search does exactly this." },
-      { q: "The blunder check is", options: ["After choosing a move, ask what the opponent's most forcing reply is", "Playing quickly to avoid time trouble", "Checking the material count", "Looking at the whole board for undefended pieces"], answer: "After choosing a move, ask what the opponent's most forcing reply is", explain: "Checks, captures and threats for the opponent, after your intended move, before you play it." },
-      { q: "Time management: the most time should go to", options: ["Critical positions where the choice changes the evaluation", "The opening", "Recaptures", "Every move equally"], answer: "Critical positions where the choice changes the evaluation", explain: "Spend when the game turns; move quickly when the move is obvious or forced." },
-      { q: "Pattern recognition improves fastest by", options: ["Solving many tactical puzzles with immediate feedback, spaced over time", "Reading about openings", "Playing only long games", "Watching streams"], answer: "Solving many tactical puzzles with immediate feedback, spaced over time", explain: "Ericsson's deliberate practice: thousands of patterns, each tested, corrected and revisited. That is what the drills here do." }
-    ],
+  add({ id: "ch_calc", mode: "chblunder", pass: 7, of: 10, title: "Calculation and blunder-proofing", sub: "Candidate moves, the tree, time", gist: "How strong players think: list the candidates, calculate each once to a quiet position, evaluate, then run the blunder check before touching a piece.",
     blocks: [
       { t: "p", x: "Calculation is a trained skill with a method. First, candidate moves: the forcing ones (checks, captures, threats) and the two or three positional ones that fit the plan. Second, calculate each candidate once, down the most forcing line, to a quiet position. Third, evaluate those positions (material, king safety, activity, structure) and pick the best. Fourth, the blunder check: what is their best forcing reply to my move? Only then move." },
       { t: "rule", x: "candidates → calculate each once → evaluate the quiet positions → blunder check → move\nspend time where the evaluation forks; play forced moves fast", note: "De Groot's studies of grandmasters found they do not calculate more moves than club players; they look at better ones, because they recognise more patterns. Patterns come from puzzles, spaced." },
-      { t: "key", x: "Candidates, one calculation each, evaluate, blunder check. Patterns from thousands of spaced puzzles. Time on the critical moves." }
+      { t: "key", x: "Candidates, one calculation each, evaluate, blunder check. Patterns from thousands of spaced puzzles. Time on the critical moves." },
+      { t: "how", drill: "Blunder check", ask: "Is the marked move safe, or a blunder?", steps: ["After the move, list their checks, captures and threats.", "What does the move leave unguarded? What line does it open?", "Safe means within half a pawn of the best move; a blunder loses 2.5 pawns or more."], tip: "Do this before every move you play. It takes ten seconds and saves whole games." }
     ] });
   add({ id: "ch_elo", mode: "chelo", pass: 7, of: 10, title: "Elo: the mathematics of rating", sub: "Expected score and the update", gist: "Your rating predicts your score against any opponent, and every game moves it by K times the surprise. It is the same logistic model the engine uses to turn evaluations into odds.",
     blocks: [
@@ -4153,137 +4687,77 @@ function chlPuzzle(L, elo, ok) {
   /* ---------------- learning from the greats: one lesson per book, placed in
      the stage whose topic it teaches (see PATH) ---------------- */
   function book(L) { return add(Object.assign({ mode: "quiz", pass: 4, of: 5 }, L)); }
-  book({ id: "ch_bk_fischer", title: "Bobby Fischer Teaches Chess", sub: "Fischer, Margulies, Mosenfelder · start here", gist: "A programmed course in back-rank mates and the sacrifices that set them up. One position per page, the answer overleaf: the fastest first book because you solve it rather than read it.",
-    quiz: [
-      { q: "The book's format is", options: ["Programmed instruction: one position and one question per frame, the answer on the next page", "Annotated master games", "An opening encyclopedia", "Essays on strategy"], answer: "Programmed instruction: one position and one question per frame, the answer on the next page", explain: "Answer before you turn the page. Being wrong and corrected straight away is the point." },
-      { q: "Most of the book drills", options: ["Back-rank mates and the sacrifices that make them work", "Rook endings", "The Sicilian Defence", "Pawn structure"], answer: "Back-rank mates and the sacrifices that make them work", explain: "A king trapped behind its own pawns, and the deflections and decoys that strip its defenders." },
-      { q: "A back-rank mate needs", options: ["A king boxed in by its own pawns and a rook or queen that reaches the back rank", "A queen and two bishops", "An open centre", "Opposite-side castling"], answer: "A king boxed in by its own pawns and a rook or queen that reaches the back rank", explain: "Luft (h3/h6) is the cure: one pawn move gives the king a square." },
-      { q: "A defender of the back rank can often be removed by", options: ["Deflection: a sacrifice that forces it to leave the rank or the square it guards", "Castling", "Trading pawns", "Pushing a passed pawn"], answer: "Deflection: a sacrifice that forces it to leave the rank or the square it guards", explain: "If the rook on d8 is the only guard, offer it something it must take on another line." },
-      { q: "The best way to work through it is", options: ["Solve every frame before turning the page, then redo the ones you missed", "Read it quickly once", "Skip to the hardest frames", "Play the positions out against an engine"], answer: "Solve every frame before turning the page, then redo the ones you missed", explain: "The same loop as the drills here: try, check, repeat what you missed." }
-    ],
+  book({ id: "ch_bk_fischer", mode: "chbackrank", pass: 7, of: 10, title: "Bobby Fischer Teaches Chess", sub: "Fischer, Margulies, Mosenfelder · start here", gist: "A programmed course in back-rank mates and the sacrifices that set them up. One position per page, the answer overleaf: the fastest first book because you solve it rather than read it.",
     blocks: [
       { t: "p", x: "Written with Stuart Margulies and Donn Mosenfelder in the 1960s, it is a programmed text: each frame shows a position and asks one question, and the answer is on the next page. Most of it is about the back rank: kings trapped behind their own pawns, the rook or queen that mates them, and the sacrifices (deflection, decoy, clearing a line) that remove the last defender. Then it widens to mates with other pieces." },
       { t: "rule", x: "look at the enemy back rank every move: is the king boxed in? who guards the rank?\nremove the guard (deflect, decoy, overload) → mate", note: "Give your own king luft (h3 or h6) once the danger is real. Many back-rank losses come after twenty moves of everything else being fine." },
-      { t: "key", x: "Programmed learning: solve, then check. Back-rank mates and the sacrifices that set them up. Redo the ones you missed." }
+      { t: "key", x: "Programmed learning: solve, then check. Back-rank mates and the sacrifices that set them up. Redo the ones you missed." },
+      { t: "how", drill: "Back-rank mates", ask: "Mate in one or two on the back rank.", steps: ["Is the king boxed in by its own pawns?", "Who guards the back rank? Take or deflect the guard.", "Mate with the rook or queen that is left."], tip: "Fischer's frames are the same question over and over, with the answer overleaf. These are generated fresh each time and checked by the engine." }
     ] });
-  book({ id: "ch_bk_chernev", title: "Logical Chess: Move by Move", sub: "Irving Chernev · start here", gist: "Thirty-three master games with every move explained, so you see why a plain developing move is right as well as why the sacrifice works. The bridge from knowing the rules to knowing what to do.",
-    quiz: [
-      { q: "What sets Logical Chess apart from other game collections", options: ["Every move of every game is explained, not only the critical ones", "It has no diagrams", "It covers only endgames", "It is an opening repertoire"], answer: "Every move of every game is explained, not only the critical ones", explain: "Most annotators skip the 'obvious' moves. Beginners need exactly those moves explained." },
-      { q: "How many games are in the book", options: ["Thirty-three", "Ten", "One hundred", "Five hundred"], answer: "Thirty-three", explain: "Thirty-three complete master games, each annotated move by move." },
-      { q: "The ideas Chernev repeats most are", options: ["Develop quickly, fight for the centre, castle, and attack where you are stronger", "Grab material whenever you can", "Move the queen out early", "Keep all pawns on their starting squares"], answer: "Develop quickly, fight for the centre, castle, and attack where you are stronger", explain: "Opening principles turned into plans, shown move after move in real games." },
-      { q: "Chernev's sample games are mostly", options: ["Model wins by masters that show principles in action", "Computer games", "His own blitz games", "Composed studies"], answer: "Model wins by masters that show principles in action", explain: "Clean wins, chosen so the logic shows." },
-      { q: "The best way to study it is", options: ["Play through each game on a board and guess the next move before reading the note", "Read it without a board", "Memorise the games", "Skip the notes"], answer: "Play through each game on a board and guess the next move before reading the note", explain: "Guess the move, then read the note. Each one is a small test with the answer right there." }
-    ],
+  book({ id: "ch_bk_chernev", mode: "chdevelop", pass: 7, of: 10, title: "Logical Chess: Move by Move", sub: "Irving Chernev · start here", gist: "Thirty-three master games with every move explained, so you see why a plain developing move is right as well as why the sacrifice works. The bridge from knowing the rules to knowing what to do.",
     blocks: [
       { t: "p", x: "Chernev takes thirty-three master games and explains every move, including the quiet ones annotators usually skip: why the knight goes to f3 and not h3, why castle now, why this pawn and not that one. The principles (centre, development, king safety, attack where you have more) stop being slogans and become reasons for actual moves." },
       { t: "rule", x: "for every move ask: does it develop, take the centre, protect the king, or start a plan?\nguess the master's move, then read why", note: "Use a real board or the lichess analysis board. Play each game twice: once guessing, once reading quickly to see the whole plan." },
-      { t: "key", x: "Thirty-three games, every move explained. Guess each move, then read the note. Principles become plans." }
+      { t: "key", x: "Thirty-three games, every move explained. Guess each move, then read the note. Principles become plans." },
+      { t: "how", drill: "Opening principles", ask: "Play the move Chernev would explain: develop, centre, castle.", steps: ["Which pieces are still at home?", "Which move helps the centre?", "Does the move hang anything?"], tip: "In Logical Chess, guess the move before reading the note. Here the board checks your guess." }
     ] });
-  book({ id: "ch_bk_bain", title: "Chess Tactics for Students", sub: "John Bain · start here", gist: "One tactic per chapter, a page of explanation and a page of exercises. A catalogue of the patterns that decide most club games, ready for the drills here.",
-    quiz: [
-      { q: "The book is organised", options: ["One tactical theme per chapter, with an explanation and then exercises", "As one long annotated game", "By opening", "By rating class"], answer: "One tactical theme per chapter, with an explanation and then exercises", explain: "Pins, forks, skewers, discovered attacks, double check, removing the guard, overloading and the rest, one at a time." },
-      { q: "Removing the guard means", options: ["Capturing or driving off the piece that defends a target", "Trading queens", "Castling queenside", "Moving the king forward"], answer: "Capturing or driving off the piece that defends a target", explain: "Take the defender, then take what it defended." },
-      { q: "An overloaded piece is one that", options: ["Has two defensive jobs and cannot do both", "Is attacked twice", "Is pinned to the king", "Has no legal moves"], answer: "Has two defensive jobs and cannot do both", explain: "Make it do one job, then exploit the other." },
-      { q: "Double check is so strong because", options: ["The king must move: you cannot block or capture two checking pieces at once", "It always wins the queen", "It is always mate", "It forces a trade"], answer: "The king must move: you cannot block or capture two checking pieces at once", explain: "Two attackers at once, so the only defence left is a king move." },
-      { q: "Why learn tactics by named theme", options: ["A named pattern is recognised faster when it appears in a game", "Names are tested in tournaments", "Engines need the names", "It avoids calculation entirely"], answer: "A named pattern is recognised faster when it appears in a game", explain: "Naming the pattern is how it gets remembered, and remembered patterns are what you see at the board." }
-    ],
+  book({ id: "ch_bk_bain", mode: "chtactics", pass: 7, of: 10, title: "Chess Tactics for Students", sub: "John Bain · start here", gist: "One tactic per chapter, a page of explanation and a page of exercises. A catalogue of the patterns that decide most club games, ready for the drills here.",
     blocks: [
       { t: "p", x: "Bain's book is a catalogue: each chapter names one tactical theme, explains it on a page with an example, and gives a page of exercises. The themes are the ones that decide most games below 1800: pins, skewers, forks, discovered attacks, double check, removing the guard, overloading, deflection, decoy, the back rank, trapped pieces. Short, clear and graded, it suits a first pass through the patterns before puzzle volume takes over." },
       { t: "tbl", head: ["Theme", "One-line test"], rows: [["Fork", "can one move attack two loose targets?"], ["Pin / skewer", "are two enemy pieces on one line?"], ["Discovered attack", "is one of my pieces in front of another of my line pieces?"], ["Removing the guard", "what defends the target, and can I take it?"], ["Overloading", "does one defender have two jobs?"], ["Deflection / decoy", "can a sacrifice drag a piece off or onto a square?"]] },
-      { t: "key", x: "One theme per chapter: learn the name, the test, then the exercises. Then solve volume, spaced." }
+      { t: "key", x: "One theme per chapter: learn the name, the test, then the exercises. Then solve volume, spaced." },
+      { t: "how", drill: "Tactics by theme", ask: "A fork, a line tactic, a back-rank mate or a mate in one.", steps: ["Name the theme first: two targets? a line? a boxed king?", "Find the move that exploits it.", "Check the opponent's forcing replies."], tip: "Bain's book trains one theme at a time; this drill mixes them, as games do." }
     ] });
 
-  book({ id: "ch_bk_silman_end", title: "Silman's Complete Endgame Course", sub: "Jeremy Silman · endgames", gist: "Endgame knowledge sorted by rating class, from the beginner's mates to master technique. Learn your class's section and the ones below it; leave the rest for later.",
-    quiz: [
-      { q: "Silman's book is organised", options: ["By rating class: each section is what a player at that level needs", "By piece count", "Alphabetically", "By famous game"], answer: "By rating class: each section is what a player at that level needs", explain: "Beginner, then class E up through A, expert and master." },
-      { q: "His advice on how far to read is", options: ["Master the sections up to your class and stop; go further when your rating gets there", "Read it cover to cover at once", "Start with the master section", "Read only the rook endings"], answer: "Master the sections up to your class and stop; go further when your rating gets there", explain: "Knowledge beyond your level does not stick and is rarely used. Learn what your games will actually test." },
-      { q: "Which belongs in the earliest sections", options: ["King and queen against king", "The Vancura position", "Queen against rook with pawns", "Two bishops against knight"], answer: "King and queen against king", explain: "The basic mates and the simplest king and pawn ideas come first." },
-      { q: "The opposition matters because", options: ["In king and pawn endings it decides which king gives way", "It wins the exchange", "It prevents castling", "It only matters with rooks on"], answer: "In king and pawn endings it decides which king gives way", explain: "Kings facing with one square between: the side not to move gives ground." },
-      { q: "The Lucena and Philidor positions are", options: ["The basic win and the basic draw in rook and pawn against rook", "Two openings", "Queen endings", "Mating patterns with knights"], answer: "The basic win and the basic draw in rook and pawn against rook", explain: "Lucena: build a bridge and win. Philidor: rook on the third rank, then checks from behind, and draw." }
-    ],
+  book({ id: "ch_bk_silman_end", mode: "chendgame", pass: 7, of: 10, title: "Silman's Complete Endgame Course", sub: "Jeremy Silman · endgames", gist: "Endgame knowledge sorted by rating class, from the beginner's mates to master technique. Learn your class's section and the ones below it; leave the rest for later.",
     blocks: [
       { t: "p", x: "Silman sorts the endgame by rating: a section for beginners that starts with the basic mates, then class E, D, C, B and A, then expert and master. Each section is what a player at that level actually meets and needs to know. His instruction is to master everything up to your own class and stop there, coming back as your rating rises. It is the endgame book you keep for years and read one section at a time." },
       { t: "rule", x: "read to your class, master it, stop\nbasic mates → square and opposition → key squares → Lucena and Philidor → the rest", note: "The Endgames stage here (ch_kq, ch_square, ch_opp, ch_rook) covers roughly the first several sections. When those are passed, the next section in Silman is the next thing to study." },
-      { t: "key", x: "Endgames by rating class. Learn up to your level, then stop. Come back as you climb." }
+      { t: "key", x: "Endgames by rating class. Learn up to your level, then stop. Come back as you climb." },
+      { t: "how", drill: "Endgame technique", ask: "The square, the opposition, the basic mates, and the rook endings.", steps: ["Which ending is it? Name it before calculating.", "Apply its rule: the square, the opposition, the bridge, the third rank.", "Check for stalemate before every quiet move."], tip: "Silman's sections up to your class, drilled on the board." }
     ] });
-  book({ id: "ch_bk_nimzo", title: "My System", sub: "Aron Nimzowitsch · strategy", gist: "The 1925 book that named positional chess: blockade, overprotection, prophylaxis, the open file, the seventh rank, the pawn chain and the passed pawn's lust to expand.",
-    quiz: [
-      { q: "Nimzowitsch's 'blockade' means", options: ["Stopping a passed pawn by putting a piece on the square in front of it, ideally a knight", "Closing the centre with pawns", "Trading all the rooks", "Castling on the same side"], answer: "Stopping a passed pawn by putting a piece on the square in front of it, ideally a knight", explain: "The blockader stops the pawn, and a knight there loses nothing: it still attacks squares in every direction." },
-      { q: "Overprotection is", options: ["Defending a strategically important point more times than it is attacked, so the defenders gain activity", "Defending every pawn twice", "Keeping the king in the centre", "Never trading pieces"], answer: "Defending a strategically important point more times than it is attacked, so the defenders gain activity", explain: "Pieces guarding a strong point (e5, d4) are well placed, and they are ready the moment the point comes under attack." },
-      { q: "Prophylaxis is", options: ["Preventing the opponent's plan before it starts", "Attacking the king at once", "Trading into an endgame", "Pushing passed pawns"], answer: "Preventing the opponent's plan before it starts", explain: "Ask what the opponent wants, then stop it. Petrosian and Karpov built careers on it." },
-      { q: "Against a pawn chain, Nimzowitsch says to", options: ["Attack its base", "Attack its head", "Ignore it", "Exchange the front pawn"], answer: "Attack its base", explain: "The base holds the chain up. Remove it and the rest weakens." },
-      { q: "The 'lust to expand' belongs to", options: ["The passed pawn", "The king", "The bishop pair", "The queen"], answer: "The passed pawn", explain: "It wants to advance, so the defender must blockade it. A pawn that is blockaded is no longer a threat." }
-    ],
+  book({ id: "ch_bk_nimzo", mode: "chnimzo", pass: 8, of: 10, title: "My System", sub: "Aron Nimzowitsch · strategy", gist: "The 1925 book that named positional chess: blockade, overprotection, prophylaxis, the open file, the seventh rank, the pawn chain and the passed pawn's lust to expand.",
     blocks: [
       { t: "p", x: "My System is in two parts. The first, the elements: the centre, open files, the seventh and eighth ranks, the passed pawn, exchanging, the pin, discovered check, the pawn chain. The second, positional play: prophylaxis, overprotection of strong points, manoeuvring against weaknesses, doubled and isolated pawns, and restraint (restrain, blockade, destroy). The style is combative and the ideas became the common vocabulary of every strategy book after it." },
       { t: "tbl", head: ["Idea", "In one line"], rows: [["Blockade", "a piece (best a knight) on the square in front of a passed pawn"], ["Overprotection", "guard key points more than needed; the guards become active"], ["Prophylaxis", "stop the opponent's plan before it starts"], ["Pawn chain", "attack the base"], ["Open file", "occupy it, then invade the seventh rank"], ["Restraint", "restrain, blockade, then destroy a pawn majority"]] },
-      { t: "key", x: "Blockade, overprotection, prophylaxis, the chain's base, the open file to the seventh. Read it after the tactics are sound, around 1600." }
+      { t: "key", x: "Blockade, overprotection, prophylaxis, the chain's base, the open file to the seventh. Read it after the tactics are sound, around 1600." },
+      { t: "how", drill: "Blockade and the chain", ask: "Click the blockade square or the base of the chain.", steps: ["A passed pawn: the square directly in front of it is the blockade.", "A chain: follow the diagonal back to the pawn nothing defends.", "That is where to put the knight, and where to aim the pawn break."], tip: "Restrain, blockade, destroy: the first two are squares you can point to." }
     ] });
-  book({ id: "ch_bk_silman_reassess", title: "How to Reassess Your Chess", sub: "Jeremy Silman · strategy", gist: "Every position has imbalances, the differences between the two sides. List them, decide which favour you, and the plan follows: play on the side of the board where your imbalances live.",
-    quiz: [
-      { q: "An imbalance is", options: ["Any difference between the two sides' positions", "A material deficit", "A pawn on the wrong colour", "An unsafe king"], answer: "Any difference between the two sides' positions", explain: "Minor pieces, pawn structure, space, material, files, weak squares, development, initiative, king safety." },
-      { q: "Which is one of Silman's imbalances", options: ["Bishop against knight", "The time of day", "The rating gap", "Who moved first"], answer: "Bishop against knight", explain: "Minor-piece differences tell you whether to open or close the position." },
-      { q: "Silman's planning method is", options: ["List the imbalances, decide which favour you, picture a dream position, then find the moves that reach it", "Calculate every line to mate", "Copy the engine's top move", "Play the opening book as far as it goes"], answer: "List the imbalances, decide which favour you, picture a dream position, then find the moves that reach it", explain: "Planning starts from what is different on the board, not from moves you happen to remember." },
-      { q: "Static versus dynamic imbalances", options: ["Static ones last (structure, material); dynamic ones fade (development, initiative)", "Static ones are always better", "Dynamic ones never matter", "They are the same"], answer: "Static ones last (structure, material); dynamic ones fade (development, initiative)", explain: "A lead in development must be used now. A better structure can wait for the endgame." },
-      { q: "With a space advantage you should usually", options: ["Avoid trades, since the cramped side wants exchanges", "Trade everything", "Open the position at once", "Retreat"], answer: "Avoid trades, since the cramped side wants exchanges", explain: "Fewer pieces means more room for the cramped side." }
-    ],
+  book({ id: "ch_bk_silman_reassess", mode: "chimbalance", pass: 8, of: 10, title: "How to Reassess Your Chess", sub: "Jeremy Silman · strategy", gist: "Every position has imbalances, the differences between the two sides. List them, decide which favour you, and the plan follows: play on the side of the board where your imbalances live.",
     blocks: [
       { t: "p", x: "Silman's question is not 'what is the best move?' but 'what is different about the two sides?' He calls those differences imbalances: bishops against knights, pawn structure, space, material, control of a key file, a weak square or hole, a lead in development, the initiative, king safety. Some are static and last into the endgame; some are dynamic and vanish if not used. Once the imbalances are listed, the plan nearly writes itself: play where they favour you, and steer toward a position where they count most." },
       { t: "rule", x: "list the imbalances → which favour me? → the dream position → the moves that get there\nstatic advantages: play slowly · dynamic advantages: act now", note: "Pairs with the Strategy stage here: structure and piece quality are two of the imbalances. Read after My System, or alongside it." },
-      { t: "key", x: "Imbalances, not moves. List them, find which side of the board they point to, and plan from there." }
+      { t: "key", x: "Imbalances, not moves. List them, find which side of the board they point to, and plan from there." },
+      { t: "how", drill: "Imbalances", ask: "Which side has the bishop pair, a passed pawn, fewer islands, more material?", steps: ["Material first.", "Then the minor pieces: bishop pair, bishop against knight.", "Then the pawns: passed pawns and islands."], tip: "List the imbalances out loud before you choose a plan." }
     ] });
-  book({ id: "ch_bk_dvoretsky", title: "Dvoretsky's Endgame Manual", sub: "Mark Dvoretsky · endgames", gist: "The reference on endgame theory. The text and positions highlighted in blue are the essential minimum: learn those cold, and treat the rest as reference.",
-    quiz: [
-      { q: "In the Manual, the blue-highlighted material is", options: ["The essential theory every strong player should know cold", "Exercises for beginners", "Historical notes", "Errata"], answer: "The essential theory every strong player should know cold", explain: "Dvoretsky's own instruction: the blue is the minimum; everything else is detail and reference." },
-      { q: "Corresponding squares are used to", options: ["Find which square each king must take in reply to the other in a pawn ending", "Count material", "Choose an opening", "Plan a kingside attack"], answer: "Find which square each king must take in reply to the other in a pawn ending", explain: "The general form of the opposition: for each square one king goes to, the other king has a square it must answer with." },
-      { q: "Triangulation is", options: ["Losing a tempo with the king to hand the opponent the move", "A three-piece mate", "Doubling rooks", "A bishop manoeuvre in the opening"], answer: "Losing a tempo with the king to hand the opponent the move", explain: "Three king moves to arrive where two would, and the opponent is in zugzwang." },
-      { q: "The Vancura position is", options: ["A rook ending draw against a rook's pawn, the defending rook attacking the pawn from the side", "A queen ending win", "A pawn ending", "A knight ending"], answer: "A rook ending draw against a rook's pawn, the defending rook attacking the pawn from the side", explain: "Rook plus a-pawn against rook: the defending rook attacks the pawn from the side and gives checks when the king approaches." },
-      { q: "The Manual suits players around", options: ["1900 and up, after a graded book like Silman's", "Complete beginners", "Players who have just learned the rules", "Players who never play endgames"], answer: "1900 and up, after a graded book like Silman's", explain: "Dense and complete: a reference to work through over years, not a first endgame book." }
-    ],
+  book({ id: "ch_bk_dvoretsky", mode: "chendgame", pass: 7, of: 10, title: "Dvoretsky's Endgame Manual", sub: "Mark Dvoretsky · endgames", gist: "The reference on endgame theory. The text and positions highlighted in blue are the essential minimum: learn those cold, and treat the rest as reference.",
     blocks: [
       { t: "p", x: "Dvoretsky, the great trainer, wrote the endgame reference: pawn endings (key squares, corresponding squares, triangulation), minor pieces against pawns, rook endings in depth (Lucena, Philidor, Vancura, the rook behind the passed pawn), queen endings and the rest. The text and positions in blue are the core theory, the part that must be known without thinking; everything in black is deeper analysis to consult when a game or a study demands it." },
       { t: "rule", x: "pass 1: blue only, until you can set up and play each position from memory\nlater: the black text, chapter by chapter, when your games reach it", note: "Set up each blue position against an engine and play both sides until the result is automatic. That is the Leitner idea applied to a book." },
-      { t: "key", x: "The reference. Blue first, cold. Black as your games demand. After Silman, around 1900." }
+      { t: "key", x: "The reference. Blue first, cold. Black as your games demand. After Silman, around 1900." },
+      { t: "how", drill: "Endgame technique", ask: "The core positions, drilled until they are automatic.", steps: ["Name the position.", "Recall its method.", "Play the move, and check it against the result."], tip: "Dvoretsky's blue text is the minimum to know cold: the same positions as this drill, and more." }
     ] });
 
-  book({ id: "ch_bk_kotov", title: "Think Like a Grandmaster", sub: "Alexander Kotov · calculation", gist: "The book that gave chess the candidate move and the tree of analysis: list every candidate first, examine each branch once, and do not jump back and forth.",
-    quiz: [
-      { q: "Kotov's first step at a critical moment is", options: ["Identify all the candidate moves before analysing any of them", "Analyse the most natural move deeply", "Look at the clock", "Count the pawns"], answer: "Identify all the candidate moves before analysing any of them", explain: "Without the list, the moves you never think of never get looked at." },
-      { q: "Kotov's rule for each branch of the tree is", options: ["Analyse each variation once, thoroughly, and do not return to it", "Revisit every line several times", "Analyse only the first move of each", "Calculate only forcing lines"], answer: "Analyse each variation once, thoroughly, and do not return to it", explain: "Jumping back and forth between lines wastes the clock and muddles the analysis." },
-      { q: "The 'Kotov syndrome' is", options: ["After long calculation that finds nothing, playing an unanalysed move on impulse", "Always choosing the first candidate", "Refusing to resign", "Playing too quickly in the opening"], answer: "After long calculation that finds nothing, playing an unanalysed move on impulse", explain: "Thirty minutes spent, every line unclear, so a different move gets played in seconds without being checked. Decide, or play the best line you analysed." },
-      { q: "The tree of analysis means", options: ["Lines branching from each candidate and each reply, explored systematically", "Memorising opening trees", "A family of pawn structures", "A list of master games"], answer: "Lines branching from each candidate and each reply, explored systematically", explain: "Wide at the root (candidates), then deep down the forcing branches." },
-      { q: "Kotov also teaches", options: ["Positional assessment, so the end of each line can be evaluated", "That evaluation is unnecessary", "That only openings matter", "To avoid writing down analysis"], answer: "Positional assessment, so the end of each line can be evaluated", explain: "A line is only as good as your judgement of the position it ends in." }
-    ],
+  book({ id: "ch_bk_kotov", mode: "chcct", pass: 8, of: 10, title: "Think Like a Grandmaster", sub: "Alexander Kotov · calculation", gist: "The book that gave chess the candidate move and the tree of analysis: list every candidate first, examine each branch once, and do not jump back and forth.",
     blocks: [
       { t: "p", x: "Kotov set out the method strong players use when a position needs calculating. First, list the candidate moves. Then work through the tree: each candidate, each serious reply, to a position you can judge, and each branch examined once. Then compare the end positions and choose. He also named the trap that follows long, fruitless thought: grabbing a move you never analysed. Later writers (Aagaard among them) argue real thinking is less tidy, but the candidate list and the single pass stay." },
       { t: "rule", x: "candidates first → each branch once → evaluate the leaves → choose\nno jumping between lines · no unanalysed impulse move", note: "This is the method in the Calculation stage here (ch_calc). Practise it on the 'best move' drills: say the candidates before choosing." },
-      { t: "key", x: "Candidates, then the tree, each branch once. Beware the Kotov syndrome." }
+      { t: "key", x: "Candidates, then the tree, each branch once. Beware the Kotov syndrome." },
+      { t: "how", drill: "Checks, captures, threats", ask: "How many checks, or how many captures, does the side to move have?", steps: ["Go piece by piece, not by intuition.", "For checks: which pieces can reach a line or a knight square to the king?", "For captures: which enemy pieces does each of your pieces attack?"], tip: "Kotov's candidate list begins with the forcing moves. Counting them exactly is the habit that stops you missing one." }
     ] });
-  book({ id: "ch_bk_degroot", title: "Thought and Choice in Chess", sub: "Adriaan de Groot · the mind", gist: "The psychology study that asked grandmasters to think aloud and found they did not calculate more than club players. They saw better moves first. Perception, built from patterns, is the difference.",
-    quiz: [
-      { q: "De Groot's main method was", options: ["Recording players thinking aloud as they chose a move", "Brain scans", "Analysing tournament statistics", "Engine comparisons"], answer: "Recording players thinking aloud as they chose a move", explain: "Grandmasters, masters and club players each talked through the same positions." },
-      { q: "What did he find about search", options: ["Grandmasters did not look at more moves or deeper than strong club players", "Grandmasters calculated far deeper", "Club players looked at fewer moves", "Nobody calculated at all"], answer: "Grandmasters did not look at more moves or deeper than strong club players", explain: "The size of the search was about the same. What differed was which moves were in it." },
-      { q: "So the master's edge lies in", options: ["Perception: the right candidate moves come to mind first", "Faster calculation", "Better memory for openings", "More time at the board"], answer: "Perception: the right candidate moves come to mind first", explain: "Masters see the right moves before they calculate anything." },
-      { q: "In his memory test, masters shown a game position for a few seconds", options: ["Rebuilt it almost perfectly; weaker players could not", "Remembered nothing", "Did no better than beginners", "Remembered only the kings"], answer: "Rebuilt it almost perfectly; weaker players could not", explain: "Chase and Simon later showed the advantage vanishes for random positions: masters remember meaningful chunks, not squares." },
-      { q: "The practical lesson for training is", options: ["Build the pattern store: many positions, seen and tested, over years", "Train raw calculation speed only", "Memorise random positions", "Avoid puzzles"], answer: "Build the pattern store: many positions, seen and tested, over years", explain: "Tactics drills and studying master games are both ways of adding patterns." }
-    ],
+  book({ id: "ch_bk_degroot", mode: "chtactics", pass: 7, of: 10, title: "Thought and Choice in Chess", sub: "Adriaan de Groot · the mind", gist: "The psychology study that asked grandmasters to think aloud and found they did not calculate more than club players. They saw better moves first. Perception, built from patterns, is the difference.",
     blocks: [
       { t: "p", x: "Adriaan de Groot, a Dutch psychologist and master, wrote his thesis in 1946 (English edition 1965). He gave positions to grandmasters, masters and club players and had them think aloud. The grandmasters' search was not bigger or deeper; it simply started from better moves. His memory experiments showed masters could rebuild a real position after seconds; later work by Chase and Simon showed the advantage disappears for random positions. Masters remember chunks: familiar groups of pieces, stored over thousands of hours." },
       { t: "rule", x: "strength = what you see first, not how far you calculate\npatterns are built from many positions, each tested and recalled", note: "This is why the course trains tactics as spaced drills: each puzzle adds a chunk, and the schedule makes it stick." },
-      { t: "key", x: "Masters see, they do not out-calculate. Chunks from experience. Build the store." }
+      { t: "key", x: "Masters see, they do not out-calculate. Chunks from experience. Build the store." },
+      { t: "how", drill: "Tactics by theme", ask: "See the pattern: fork, line tactic, back rank, mate.", steps: ["Look for the pattern before calculating.", "Then check it with one forcing line."], tip: "Masters see better moves first because they have seen the patterns many times. This is how the store is built." }
     ] });
-  book({ id: "ch_bk_aagaard", title: "Grandmaster Preparation: Calculation", sub: "Jacob Aagaard · calculation, 2000+", gist: "Hard positions and a demanding method: find the candidates for both sides, calculate to the end without touching the pieces, write it down, then compare with the solution. For 2000 and up.",
-    quiz: [
-      { q: "The book is aimed at players around", options: ["2000 and up", "Beginners", "1000–1200", "Players learning the rules"], answer: "2000 and up", explain: "It is part of a series for strong players training toward master and grandmaster." },
-      { q: "Aagaard's exercises should be solved", options: ["Without moving the pieces, calculating to the end and writing the lines down", "With an engine running", "By guessing the first move", "In a few seconds each"], answer: "Without moving the pieces, calculating to the end and writing the lines down", explain: "Written lines show exactly where the calculation broke down." },
-      { q: "A recurring point is to", options: ["Look for the opponent's candidate moves and defensive resources, not only your own", "Ignore the opponent's replies", "Play the most aggressive move always", "Avoid forcing moves"], answer: "Look for the opponent's candidate moves and defensive resources, not only your own", explain: "Most calculation errors are the reply you did not see." },
-      { q: "Compared with Kotov's tree, Aagaard says real calculation is", options: ["Less tidy: candidate moves, comparison, and returning to lines when new ideas appear", "Exactly the same", "Unnecessary for grandmasters", "Only about memorisation"], answer: "Less tidy: candidate moves, comparison, and returning to lines when new ideas appear", explain: "The candidate list stays. The rule of examining each branch only once gives way to how strong players actually think." },
-      { q: "After solving, the most useful step is", options: ["Compare your written lines with the solution and find where and why you went wrong", "Move straight to the next chapter", "Check only the first move", "Count how many you got right"], answer: "Compare your written lines with the solution and find where and why you went wrong", explain: "Feedback on the exact error is what Ericsson calls deliberate practice." }
-    ],
+  book({ id: "ch_bk_aagaard", mode: "chbest", pass: 6, of: 8, title: "Grandmaster Preparation: Calculation", sub: "Jacob Aagaard · calculation, 2000+", gist: "Hard positions and a demanding method: find the candidates for both sides, calculate to the end without touching the pieces, write it down, then compare with the solution. For 2000 and up.",
     blocks: [
       { t: "p", x: "Aagaard's series (Calculation, Positional Play, Strategic Play, Attack and Defence, Endgame Play) is training for strong players. Calculation is hard positions, grouped by method: candidate moves, the opponent's resources, comparing end positions, combinational vision. The way to use it is as tough as the content: set up the position, calculate without touching the pieces, write down your lines, and only then read the solution and find exactly where you went wrong." },
       { t: "rule", x: "set up → calculate without moving the pieces → write the lines → compare with the solution\nthe opponent's best reply, every time", note: "Thirty to sixty minutes a session, a few positions only. Volume matters less here than depth and honest checking." },
-      { t: "key", x: "For 2000+. Hard positions, written lines, honest comparison. Find the opponent's resources." }
+      { t: "key", x: "For 2000+. Hard positions, written lines, honest comparison. Find the opponent's resources." },
+      { t: "how", drill: "Best move", ask: "Find the move the engine rates clearly best.", steps: ["Candidates for both sides.", "Calculate to a quiet position without moving the pieces.", "Compare, then play."], tip: "Aagaard's method on the drill: decide fully before you touch a piece; no second tries." }
     ] });
   book({ id: "ch_bk_peak", title: "Peak", sub: "Anders Ericsson · the mind", gist: "The science of expertise, with chess as the central example. Hours alone do not make experts; deliberate practice does: specific goals, full focus, immediate feedback, and work just past what you can already do.",
     quiz: [
@@ -4359,6 +4833,7 @@ function chlPuzzle(L, elo, ok) {
     id: "chess", name: "Chess", short: "CH", glyph: "♞", kind: "chess", color: "#34A96F",
     tagline: "Rules to master, with an engine that grades every move.",
     blurb: "The board, material, tactics verified by the engine, openings, endgame technique, strategy, calculation, and the mathematics of rating and evaluation. Play graded games against six engine levels; a tactics rating that moves like Elo.",
+    ruleCards: false,
     path: PATH, lessons: LESSONS, drills: CH_DRILLS, formulas: FORMULAS, glossary: GLOSSARY, reading: READING, ranks: RANKS,
     apply: [{ id: "play", label: "Play the engine", blurb: "Six levels, every move graded", min: 15 }, { id: "rush", label: "Tactics rush", blurb: "Ten rated puzzles", min: 8 }]
   });
@@ -17188,7 +17663,20 @@ function hubHydrate(st) {
   HUB.plan.priority = Object.assign(plDefault().priority, (st.plan || {}).priority || {});
   HUB.quant = Object.assign(qtNew(), st.quant || {});
   rebind();
+  ensureLessonSkills();
   return HUB;
+}
+/* a passed lesson whose drills changed (a new drill replacing a recall card or a quiz) gets the new skills on its schedule, due now */
+function ensureLessonSkills() {
+  if (typeof COURSES === "undefined") return;
+  var now = Date.now();
+  Object.keys(COURSES).forEach(function (cid) {
+    var c = COURSES[cid]; if (!c.lessonList) return;
+    c.lessonList.forEach(function (L) {
+      if (!progress[cid + ":" + L.id]) return;
+      lessonSkillIds(c, L).forEach(function (id) { if (skills[id]) return; var s = skillOf(id); srsGraduate(s, now); s.due = now; });
+    });
+  });
 }
 hubHydrate(null);
 function hubLoad() {
@@ -18033,7 +18521,7 @@ function finishGame() {
 
 /* ---- tactics rush: ten rated puzzles, the tactics rating moves ---- */
 function startRush() {
-  var pool = ["chess:chmate1", "chess:chfork", "chess:chbest", "chess:chmate2", "chess:chmate1", "chess:chfork", "chess:chbest", "chess:chmate1", "chess:chfork", "chess:chmate2"];
+  var pool = ["chess:chmate1", "chess:chfork", "chess:chline", "chess:chbest", "chess:chbackrank", "chess:chmate2", "chess:chfork", "chess:chline", "chess:chmate1", "chess:chbest"];
   sess = { kind: "rush", course: "chess", pool: pool, ctx: { last: null, retry: [], idle: 1 }, n: 0, ok: 0, secs: 0, cap: 10, from: {}, seq: pool.slice() };
   cp = null; location.hash = "#/drill";
 }
