@@ -154,7 +154,7 @@ function submit(raw, selfGraded) {
   if (q.kind === "recall") g = { ok: raw === "had", said: raw };
   else if (selfGraded) g = { ok: raw === q.answer, said: raw || "(missed)" };
   else { g = gradeAnswer(q, raw, q.lang); if (!g) return; }
-  answered = true; cancelAnimationFrame(raf);
+  answered = true; cancelAnimationFrame(raf); q.graded = g;
   var ok = g.ok, cid = q.course, skId = q.skill, sk = skillOf(skId), wasDue = Date.now() >= sk.due;
   if (sess) { if (!(skId in sess.from)) sess.from[skId] = sk.box; sess.n++; if (ok) sess.ok++; }
   q.res = srsRecord(sk, ok, secs, q.target, Date.now());
@@ -203,6 +203,10 @@ function drawReveal(ok, said, secs, near) {
   r.appendChild(v);
   if (q.conf === "s" && !ok) r.appendChild(el("div", "srsline miss", "<b>Sure, and wrong.</b> These are the errors that cost most, because nothing makes you stop and check. Read the working slowly."));
   else if (q.conf === "g" && ok) r.appendChild(el("div", "srsline", "<b>A guess that landed.</b> It counts, but it is not knowledge yet: read why it is right."));
+  var G = q.graded || {};
+  if (G.slip) r.appendChild(el("div", "srsline", "<b>One typo forgiven:</b> you wrote <i>" + esc(G.slip.said) + "</i> for <b>" + esc(G.slip.right) + "</b>. In a sentence one slip passes; in a single word, spelling counts."));
+  if (!ok && G.diff && G.diff.words.length) r.appendChild(el("div", "srsline miss", "Your words: " + G.diff.words.map(function (x) { return x.ok ? esc(x.w) : "<s>" + esc(x.w) + "</s>"; }).join(" ") + (G.diff.missing.length ? " &nbsp;·&nbsp; missing: <b>" + esc(G.diff.missing.join(" ")) + "</b>" : "")));
+  if (!ok && G.why) r.appendChild(el("div", "srsline miss", "<b>Word order.</b> " + esc(G.why.msg) + (G.why.fix ? " &nbsp;→&nbsp; <b>" + esc(G.why.fix) + "</b>" : "")));
   if (q.res) r.appendChild(srsLine());
   var ex = el("div", "expl" + (q.rtl ? " rtl" : "")); (q.explain || []).forEach(function (line) { ex.appendChild(el("p", null, line)); }); r.appendChild(ex);
   if (q.speakAfter) { var sb = btn("🔊 Hear it", "ghost sm", function () { speak(q.speakAfter.text, q.speakAfter.lang); }); sb.style.marginTop = "10px"; r.appendChild(sb); if (ok) setTimeout(function () { speak(q.speakAfter.text, q.speakAfter.lang); }, 120); }

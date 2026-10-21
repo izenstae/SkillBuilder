@@ -26,6 +26,8 @@ function lgNorm(s, lang) {
   s = s.replace(/[‘’]/g, "'");                                /* phone keyboards type curly apostrophes */
   if (lang === "he") { s = lgStrip(s).replace(/[ךםןףץ]/g, function (c) { return LG_FINALS[c]; }); s = s.replace(/[׳״'"]/g, ""); }
   s = s.replace(/[.,!?¿¡;:"“”„«»…–—]/g, " ").replace(/\s+/g, " ").trim();
+  /* Swedish writes the time words both ways, i dag and idag, and both are right */
+  if (lang === "sv") s = s.replace(/(^| )i (dag|går|morgon|kväll|natt|morse|förrgår)(?= |$)/g, "$1i$2");
   return s;
 }
 /* word boundaries, Unicode-aware: a boundary is the start or end of the string, or a neighbour that is not a letter */
@@ -198,16 +200,117 @@ function lgPatternOk(p, s, lang) {
   var n = lgNorm(p, lang);
   return !!n && lgFindWord(s, n, false) >= 0;
 }
-function lgTurnOk(turn, reply, lang) {
+/* a reply that does the job must also be in Swedish word order: a mistake comes back as { ok: false, why, fix } */
+function lgTurnCheck(turn, reply, lang) {
   var s = lgNorm(reply, lang);
-  if (!s) return false;
-  if ((turn.reject || []).some(function (p) { return lgPatternOk(p, s, lang); })) return false;
-  return (turn.expect || []).some(function (p) { return lgPatternOk(p, s, lang); });
+  if (!s) return { ok: false };
+  if ((turn.reject || []).some(function (p) { return lgPatternOk(p, s, lang); })) return { ok: false };
+  if (!(turn.expect || []).some(function (p) { return lgPatternOk(p, s, lang); })) return { ok: false };
+  var e = lang === "sv" ? lgSvOrder(reply) : null;
+  return e ? { ok: false, why: e.msg, fix: e.fix } : { ok: true };
 }
+function lgTurnOk(turn, reply, lang) { return lgTurnCheck(turn, reply, lang).ok; }
 function lgDialogueScore(sc, replies, lang) {
   var ok = 0, n = sc.turns.filter(function (t) { return t.expect; }).length;
   sc.turns.forEach(function (t, i) { if (t.expect && lgTurnOk(t, replies[i] || "", lang)) ok++; });
   return { ok: ok, n: n, score: n ? ok / n : 0 };
+}
+
+/* ---- sentence answers: a forgiven slip, and where the words went wrong ---- */
+/* one word one letter off (two letters or longer) in a sentence of three or more words passes as a typo, unless the slip is itself a word the
+   course knows (har for här, en for ett): that is a wrong word, not a typo. known: { word: 1 } in normalised form. */
+function lgSlip(said, answers, lang, known) {
+  var s = lgNorm(said, lang).split(" "), list = Array.isArray(answers) ? answers : [answers];
+  if (s.length < 3) return null;
+  for (var k = 0; k < list.length; k++) {
+    var a = lgNorm(list[k], lang).split(" "), bad = [];
+    if (a.length !== s.length) continue;
+    for (var i = 0; i < a.length && bad.length < 2; i++) if (a[i] !== s[i]) bad.push(i);
+    if (bad.length !== 1) continue;
+    var w = s[bad[0]], r = a[bad[0]];
+    if (w.length >= 2 && r.length >= 2 && lgDistance(w, r) === 1 && !(known && known[w])) return { said: w, right: r, answer: list[k] };
+  }
+  return null;
+}
+/* the reply's words marked right or wrong against the closest accepted answer, by longest common subsequence:
+   { words: [{ w, ok }], missing: [words of the answer you left out], answer } */
+function lgWordDiff(said, answers, lang) {
+  var s = lgNorm(said, lang).split(" ").filter(Boolean), list = Array.isArray(answers) ? answers : [answers], best = null;
+  list.forEach(function (ans) {
+    var a = lgNorm(ans, lang).split(" ").filter(Boolean), m = s.length, n = a.length, L = [], i, j;
+    for (i = 0; i <= m; i++) { L[i] = []; for (j = 0; j <= n; j++) L[i][j] = 0; }
+    for (i = m - 1; i >= 0; i--) for (j = n - 1; j >= 0; j--) L[i][j] = s[i] === a[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+    var out = [], miss = [];
+    i = 0; j = 0;
+    while (i < m && j < n) { if (s[i] === a[j]) { out.push({ w: s[i], ok: true }); i++; j++; } else if (L[i + 1][j] >= L[i][j + 1]) { out.push({ w: s[i], ok: false }); i++; } else { miss.push(a[j]); j++; } }
+    for (; i < m; i++) out.push({ w: s[i], ok: false });
+    for (; j < n; j++) miss.push(a[j]);
+    if (!best || L[0][0] > best.score) best = { score: L[0][0], words: out, missing: miss, answer: ans };
+  });
+  return best;
+}
+
+/* ---- Swedish word order: the four mistakes English speakers make, found in free text ----
+   Returns null, or { rule, msg, fix } for the first mistake: verb second after a fronted word or clause, inte after the
+   verb in a main clause, BIFF in a subordinate clause, the verb after a question word, and att after a modal. */
+var LG_SV_PRON = /^(jag|du|han|hon|vi|ni|de|dom|det|man)$/;
+var LG_SV_FRONT = /^(idag|igår|imorgon|ikväll|inatt|imorse|iförrgår|nu|sedan|sen|därför|dessutom|ändå|tyvärr|ibland|ofta|snart|här|där|hemma|efteråt|plötsligt|först|alltså|annars)$/;
+var LG_SV_FRONT2 = /^(på|i|efter|före|varje|förra|nästa|klockan)$/;
+var LG_SV_SADV = /^(inte|aldrig|alltid|ofta|sällan)$/;
+var LG_SV_SUB = /^(att|om|eftersom|som|när|fast|fastän|medan|innan|tills|ifall|varför)$/;
+var LG_SV_LEADSUB = /^(om|när|eftersom|innan|fastän|fast|medan|ifall|tills)$/;
+var LG_SV_QW = /^(vad|hur|varför|vem|vart|vilken|vilket|vilka)$/;
+var LG_SV_MODAL = /^(kan|ska|måste|bör|kunde|skulle|borde|vill|ville)$/;
+var LG_SV_DET = /^(en|ett|min|mitt|mina|din|ditt|dina|hans|hennes|vår|vårt|våra|er|ert|era|deras|den|det|de|alla|någon|något|några|många|mig|dig|honom|henne|oss|dem)$/;
+function lgSvTokens(s) {
+  var raw = String(s).normalize("NFC").replace(/[‘’]/g, "'").replace(/[.,!?¿¡;:"“”„«»…–—()]/g, " ").split(/\s+/).filter(Boolean), out = [];
+  for (var i = 0; i < raw.length; i++) {
+    var lo = raw[i].toLowerCase(), nx = (raw[i + 1] || "").toLowerCase();
+    if (lo === "i" && /^(dag|går|morgon|kväll|natt|morse|förrgår)$/.test(nx)) { out.push({ raw: raw[i] + " " + raw[i + 1], lo: "i" + nx }); i++; }
+    else out.push({ raw: raw[i], lo: lo });
+  }
+  return out;
+}
+function lgSvOrder(text) {
+  var parts = String(text || "").match(/[^.!?]+[.!?]*/g) || [];
+  for (var p = 0; p < parts.length; p++) {
+    var sentence = parts[p], end = (sentence.match(/[.!?]+\s*$/) || [""])[0].trim(), t = lgSvTokens(sentence), lo = t.map(function (x) { return x.lo; });
+    /* the corrected sentence: token `from` moved to position `to` */
+    var fix = function (from, to) { var c = t.map(function (x) { return x.raw; }), w = c.splice(from, 1)[0]; c.splice(to, 0, w); var s = c.join(" "); return s.charAt(0).toUpperCase() + s.slice(1) + (end || "."); };
+    if (lo.length < 3) continue;
+    /* verb second after a fronted word: Idag jag spelar → Idag spelar jag */
+    if (LG_SV_FRONT.test(lo[0]) && LG_SV_PRON.test(lo[1])) {
+      return { rule: "v2", msg: "Verb second: after '" + t[0].raw + "' the verb comes next, then the subject.", fix: fix(LG_SV_SADV.test(lo[2]) && lo[3] ? 3 : 2, 1) };
+    }
+    /* ... and after a fronted phrase: På lördag vi spelar → På lördag spelar vi */
+    if (lo.length >= 4 && LG_SV_FRONT2.test(lo[0]) && lo[1] !== "att" && !LG_SV_PRON.test(lo[1]) && LG_SV_PRON.test(lo[2]) && lo[3] !== "och")
+      return { rule: "v2", msg: "Verb second: '" + t[0].raw + " " + t[1].raw + "' is the first element, so the verb comes next, then the subject.", fix: fix(3, 2) };
+    /* a question word takes the verb straight after it: Vad du gör? → Vad gör du? */
+    if (end.indexOf("?") >= 0 && LG_SV_QW.test(lo[0]) && LG_SV_PRON.test(lo[1]))
+      return { rule: "q", msg: "In a question the verb comes straight after the question word, then the subject.", fix: fix(2, 1) };
+    /* inte after the verb in a main clause: Jag inte vill → Jag vill inte */
+    if (LG_SV_PRON.test(lo[0]) && LG_SV_SADV.test(lo[1]))
+      return { rule: "inte", msg: "In a main clause '" + t[1].raw + "' goes after the verb.", fix: fix(2, 1) };
+    /* a subordinate clause in front is position one, so the main verb follows the comma: Om det regnar, vi stannar → stannar vi */
+    if (LG_SV_LEADSUB.test(lo[0]) && sentence.indexOf(",") > 0) {
+      var after = lgSvTokens(sentence.slice(sentence.indexOf(",") + 1)), al = after.map(function (x) { return x.lo; });
+      if (al.length >= 2 && LG_SV_PRON.test(al[0]) && !LG_SV_SADV.test(al[1])) {
+        var head = sentence.slice(0, sentence.indexOf(",")).trim(), tail = after.map(function (x) { return x.raw; }), tmp = tail[0]; tail[0] = tail[1]; tail[1] = tmp;
+        return { rule: "v2", msg: "The clause in front counts as position one, so the main verb comes straight after it, then the subject.", fix: head + " " + tail.join(" ") + (end || ".") };
+      }
+    }
+    for (var i = 0; i + 2 < lo.length; i++) {
+      /* BIFF: att han kommer inte → att han inte kommer */
+      if (LG_SV_SUB.test(lo[i]) && LG_SV_PRON.test(lo[i + 1] || "") && lo[i + 2] && !LG_SV_SADV.test(lo[i + 2]) && LG_SV_SADV.test(lo[i + 3] || ""))
+        return { rule: "biff", msg: "In a subordinate clause (after '" + t[i].raw + "') '" + t[i + 3].raw + "' goes before the verb.", fix: fix(i + 3, i + 2) };
+      /* no att after a modal: vill att äta → vill äta */
+      if (LG_SV_MODAL.test(lo[i]) && lo[i + 1] === "att" && lo[i + 2] && !LG_SV_PRON.test(lo[i + 2]) && !LG_SV_DET.test(lo[i + 2]) && /[aeiouyåäö]$/.test(lo[i + 2]) && t[i + 2].raw === lo[i + 2]) {
+        var c2 = t.map(function (x) { return x.raw; }); c2.splice(i + 1, 1); var s2 = c2.join(" ");
+        return { rule: "att", msg: "After '" + t[i].raw + "' comes the bare infinitive, without att.", fix: s2.charAt(0).toUpperCase() + s2.slice(1) + (end || ".") };
+      }
+    }
+  }
+  return null;
 }
 
 /* ---- the level model: CEFR from what you can do ----
@@ -224,7 +327,7 @@ var LG_CEFR = [
   { min: 92, name: "C2", about: "Mastery. Near-native: nuance, idiom, register, anything you read or hear." }
 ];
 var LG_NEED = { sv: 700, he: 1100 };    /* FSI hours to professional working proficiency: Swedish category I, Hebrew category III */
-var LG_WORDS = 450;                      /* the vocabulary anchor when a course does not say how many words it has (the courses hold 425–514) */
+var LG_WORDS = 450;                      /* the vocabulary anchor when a course does not say how many words it has (the courses hold 425–1,121) */
 /* vocabulary: 25 points for words known, 10 more for words automatic, each on a log curve anchored at the course's word count
    (st.total), so the term never falls when a word is promoted and all words automatic scores the full 35 */
 function lgLevelScore(st) {
@@ -288,6 +391,6 @@ var HE_VOWELS = [
 if (typeof module !== "undefined") module.exports = {
   LG_LANG: LG_LANG, LG_CEFR: LG_CEFR, LG_NEED: LG_NEED, LG_WORDS: LG_WORDS, HE_LETTERS: HE_LETTERS, HE_VOWELS: HE_VOWELS,
   lgStrip: lgStrip, lgNorm: lgNorm, lgIsLetter: lgIsLetter, lgFindWord: lgFindWord, lgDistinct: lgDistinct, lgOptions: lgOptions, lgSplit: lgSplit, lgMatch: lgMatch, lgDistance: lgDistance, lgItem: lgItem, lgShuffle: lgShuffle, lgPickOthers: lgPickOthers,
-  lgShow: lgShow, lgBlank: lgBlank, lgWordQ: lgWordQ, lgLessonQ: lgLessonQ, lgFormQ: lgFormQ, lgPatternOk: lgPatternOk, lgTurnOk: lgTurnOk, lgDialogueScore: lgDialogueScore,
+  lgShow: lgShow, lgBlank: lgBlank, lgWordQ: lgWordQ, lgLessonQ: lgLessonQ, lgFormQ: lgFormQ, lgPatternOk: lgPatternOk, lgTurnCheck: lgTurnCheck, lgTurnOk: lgTurnOk, lgSlip: lgSlip, lgWordDiff: lgWordDiff, lgSvOrder: lgSvOrder, lgDialogueScore: lgDialogueScore,
   lgLevelScore: lgLevelScore, lgLevel: lgLevel, lgNumberWords: lgNumberWords
 };

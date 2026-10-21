@@ -1222,6 +1222,8 @@ function lgNorm(s, lang) {
   s = s.replace(/[‘’]/g, "'");                                /* phone keyboards type curly apostrophes */
   if (lang === "he") { s = lgStrip(s).replace(/[ךםןףץ]/g, function (c) { return LG_FINALS[c]; }); s = s.replace(/[׳״'"]/g, ""); }
   s = s.replace(/[.,!?¿¡;:"“”„«»…–—]/g, " ").replace(/\s+/g, " ").trim();
+  /* Swedish writes the time words both ways, i dag and idag, and both are right */
+  if (lang === "sv") s = s.replace(/(^| )i (dag|går|morgon|kväll|natt|morse|förrgår)(?= |$)/g, "$1i$2");
   return s;
 }
 /* word boundaries, Unicode-aware: a boundary is the start or end of the string, or a neighbour that is not a letter */
@@ -1394,16 +1396,117 @@ function lgPatternOk(p, s, lang) {
   var n = lgNorm(p, lang);
   return !!n && lgFindWord(s, n, false) >= 0;
 }
-function lgTurnOk(turn, reply, lang) {
+/* a reply that does the job must also be in Swedish word order: a mistake comes back as { ok: false, why, fix } */
+function lgTurnCheck(turn, reply, lang) {
   var s = lgNorm(reply, lang);
-  if (!s) return false;
-  if ((turn.reject || []).some(function (p) { return lgPatternOk(p, s, lang); })) return false;
-  return (turn.expect || []).some(function (p) { return lgPatternOk(p, s, lang); });
+  if (!s) return { ok: false };
+  if ((turn.reject || []).some(function (p) { return lgPatternOk(p, s, lang); })) return { ok: false };
+  if (!(turn.expect || []).some(function (p) { return lgPatternOk(p, s, lang); })) return { ok: false };
+  var e = lang === "sv" ? lgSvOrder(reply) : null;
+  return e ? { ok: false, why: e.msg, fix: e.fix } : { ok: true };
 }
+function lgTurnOk(turn, reply, lang) { return lgTurnCheck(turn, reply, lang).ok; }
 function lgDialogueScore(sc, replies, lang) {
   var ok = 0, n = sc.turns.filter(function (t) { return t.expect; }).length;
   sc.turns.forEach(function (t, i) { if (t.expect && lgTurnOk(t, replies[i] || "", lang)) ok++; });
   return { ok: ok, n: n, score: n ? ok / n : 0 };
+}
+
+/* ---- sentence answers: a forgiven slip, and where the words went wrong ---- */
+/* one word one letter off (two letters or longer) in a sentence of three or more words passes as a typo, unless the slip is itself a word the
+   course knows (har for här, en for ett): that is a wrong word, not a typo. known: { word: 1 } in normalised form. */
+function lgSlip(said, answers, lang, known) {
+  var s = lgNorm(said, lang).split(" "), list = Array.isArray(answers) ? answers : [answers];
+  if (s.length < 3) return null;
+  for (var k = 0; k < list.length; k++) {
+    var a = lgNorm(list[k], lang).split(" "), bad = [];
+    if (a.length !== s.length) continue;
+    for (var i = 0; i < a.length && bad.length < 2; i++) if (a[i] !== s[i]) bad.push(i);
+    if (bad.length !== 1) continue;
+    var w = s[bad[0]], r = a[bad[0]];
+    if (w.length >= 2 && r.length >= 2 && lgDistance(w, r) === 1 && !(known && known[w])) return { said: w, right: r, answer: list[k] };
+  }
+  return null;
+}
+/* the reply's words marked right or wrong against the closest accepted answer, by longest common subsequence:
+   { words: [{ w, ok }], missing: [words of the answer you left out], answer } */
+function lgWordDiff(said, answers, lang) {
+  var s = lgNorm(said, lang).split(" ").filter(Boolean), list = Array.isArray(answers) ? answers : [answers], best = null;
+  list.forEach(function (ans) {
+    var a = lgNorm(ans, lang).split(" ").filter(Boolean), m = s.length, n = a.length, L = [], i, j;
+    for (i = 0; i <= m; i++) { L[i] = []; for (j = 0; j <= n; j++) L[i][j] = 0; }
+    for (i = m - 1; i >= 0; i--) for (j = n - 1; j >= 0; j--) L[i][j] = s[i] === a[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+    var out = [], miss = [];
+    i = 0; j = 0;
+    while (i < m && j < n) { if (s[i] === a[j]) { out.push({ w: s[i], ok: true }); i++; j++; } else if (L[i + 1][j] >= L[i][j + 1]) { out.push({ w: s[i], ok: false }); i++; } else { miss.push(a[j]); j++; } }
+    for (; i < m; i++) out.push({ w: s[i], ok: false });
+    for (; j < n; j++) miss.push(a[j]);
+    if (!best || L[0][0] > best.score) best = { score: L[0][0], words: out, missing: miss, answer: ans };
+  });
+  return best;
+}
+
+/* ---- Swedish word order: the four mistakes English speakers make, found in free text ----
+   Returns null, or { rule, msg, fix } for the first mistake: verb second after a fronted word or clause, inte after the
+   verb in a main clause, BIFF in a subordinate clause, the verb after a question word, and att after a modal. */
+var LG_SV_PRON = /^(jag|du|han|hon|vi|ni|de|dom|det|man)$/;
+var LG_SV_FRONT = /^(idag|igår|imorgon|ikväll|inatt|imorse|iförrgår|nu|sedan|sen|därför|dessutom|ändå|tyvärr|ibland|ofta|snart|här|där|hemma|efteråt|plötsligt|först|alltså|annars)$/;
+var LG_SV_FRONT2 = /^(på|i|efter|före|varje|förra|nästa|klockan)$/;
+var LG_SV_SADV = /^(inte|aldrig|alltid|ofta|sällan)$/;
+var LG_SV_SUB = /^(att|om|eftersom|som|när|fast|fastän|medan|innan|tills|ifall|varför)$/;
+var LG_SV_LEADSUB = /^(om|när|eftersom|innan|fastän|fast|medan|ifall|tills)$/;
+var LG_SV_QW = /^(vad|hur|varför|vem|vart|vilken|vilket|vilka)$/;
+var LG_SV_MODAL = /^(kan|ska|måste|bör|kunde|skulle|borde|vill|ville)$/;
+var LG_SV_DET = /^(en|ett|min|mitt|mina|din|ditt|dina|hans|hennes|vår|vårt|våra|er|ert|era|deras|den|det|de|alla|någon|något|några|många|mig|dig|honom|henne|oss|dem)$/;
+function lgSvTokens(s) {
+  var raw = String(s).normalize("NFC").replace(/[‘’]/g, "'").replace(/[.,!?¿¡;:"“”„«»…–—()]/g, " ").split(/\s+/).filter(Boolean), out = [];
+  for (var i = 0; i < raw.length; i++) {
+    var lo = raw[i].toLowerCase(), nx = (raw[i + 1] || "").toLowerCase();
+    if (lo === "i" && /^(dag|går|morgon|kväll|natt|morse|förrgår)$/.test(nx)) { out.push({ raw: raw[i] + " " + raw[i + 1], lo: "i" + nx }); i++; }
+    else out.push({ raw: raw[i], lo: lo });
+  }
+  return out;
+}
+function lgSvOrder(text) {
+  var parts = String(text || "").match(/[^.!?]+[.!?]*/g) || [];
+  for (var p = 0; p < parts.length; p++) {
+    var sentence = parts[p], end = (sentence.match(/[.!?]+\s*$/) || [""])[0].trim(), t = lgSvTokens(sentence), lo = t.map(function (x) { return x.lo; });
+    /* the corrected sentence: token `from` moved to position `to` */
+    var fix = function (from, to) { var c = t.map(function (x) { return x.raw; }), w = c.splice(from, 1)[0]; c.splice(to, 0, w); var s = c.join(" "); return s.charAt(0).toUpperCase() + s.slice(1) + (end || "."); };
+    if (lo.length < 3) continue;
+    /* verb second after a fronted word: Idag jag spelar → Idag spelar jag */
+    if (LG_SV_FRONT.test(lo[0]) && LG_SV_PRON.test(lo[1])) {
+      return { rule: "v2", msg: "Verb second: after '" + t[0].raw + "' the verb comes next, then the subject.", fix: fix(LG_SV_SADV.test(lo[2]) && lo[3] ? 3 : 2, 1) };
+    }
+    /* ... and after a fronted phrase: På lördag vi spelar → På lördag spelar vi */
+    if (lo.length >= 4 && LG_SV_FRONT2.test(lo[0]) && lo[1] !== "att" && !LG_SV_PRON.test(lo[1]) && LG_SV_PRON.test(lo[2]) && lo[3] !== "och")
+      return { rule: "v2", msg: "Verb second: '" + t[0].raw + " " + t[1].raw + "' is the first element, so the verb comes next, then the subject.", fix: fix(3, 2) };
+    /* a question word takes the verb straight after it: Vad du gör? → Vad gör du? */
+    if (end.indexOf("?") >= 0 && LG_SV_QW.test(lo[0]) && LG_SV_PRON.test(lo[1]))
+      return { rule: "q", msg: "In a question the verb comes straight after the question word, then the subject.", fix: fix(2, 1) };
+    /* inte after the verb in a main clause: Jag inte vill → Jag vill inte */
+    if (LG_SV_PRON.test(lo[0]) && LG_SV_SADV.test(lo[1]))
+      return { rule: "inte", msg: "In a main clause '" + t[1].raw + "' goes after the verb.", fix: fix(2, 1) };
+    /* a subordinate clause in front is position one, so the main verb follows the comma: Om det regnar, vi stannar → stannar vi */
+    if (LG_SV_LEADSUB.test(lo[0]) && sentence.indexOf(",") > 0) {
+      var after = lgSvTokens(sentence.slice(sentence.indexOf(",") + 1)), al = after.map(function (x) { return x.lo; });
+      if (al.length >= 2 && LG_SV_PRON.test(al[0]) && !LG_SV_SADV.test(al[1])) {
+        var head = sentence.slice(0, sentence.indexOf(",")).trim(), tail = after.map(function (x) { return x.raw; }), tmp = tail[0]; tail[0] = tail[1]; tail[1] = tmp;
+        return { rule: "v2", msg: "The clause in front counts as position one, so the main verb comes straight after it, then the subject.", fix: head + " " + tail.join(" ") + (end || ".") };
+      }
+    }
+    for (var i = 0; i + 2 < lo.length; i++) {
+      /* BIFF: att han kommer inte → att han inte kommer */
+      if (LG_SV_SUB.test(lo[i]) && LG_SV_PRON.test(lo[i + 1] || "") && lo[i + 2] && !LG_SV_SADV.test(lo[i + 2]) && LG_SV_SADV.test(lo[i + 3] || ""))
+        return { rule: "biff", msg: "In a subordinate clause (after '" + t[i].raw + "') '" + t[i + 3].raw + "' goes before the verb.", fix: fix(i + 3, i + 2) };
+      /* no att after a modal: vill att äta → vill äta */
+      if (LG_SV_MODAL.test(lo[i]) && lo[i + 1] === "att" && lo[i + 2] && !LG_SV_PRON.test(lo[i + 2]) && !LG_SV_DET.test(lo[i + 2]) && /[aeiouyåäö]$/.test(lo[i + 2]) && t[i + 2].raw === lo[i + 2]) {
+        var c2 = t.map(function (x) { return x.raw; }); c2.splice(i + 1, 1); var s2 = c2.join(" ");
+        return { rule: "att", msg: "After '" + t[i].raw + "' comes the bare infinitive, without att.", fix: s2.charAt(0).toUpperCase() + s2.slice(1) + (end || ".") };
+      }
+    }
+  }
+  return null;
 }
 
 /* ---- the level model: CEFR from what you can do ----
@@ -1420,7 +1523,7 @@ var LG_CEFR = [
   { min: 92, name: "C2", about: "Mastery. Near-native: nuance, idiom, register, anything you read or hear." }
 ];
 var LG_NEED = { sv: 700, he: 1100 };    /* FSI hours to professional working proficiency: Swedish category I, Hebrew category III */
-var LG_WORDS = 450;                      /* the vocabulary anchor when a course does not say how many words it has (the courses hold 425–514) */
+var LG_WORDS = 450;                      /* the vocabulary anchor when a course does not say how many words it has (the courses hold 425–1,121) */
 /* vocabulary: 25 points for words known, 10 more for words automatic, each on a log curve anchored at the course's word count
    (st.total), so the term never falls when a word is promoted and all words automatic scores the full 35 */
 function lgLevelScore(st) {
@@ -1603,14 +1706,34 @@ function cpQuestion(c, L, ctx, asked) {
   return skQuestion(c.id + ":" + L.mode, ctx);
 }
 
+/* every word form a course knows, normalised: a typed slip that lands on one of these is a wrong word, not a typo */
+var LEX_CACHE = {};
+function lexiconOf(cid) {
+  if (LEX_CACHE[cid]) return LEX_CACHE[cid];
+  var c = COURSES[cid], lex = {};
+  if (!c || !c.vocab) return lex;
+  Object.keys(c.vocab).forEach(function (lid) { c.vocab[lid].forEach(function (row) {
+    /* the Swedish cells only: word, forms and example (Hebrew rows carry a transliteration, so they sit one further on) */
+    (c.lang === "he" ? [row[0], row[4], row[5]] : [row[0], row[3], row[4]]).forEach(function (cell) { lgNorm(cell, c.lang).split(/[ ,\/]+/).forEach(function (w) { if (w) lex[w] = 1; }); });
+  }); });
+  return (LEX_CACHE[cid] = lex);
+}
 /* grade an answer against a question */
 function gradeAnswer(q, raw, lang) {
   if (q.kind === "choice" || q.kind === "recall") return { ok: raw === q.answer, said: raw };
   if (q.kind === "num") { var v = parseFloat(String(raw).replace(/[−–]/g, "-").replace(/[^0-9.\-]/g, "")); if (!isFinite(v)) return null; return { ok: Math.abs(v - q.answer) <= (q.tol || 0), said: v }; }
   if (q.kind === "text" || q.kind === "speak") {
-    var ok = lgMatch(raw, q.accept || [q.answer], lang);
+    var acc = q.accept || [q.answer], ok = lgMatch(raw, acc, lang);
     var near = !ok && lgDistance(lgNorm(raw, lang), lgNorm(q.answer, lang)) === 1;
-    return { ok: ok, said: raw, near: near };
+    var g = { ok: ok, said: raw, near: near };
+    if (ok || lgNorm(q.answer, lang).split(" ").length < 3) return g;
+    /* a sentence: forgive one typo where the question allows it, else show which words went wrong and why */
+    var slip = q.lenient ? lgSlip(raw, acc, lang, lexiconOf(q.course)) : null;
+    if (slip) { g.ok = true; g.near = false; g.slip = slip; return g; }
+    g.diff = lgWordDiff(raw, acc, lang);
+    var order = lang === "sv" ? lgSvOrder(raw) : null;
+    if (order) g.why = order;
+    return g;
   }
   if (q.kind === "square" || q.kind === "move") return { ok: raw === q.answer || (q.accept || []).indexOf(raw) >= 0, said: raw };
   return { ok: false, said: raw };
@@ -5307,6 +5430,742 @@ var SV_VOCAB = {
     ["på grund av", "because of", "phrase", "", "Matchen ställdes in på grund av vädret.", "The game was cancelled because of the weather."],
     ["i stället för", "instead of", "phrase", "", "Te i stället för kaffe.", "Tea instead of coffee."],
     ["nyfiken", "curious", "adj", "nyfiken, nyfiket, nyfikna", "Jag är nyfiken på Sverige.", "I'm curious about Sweden."]
+  ],
+  sv_v15: [
+    ["i", "in", "prep", "i Sverige, i skolan; i två år = for two years", "Jag bor i Uppsala.", "I live in Uppsala."],
+    ["på", "on / at", "prep", "på bordet, på jobbet; på svenska = in Swedish", "Vi ses på träningen.", "See you at practice."],
+    ["med", "with", "prep", "med buss = by bus", "Jag åker med buss.", "I go by bus."],
+    ["till", "to", "prep", "till skolan; till och med = even", "Vi åker till Göteborg.", "We're going to Gothenburg."],
+    ["av", "of / by / off", "prep", "gjord av trä; av och till = now and then", "Boken är skriven av Astrid Lindgren.", "The book is written by Astrid Lindgren."],
+    ["från", "from", "prep", "", "Hon kommer från Norge.", "She comes from Norway."],
+    ["vid", "by / near", "prep", "vid sjön; vid sju = around seven", "Vi bor vid sjön.", "We live by the lake."],
+    ["under", "under / during", "prep", "under matchen = during the game", "Katten sover under sängen.", "The cat is sleeping under the bed."],
+    ["över", "over / above; past (time)", "prep", "kvart över tre = quarter past three", "Lampan hänger över bordet.", "The lamp hangs above the table."],
+    ["mot", "towards / against", "prep", "emot is a variant", "Vi spelar mot Frölunda.", "We're playing against Frölunda."],
+    ["utan", "without", "prep", "also 'but rather' after a negative: inte ... utan", "Kaffe utan socker, tack.", "Coffee without sugar, please."],
+    ["efter", "after", "prep", "efter att = after (conj)", "Vi ses efter skolan.", "See you after school."],
+    ["hos", "at (someone's place)", "prep", "hos mig = at my place; hos läkaren", "Jag är hos min kompis.", "I'm at my friend's place."],
+    ["genom", "through", "prep", "", "Vi gick genom parken.", "We walked through the park."],
+    ["mellan", "between", "prep", "", "Jag jobbar mellan tre och fem.", "I work between three and five."],
+    ["bakom", "behind", "prep", "", "Bilen står bakom huset.", "The car is behind the house."],
+    ["framför", "in front of", "prep", "", "Han står framför målet.", "He's standing in front of the goal."],
+    ["bredvid", "next to / beside", "prep", "", "Sätt dig bredvid mig.", "Sit next to me."],
+    ["runt", "around", "prep", "runt hörnet = around the corner", "Vi sprang runt sjön.", "We ran around the lake."],
+    ["inne", "inside (location)", "adv", "location; in = motion (gå in)", "Barnen är inne.", "The children are inside."],
+    ["ute", "outside / out (location)", "adv", "location; ut = motion", "Det är kallt ute.", "It's cold outside."],
+    ["uppe", "up (location); awake", "adv", "location; upp = motion", "Är du fortfarande uppe?", "Are you still up?"],
+    ["nere", "down (location)", "adv", "location; ner = motion", "Han är nere i källaren.", "He's down in the basement."],
+    ["borta", "away / gone (location)", "adv", "location; bort = motion", "Min nyckel är borta.", "My key is gone."],
+    ["hit", "here (to this place)", "adv", "motion; här = location", "Kom hit!", "Come here!"],
+    ["dit", "there (to that place)", "adv", "motion; där = location", "Hur kommer jag dit?", "How do I get there?"],
+    ["ut", "out (motion)", "adv", "motion; ute = location", "Vi går ut i kväll.", "We're going out tonight."],
+    ["upp", "up (motion)", "adv", "motion; uppe = location", "Jag går upp klockan sju.", "I get up at seven."],
+    ["ner", "down (motion) / downward", "adv", "also ned; nere = location", "Sätt dig ner.", "Sit down."],
+    ["bort", "away (motion)", "adv", "motion; borta = location", "Hon flyttade bort från stan.", "She moved away from town."]
+  ],
+  sv_v16: [
+    ["att", "to (infinitive); that", "conj", "infinitive marker, said 'å'; also 'that': jag vet att ...", "Jag vet att du har rätt.", "I know that you're right."],
+    ["som", "who / which / that; as", "pron", "relative pronoun; lika stor som = as big as", "Killen som spelar back heter Erik.", "The guy who plays defence is called Erik."],
+    ["men", "but", "conj", "", "Jag är trött men glad.", "I'm tired but happy."],
+    ["eller", "or", "conj", "", "Kaffe eller te?", "Coffee or tea?"],
+    ["så", "so; then", "conj", "så att = so that; så bra = so good", "Det regnade, så vi stannade hemma.", "It rained, so we stayed home."],
+    ["både", "both (... and)", "conj", "både ... och", "Jag talar både svenska och engelska.", "I speak both Swedish and English."],
+    ["antingen", "either (... or)", "conj", "antingen ... eller", "Antingen nu eller aldrig.", "Either now or never."],
+    ["varken", "neither (... nor)", "conj", "varken ... eller", "Jag dricker varken kaffe eller te.", "I drink neither coffee nor tea."],
+    ["någon", "someone / anyone; some (en-words)", "pron", "någon, något, några; spoken: nån", "Är det någon hemma?", "Is anyone home?"],
+    ["något", "something / anything; some (ett-words)", "pron", "spoken: nåt", "Vill du ha något att dricka?", "Do you want something to drink?"],
+    ["några", "some / a few (plural)", "pron", "", "Jag har några frågor.", "I have a few questions."],
+    ["ingen", "no one / no (en-words)", "pron", "ingen, inget, inga", "Ingen vet svaret.", "No one knows the answer."],
+    ["inget", "nothing / no (ett-words)", "pron", "ingenting = nothing", "Jag har inget att göra.", "I have nothing to do."],
+    ["inga", "no / none (plural)", "pron", "", "Det finns inga biljetter kvar.", "There are no tickets left."],
+    ["alla", "all / everyone", "pron", "plural of all; allt = everything", "Alla är här.", "Everyone is here."],
+    ["allt", "everything", "pron", "", "Allt går bra.", "Everything's going well."],
+    ["varje", "every / each", "pron", "same form for en- and ett-words", "Jag tränar varje dag.", "I train every day."],
+    ["annan", "other / another", "pron", "annan, annat, andra", "Vi tar en annan väg.", "We'll take another route."],
+    ["samma", "same", "pron", "invariable; samma som = the same as", "Vi går i samma klass.", "We're in the same class."],
+    ["själv", "myself / yourself etc.; on one's own", "pron", "själv, självt, själva (emphatic)", "Jag gjorde det själv.", "I did it myself."],
+    ["sig", "himself / herself / themselves (reflexive)", "pron", "reflexive for han, hon, den, det, de", "Hon tvättar sig.", "She is washing (herself)."],
+    ["egen", "own", "adj", "egen, eget, egna", "Jag har ett eget rum.", "I have my own room."],
+    ["denna", "this (formal)", "pron", "denna, detta, dessa; spoken: den här", "Denna bok är bra.", "This book is good."],
+    ["vilken", "which / what (a)", "pron", "vilken, vilket, vilka", "Vilken dag är det idag?", "What day is it today?"],
+    ["hela", "the whole / all of", "adj", "hel, helt, hela; hela dagen = all day", "Jag sov hela dagen.", "I slept all day."],
+    ["båda", "both of them / both (the two)", "pron", "båda två; also bägge", "Båda lagen spelade bra.", "Both teams played well."],
+    ["många", "many", "pron", "fler, flest", "Många svenskar åker skidor.", "Many Swedes go skiing."],
+    ["flera", "several", "pron", "", "Jag har flera vänner här.", "I have several friends here."],
+    ["mer", "more", "pron", "also mera; mest = most", "Vill du ha mer kaffe?", "Do you want more coffee?"],
+    ["mindre", "less / smaller", "pron", "minst = least; also comparative of liten", "Jag äter mindre socker nu.", "I eat less sugar now."]
+  ],
+  sv_v17: [
+    ["bli", "become / get", "verb", "blir, blev, blivit; also forms the passive", "Det blir kallt i kväll.", "It's going to get cold tonight."],
+    ["ska", "will / shall / be going to", "verb", "ska, skulle, skolat (infinitive skola)", "Vi ska spela match imorgon.", "We're playing a game tomorrow."],
+    ["måste", "must / have to", "verb", "måste, var tvungen (past), måst; inte behöva = not have to", "Jag måste gå nu.", "I have to go now."],
+    ["borde", "should / ought to", "verb", "past of böra (bör, borde, bort)", "Du borde sova mer.", "You should sleep more."],
+    ["finnas", "exist; there is / are", "verb", "finns, fanns, funnits; det finns = there is", "Det finns mjölk i kylen.", "There's milk in the fridge."],
+    ["låta", "let; sound", "verb", "låter, lät, låtit", "Det låter bra!", "That sounds good!"],
+    ["verka", "seem", "verb", "verkar, verkade, verkat", "Han verkar trött.", "He seems tired."],
+    ["hända", "happen", "verb", "händer, hände, hänt", "Vad hände?", "What happened?"],
+    ["sätta", "set / put on", "verb", "sätter, satte, satt; sätta sig = sit down", "Glöm inte att sätta på dig hjälmen.", "Don't forget to put your helmet on."],
+    ["lägga", "lay / put down (flat)", "verb", "lägger, la (lade), lagt; lägga sig = lie down", "Kan du lägga boken på bordet?", "Can you put the book on the table?"],
+    ["ställa", "put (standing up)", "verb", "ställer, ställde, ställt; ställa en fråga = ask a question", "Jag ställer klubban i hörnet.", "I put the stick in the corner."],
+    ["hålla", "hold; keep", "verb", "håller, höll, hållit; hålla med = agree", "Kan du hålla min väska?", "Can you hold my bag?"],
+    ["visa", "show", "verb", "visar, visade, visat", "Kan du visa mig vägen?", "Can you show me the way?"],
+    ["leva", "live (be alive)", "verb", "lever, levde, levt; bo = live somewhere", "Min mormor lever fortfarande.", "My grandmother is still alive."],
+    ["försöka", "try", "verb", "försöker, försökte, försökt", "Jag ska försöka.", "I'll try."],
+    ["fortsätta", "continue", "verb", "fortsätter, fortsatte, fortsatt", "Vi fortsätter imorgon.", "We'll continue tomorrow."],
+    ["använda", "use", "verb", "använder, använde, använt", "Får jag använda din dator?", "May I use your computer?"],
+    ["betala", "pay", "verb", "betalar, betalade, betalat", "Kan jag betala med kort?", "Can I pay by card?"],
+    ["skicka", "send", "verb", "skickar, skickade, skickat", "Jag skickar ett sms.", "I'll send a text."],
+    ["spela", "play (a game, music)", "verb", "spelar, spelade, spelat; leka = play (children)", "Jag spelar hockey.", "I play hockey."],
+    ["vinna", "win", "verb", "vinner, vann, vunnit", "Vi vann matchen!", "We won the game!"],
+    ["förlora", "lose (a game)", "verb", "förlorar, förlorade, förlorat; tappa = lose (an object)", "Vi förlorade med 2-3.", "We lost 2-3."],
+    ["glömma", "forget", "verb", "glömmer, glömde, glömt", "Jag glömde min hjälm.", "I forgot my helmet."],
+    ["komma ihåg", "remember", "verb", "kommer ihåg, kom ihåg, kommit ihåg", "Kommer du ihåg mig?", "Do you remember me?"],
+    ["välja", "choose", "verb", "väljer, valde, valt", "Du får välja.", "You get to choose."],
+    ["flytta", "move (house)", "verb", "flyttar, flyttade, flyttat", "Vi flyttade till Sverige i augusti.", "We moved to Sweden in August."],
+    ["lämna", "leave; hand in", "verb", "lämnar, lämnade, lämnat; lämna in = hand in", "Jag lämnar in uppsatsen idag.", "I'm handing in the essay today."],
+    ["hämta", "fetch / pick up", "verb", "hämtar, hämtade, hämtat", "Jag hämtar dig klockan sex.", "I'll pick you up at six."],
+    ["ringa", "call / ring", "verb", "ringer, ringde, ringt", "Jag ringer dig senare.", "I'll call you later."],
+    ["bära", "carry; wear", "verb", "bär, bar, burit", "Kan du bära väskan?", "Can you carry the bag?"]
+  ],
+  sv_v18: [
+    ["stor", "big / large", "adj", "stor, stort, stora; större, störst", "De bor i ett stort hus.", "They live in a big house."],
+    ["liten", "small / little", "adj", "liten, litet, små; mindre, minst", "Jag har en liten bror.", "I have a little brother."],
+    ["ny", "new", "adj", "ny, nytt, nya", "Jag har köpt nya skridskor.", "I've bought new skates."],
+    ["hög", "high / tall; loud", "adj", "hög, högt, höga; högre, högst", "Kebnekaise är ett högt berg.", "Kebnekaise is a high mountain."],
+    ["låg", "low", "adj", "låg, lågt, låga; lägre, lägst", "Priset är lågt.", "The price is low."],
+    ["bred", "wide / broad", "adj", "bred, brett, breda", "En bred väg.", "A wide road."],
+    ["smal", "narrow / slim", "adj", "smal, smalt, smala", "En smal gata.", "A narrow street."],
+    ["tjock", "thick / fat", "adj", "tjock, tjockt, tjocka", "En tjock bok.", "A thick book."],
+    ["tunn", "thin", "adj", "tunn, tunt, tunna", "Isen är tunn.", "The ice is thin."],
+    ["ren", "clean", "adj", "ren, rent, rena", "Är tröjan ren?", "Is the jersey clean?"],
+    ["smutsig", "dirty", "adj", "smutsig, smutsigt, smutsiga", "Mina kläder är smutsiga.", "My clothes are dirty."],
+    ["billig", "cheap", "adj", "billig, billigt, billiga", "Maten är billig här.", "The food is cheap here."],
+    ["dyr", "expensive", "adj", "dyr, dyrt, dyra", "Skridskorna var dyra.", "The skates were expensive."],
+    ["rik", "rich / wealthy", "adj", "rik, rikt, rika", "Han är rik.", "He is rich."],
+    ["fattig", "poor (no money)", "adj", "fattig, fattigt, fattiga", "Hon växte upp i en fattig familj.", "She grew up in a poor family."],
+    ["full", "full; drunk", "adj", "full, fullt, fulla", "Bussen var full.", "The bus was full."],
+    ["tom", "empty", "adj", "tom, tomt, tomma", "Kylen är tom.", "The fridge is empty."],
+    ["öppen", "open", "adj", "öppen, öppet, öppna", "Affären är öppen till tio.", "The shop is open until ten."],
+    ["stängd", "closed", "adj", "stängd, stängt, stängda", "Banken är stängd idag.", "The bank is closed today."],
+    ["ledig", "free / off work; vacant", "adj", "ledig, ledigt, lediga", "Är den här platsen ledig?", "Is this seat free?"],
+    ["upptagen", "busy / taken", "adj", "upptagen, upptaget, upptagna", "Jag är upptagen just nu.", "I'm busy right now."],
+    ["enkel", "simple / easy; single (ticket)", "adj", "enkel, enkelt, enkla", "Det är en enkel fråga.", "It's a simple question."],
+    ["vanlig", "common / ordinary / usual", "adj", "vanlig, vanligt, vanliga; vanligtvis = usually", "Erik är ett vanligt namn.", "Erik is a common name."],
+    ["säker", "safe; sure", "adj", "säker, säkert, säkra", "Är du säker?", "Are you sure?"],
+    ["sann", "true", "adj", "sann, sant, sanna", "Det är en sann historia.", "It's a true story."],
+    ["olika", "different / various", "adj", "invariable", "Vi har olika åsikter.", "We have different opinions."],
+    ["snabb", "fast / quick", "adj", "snabb, snabbt, snabba", "Han är en snabb skridskoåkare.", "He's a fast skater."],
+    ["långsam", "slow", "adj", "långsam, långsamt, långsamma", "Bussen är långsam.", "The bus is slow."],
+    ["tyst", "quiet / silent", "adj", "tyst, tyst, tysta", "Det är tyst i biblioteket.", "It's quiet in the library."],
+    ["dålig", "bad", "adj", "dålig, dåligt, dåliga; sämre, sämst", "Det var en dålig match.", "It was a bad game."]
+  ],
+  sv_v19: [
+    ["sak", "thing", "n", "en sak, saken, saker, sakerna", "Jag har många saker att göra.", "I have lots of things to do."],
+    ["människa", "human being", "n", "en människa, människan, människor, människorna", "Hon är en bra människa.", "She's a good person."],
+    ["person", "person", "n", "en person, personen, personer, personerna", "Bordet är för fyra personer.", "The table is for four people."],
+    ["folk", "people; a nation", "n", "ett folk, folket, folk, folken", "Det var mycket folk på matchen.", "There were lots of people at the game."],
+    ["del", "part / share", "n", "en del, delen, delar, delarna; en del = some", "Den här delen är svår.", "This part is hard."],
+    ["sätt", "way / manner", "n", "ett sätt, sättet, sätt, sätten; på det sättet = that way", "Det finns ett bättre sätt.", "There's a better way."],
+    ["fall", "case; fall", "n", "ett fall, fallet, fall, fallen; i så fall = in that case", "I så fall stannar jag hemma.", "In that case I'll stay home."],
+    ["ställe", "place / spot", "n", "ett ställe, stället, ställen, ställena", "Det här är ett bra ställe.", "This is a good spot."],
+    ["plats", "room / space / seat", "n", "en plats, platsen, platser, platserna", "Finns det plats för en till?", "Is there room for one more?"],
+    ["sida", "side; page", "n", "en sida, sidan, sidor, sidorna", "Läs sidan tio.", "Read page ten."],
+    ["ord", "word", "n", "ett ord, ordet, ord, orden", "Vad betyder det här ordet?", "What does this word mean?"],
+    ["mening", "sentence; meaning / point", "n", "en mening, meningen, meningar, meningarna", "Skriv en mening på svenska.", "Write a sentence in Swedish."],
+    ["exempel", "example", "n", "ett exempel, exemplet, exempel, exemplen; till exempel (t.ex.)", "Kan du ge ett exempel?", "Can you give an example?"],
+    ["sanning", "truth", "n", "en sanning, sanningen, sanningar, sanningarna", "Säg sanningen!", "Tell the truth!"],
+    ["idé", "idea", "n", "en idé, idén, idéer, idéerna", "Det är en bra idé.", "That's a good idea."],
+    ["tanke", "thought", "n", "en tanke, tanken, tankar, tankarna", "Tack för tanken!", "Thanks for the thought!"],
+    ["bild", "picture / image", "n", "en bild, bilden, bilder, bilderna", "Får jag ta en bild?", "May I take a picture?"],
+    ["grupp", "group", "n", "en grupp, gruppen, grupper, grupperna", "Vi jobbar i grupper.", "We work in groups."],
+    ["liv", "life", "n", "ett liv, livet, liv, liven", "Livet är kort.", "Life is short."],
+    ["död", "death", "n", "en död, döden; död, dött, döda = dead (adj)", "Han är inte rädd för döden.", "He isn't afraid of death."],
+    ["kärlek", "love", "n", "en kärlek, kärleken", "Det var kärlek vid första ögonkastet.", "It was love at first sight."],
+    ["ålder", "age", "n", "en ålder, åldern, åldrar, åldrarna", "Vi är i samma ålder.", "We're the same age."],
+    ["anledning", "reason", "n", "en anledning, anledningen, anledningar, anledningarna", "Av vilken anledning?", "For what reason?"],
+    ["möjlighet", "possibility / opportunity", "n", "en möjlighet, möjligheten, möjligheter, möjligheterna", "Det är en stor möjlighet.", "It's a great opportunity."],
+    ["skillnad", "difference", "n", "en skillnad, skillnaden, skillnader, skillnaderna", "Vad är skillnaden?", "What's the difference?"],
+    ["erfarenhet", "experience", "n", "en erfarenhet, erfarenheten, erfarenheter, erfarenheterna", "Hon har lång erfarenhet.", "She has a lot of experience."],
+    ["känsla", "feeling", "n", "en känsla, känslan, känslor, känslorna", "Jag har en bra känsla.", "I have a good feeling."],
+    ["regel", "rule", "n", "en regel, regeln, regler, reglerna", "Det är en viktig regel.", "That's an important rule."],
+    ["behov", "need", "n", "ett behov, behovet, behov, behoven", "Det finns ett stort behov av lärare.", "There's a great need for teachers."],
+    ["svar", "answer / reply", "n", "ett svar, svaret, svar, svaren", "Jag väntar på svar.", "I'm waiting for an answer."]
+  ],
+  sv_v20: [
+    ["väl", "well; surely (I suppose)", "adv", "bättre, bäst; tag word: du kommer väl?", "Du kommer väl i kväll?", "You're coming tonight, aren't you?"],
+    ["nog", "probably (I guess); enough", "adv", "", "Det blir nog bra.", "It'll probably be fine."],
+    ["ju", "as you know / after all", "adv", "unstressed; je ... desto = the ... the", "Du vet ju det.", "You know that, after all."],
+    ["visst", "certainly / of course", "adv", "visst! = sure!", "Visst kan du följa med!", "Of course you can come along!"],
+    ["heller", "either (after a negative)", "adv", "inte heller = not either", "Jag vet inte heller.", "I don't know either."],
+    ["även", "also / even", "adv", "more formal than också", "Även barn kan vara med.", "Even children can take part."],
+    ["endast", "only (formal)", "adv", "bara is the everyday word", "Endast för personal.", "Staff only."],
+    ["kvar", "left / remaining", "adv", "finnas kvar, stanna kvar", "Det är två minuter kvar.", "There are two minutes left."],
+    ["igen", "again", "adv", "", "Kan du säga det igen?", "Can you say that again?"],
+    ["tillbaka", "back", "adv", "", "Jag kommer tillbaka snart.", "I'll be back soon."],
+    ["framme", "there (arrived)", "adv", "location; fram = motion", "Vi är snart framme.", "We'll be there soon."],
+    ["hemma", "at home", "adv", "location; hem = motion (home)", "Jag är hemma i kväll.", "I'm at home tonight."],
+    ["länge", "for a long time", "adv", "längre, längst; hur länge = how long", "Hur länge har du bott här?", "How long have you lived here?"],
+    ["tillsammans", "together", "adv", "", "Vi tränar tillsammans.", "We train together."],
+    ["plötsligt", "suddenly", "adv", "", "Plötsligt slocknade lamporna.", "Suddenly the lights went out."],
+    ["äntligen", "finally / at last", "adv", "", "Äntligen helg!", "Finally the weekend!"],
+    ["troligen", "likely / probably", "adv", "also troligtvis", "Matchen blir troligen inställd.", "The game will probably be cancelled."],
+    ["helt", "completely / totally", "adv", "", "Jag är helt slut.", "I'm completely exhausted."],
+    ["knappt", "hardly / barely", "adv", "", "Jag kunde knappt gå.", "I could barely walk."],
+    ["nyss", "just now / a moment ago", "adv", "", "Hon gick nyss.", "She just left."],
+    ["strax", "in a moment / shortly", "adv", "strax efter = just after", "Jag kommer strax.", "I'll be right there."],
+    ["senare", "later", "adv", "comparative of sent", "Vi ses senare!", "See you later!"],
+    ["förut", "before / previously", "adv", "", "Jag har varit här förut.", "I've been here before."],
+    ["hittills", "so far / until now", "adv", "", "Hittills har allt gått bra.", "So far everything has gone well."],
+    ["samtidigt", "at the same time", "adv", "", "Vi kom samtidigt.", "We arrived at the same time."],
+    ["överallt", "everywhere", "adv", "", "Det är snö överallt.", "There's snow everywhere."],
+    ["någonstans", "somewhere / anywhere", "adv", "spoken: nånstans", "Har du sett min mobil någonstans?", "Have you seen my phone anywhere?"],
+    ["ingenstans", "nowhere", "adv", "", "Jag hittar den ingenstans.", "I can't find it anywhere."],
+    ["annars", "otherwise / or else", "adv", "", "Skynda dig, annars missar vi bussen.", "Hurry up, or we'll miss the bus."],
+    ["dock", "however", "adv", "formal; men is the everyday word", "Det var dock för sent.", "It was too late, however."]
+  ],
+  sv_v21: [
+    ["varsågod", "here you are / you're welcome", "phrase", "said when handing something over or answering tack", "Varsågod, här är nyckeln.", "Here you go, here's the key."],
+    ["välkommen", "welcome", "phrase", "välkommen, välkommet, välkomna", "Välkommen till laget!", "Welcome to the team!"],
+    ["grattis", "congrats", "phrase", "short for gratulerar; grattis på födelsedagen = happy birthday", "Grattis på födelsedagen!", "Happy birthday!"],
+    ["krya på dig", "get well soon", "phrase", "said to someone who is ill", "Krya på dig, vi ses snart!", "Get well soon, see you soon!"],
+    ["ha det så bra", "take care / all the best", "phrase", "a warm goodbye; shorter: ha det bra", "Hej då, ha det så bra!", "Bye, take care!"],
+    ["sov gott", "sleep well", "phrase", "often after god natt", "God natt och sov gott!", "Good night and sleep well!"],
+    ["smaklig måltid", "enjoy your meal", "phrase", "said before eating", "Maten är klar. Smaklig måltid!", "The food is ready. Enjoy your meal!"],
+    ["vad roligt", "how nice / how fun", "phrase", "reacting to good news", "Vad roligt att du kom!", "How nice that you came!"],
+    ["vad synd", "what a pity / too bad", "phrase", "reacting to bad news", "Vad synd att matchen blev inställd.", "What a pity the game was cancelled."],
+    ["ingen orsak", "don't mention it / no problem", "phrase", "a reply to tack", "Tack för hjälpen! – Ingen orsak.", "Thanks for the help! – Don't mention it."],
+    ["självklart", "of course", "adv", "also an adjective: självklar, självklart, självklara", "Självklart kan du följa med.", "Of course you can come along."],
+    ["just det", "exactly / oh right", "phrase", "agreeing, or remembering something", "Just det, vi har träning i kväll!", "Oh right, we have practice tonight!"],
+    ["eller hur", "right? / isn't it?", "phrase", "tag question at the end of a sentence", "Det var en bra match, eller hur?", "That was a good game, wasn't it?"],
+    ["jaså", "oh really?", "phrase", "shows mild surprise", "Jaså, bor du i Uppsala?", "Oh really, you live in Uppsala?"],
+    ["javisst", "sure / certainly", "phrase", "a happy, firm yes", "Kan du hjälpa mig? – Javisst!", "Can you help me? – Sure!"],
+    ["nej då", "no, not at all", "phrase", "a friendly, reassuring no", "Är du arg? – Nej då!", "Are you angry? – Not at all!"],
+    ["förlåt", "sorry (apology)", "phrase", "förlåta, förlåter, förlät, förlåtit = forgive", "Förlåt att jag är sen.", "Sorry I'm late."],
+    ["det gör inget", "it doesn't matter / no worries", "phrase", "a reply to förlåt", "Förlåt! – Det gör inget.", "Sorry! – No worries."],
+    ["det beror på", "it depends", "phrase", "det beror på + noun = it depends on", "Det beror på vädret.", "It depends on the weather."],
+    ["ingen aning", "no idea", "phrase", "jag har ingen aning = I have no idea", "Jag har ingen aning.", "I have no idea."],
+    ["inte så farligt", "not that bad / no big deal", "phrase", "farlig = dangerous; here it means 'bad'", "Provet var inte så farligt.", "The test wasn't that bad."],
+    ["på riktigt", "for real / seriously", "phrase", "", "Menar du det på riktigt?", "Do you mean that for real?"],
+    ["vad menar du", "what do you mean?", "phrase", "mena, menar, menade, menat = mean", "Vad menar du med det?", "What do you mean by that?"],
+    ["kan du säga det igen", "can you say that again?", "phrase", "add långsamt = slowly", "Förlåt, kan du säga det igen?", "Sorry, can you say that again?"],
+    ["vad heter det på svenska", "what's that called in Swedish?", "phrase", "heta, heter, hette, hetat = be called", "Vad heter det på svenska? Jag har glömt.", "What's it called in Swedish? I've forgotten."],
+    ["hur mycket kostar det", "how much does it cost?", "phrase", "kosta, kostar, kostade, kostat", "Ursäkta, hur mycket kostar det?", "Excuse me, how much does it cost?"],
+    ["trevligt att träffas", "nice to meet you", "phrase", "träffas = meet each other", "Hej, jag heter Anna. Trevligt att träffas!", "Hi, I'm Anna. Nice to meet you!"],
+    ["hur gick det", "how did it go?", "phrase", "gå, går, gick, gått", "Hur gick det på provet?", "How did the test go?"],
+    ["jag förstår", "I understand", "phrase", "förstå, förstår, förstod, förstått", "Okej, jag förstår.", "Okay, I understand."],
+    ["god morgon", "good morning", "phrase", "god dag, god kväll, god natt", "God morgon! Har du sovit gott?", "Good morning! Did you sleep well?"]
+  ],
+  sv_v22: [
+    ["röd", "red", "adj", "röd, rött, röda", "Laget har röda tröjor.", "The team has red jerseys."],
+    ["blå", "blue", "adj", "blå, blått, blå (or blåa)", "Himlen är blå idag.", "The sky is blue today."],
+    ["gul", "yellow", "adj", "gul, gult, gula", "Där kommer en gul buss.", "Here comes a yellow bus."],
+    ["grön", "green", "adj", "grön, grönt, gröna", "Gräset är grönt.", "The grass is green."],
+    ["svart", "black", "adj", "svart, svart, svarta", "Jag har en svart hjälm.", "I have a black helmet."],
+    ["vit", "white", "adj", "vit, vitt, vita", "Isen är vit och blank.", "The ice is white and shiny."],
+    ["grå", "grey", "adj", "grå, grått, grå (or gråa)", "Det är en grå dag.", "It's a grey day."],
+    ["brun", "brown", "adj", "brun, brunt, bruna", "Hon har bruna ögon.", "She has brown eyes."],
+    ["rosa", "pink", "adj", "rosa, rosa, rosa (no endings)", "Hon har en rosa jacka.", "She has a pink jacket."],
+    ["lila", "purple", "adj", "lila, lila, lila (no endings)", "Min lila tröja ligger i tvätten.", "My purple sweater is in the wash."],
+    ["första", "first", "num", "1:a; den första, det första", "Det är min första match.", "It's my first game."],
+    ["andra", "second; other", "num", "2:a; also 'other': de andra = the others", "Vi vann den andra perioden.", "We won the second period."],
+    ["tredje", "third", "num", "3:e", "Han bor på tredje våningen.", "He lives on the third floor."],
+    ["fjärde", "fourth", "num", "4:e", "Det är hans fjärde mål i år.", "It's his fourth goal this year."],
+    ["femte", "fifth", "num", "5:e", "Hon kom på femte plats.", "She came in fifth place."],
+    ["sjätte", "sixth", "num", "6:e", "Den sjätte juni är nationaldagen.", "The sixth of June is National Day."],
+    ["sjunde", "seventh", "num", "7:e", "Jag bor på sjunde våningen.", "I live on the seventh floor."],
+    ["åttonde", "eighth", "num", "8:e", "Det är åttonde gången jag ringer.", "That's the eighth time I've called."],
+    ["nionde", "ninth", "num", "9:e", "Hon fyller år den nionde maj.", "Her birthday is on the ninth of May."],
+    ["tionde", "tenth", "num", "10:e", "Det här är min tionde lektion.", "This is my tenth lesson."],
+    ["sista", "last / final", "adj", "sista (no endings): den sista, det sista", "Det är vår sista match i år.", "It's our last game this year."],
+    ["nästa", "next", "adj", "nästa (no endings, no article): nästa vecka", "Vi ses nästa vecka.", "See you next week."],
+    ["förra", "last / previous", "adj", "förra (no endings, no article): förra året", "Förra veckan var jag sjuk.", "Last week I was sick."],
+    ["början", "beginning / start", "n", "en början, början; i början = at first", "I början var det svårt.", "In the beginning it was hard."],
+    ["mitten", "middle", "n", "en mitt, mitten; i mitten = in the middle", "Han står i mitten.", "He is standing in the middle."],
+    ["slut", "end", "n", "ett slut, slutet, slut, sluten; also 'finished / sold out': det är slut", "I slutet av matchen gjorde vi mål.", "At the end of the game we scored."],
+    ["hälft", "half", "n", "en hälft, hälften, hälfter, hälfterna; halv = half (adj)", "Hälften av klassen är sjuk.", "Half of the class is sick."],
+    ["gång", "time (occasion)", "n", "en gång, gången, gånger, gångerna; en gång = once", "Jag har varit där tre gånger.", "I've been there three times."],
+    ["ordning", "order", "n", "en ordning, ordningen, ordningar, ordningarna; i ordning = ready / in order", "Skriv orden i rätt ordning.", "Write the words in the right order."],
+    ["rad", "row / line", "n", "en rad, raden, rader, raderna; i rad = in a row", "Vi sitter på första raden.", "We are sitting in the front row."]
+  ],
+  sv_v23: [
+    ["springa", "run", "verb", "springer, sprang, sprungit", "Jag springer till bussen.", "I'm running to the bus."],
+    ["flyga", "fly", "verb", "flyger, flög, flugit", "Vi flyger till London imorgon.", "We're flying to London tomorrow."],
+    ["simma", "swim", "verb", "simmar, simmade, simmat", "Hon simmar varje morgon.", "She swims every morning."],
+    ["sjunga", "sing", "verb", "sjunger, sjöng, sjungit", "Han sjunger i en kör.", "He sings in a choir."],
+    ["dansa", "dance", "verb", "dansar, dansade, dansat", "Vi dansade hela natten.", "We danced all night."],
+    ["skratta", "laugh", "verb", "skrattar, skrattade, skrattat", "Varför skrattar du?", "Why are you laughing?"],
+    ["gråta", "cry", "verb", "gråter, grät, gråtit", "Barnet gråter.", "The child is crying."],
+    ["le", "smile", "verb", "ler, log, lett", "Hon ler mot mig.", "She is smiling at me."],
+    ["falla", "fall", "verb", "faller, föll, fallit; ramla is more everyday", "Det är lätt att falla på isen.", "It's easy to fall on the ice."],
+    ["dö", "die", "verb", "dör, dog, dött", "Blommorna dör utan vatten.", "The flowers die without water."],
+    ["födas", "be born", "verb", "föds, föddes, fötts; jag är född = I was born", "Barnet väntas födas i mars.", "The baby is expected to be born in March."],
+    ["bygga", "build", "verb", "bygger, byggde, byggt", "De bygger en ny ishall.", "They are building a new ice rink."],
+    ["skapa", "create", "verb", "skapar, skapade, skapat", "Hon skapar musik på datorn.", "She creates music on the computer."],
+    ["ändra", "change / alter", "verb", "ändrar, ändrade, ändrat; ändra sig = change one's mind", "Kan vi ändra tiden?", "Can we change the time?"],
+    ["lova", "promise", "verb", "lovar, lovade, lovat", "Jag lovar att komma.", "I promise to come."],
+    ["tillåta", "allow / permit", "verb", "tillåter, tillät, tillåtit", "Skolan tillåter inte mobiler i klassrummet.", "The school doesn't allow phones in the classroom."],
+    ["undra", "wonder", "verb", "undrar, undrade, undrat", "Jag undrar var han är.", "I wonder where he is."],
+    ["märka", "notice", "verb", "märker, märkte, märkt", "Jag märker att du är trött.", "I can tell that you're tired."],
+    ["kännas", "feel (seem)", "verb", "känns, kändes, känts; hur känns det? = how does it feel?", "Det kan kännas svårt i början.", "It can feel hard at first."],
+    ["låna", "borrow / lend", "verb", "lånar, lånade, lånat; låna ut = lend", "Får jag låna din penna?", "Can I borrow your pen?"],
+    ["boka", "book / reserve", "verb", "bokar, bokade, bokat", "Jag bokar ett bord till klockan sju.", "I'll book a table for seven o'clock."],
+    ["sälja", "sell", "verb", "säljer, sålde, sålt", "Han säljer sin gamla cykel.", "He is selling his old bike."],
+    ["dela", "share / divide", "verb", "delar, delade, delat", "Vi delar lägenhet.", "We share an apartment."],
+    ["byta", "swap / exchange", "verb", "byter, bytte, bytt; byta om = change clothes", "Kan vi byta plats?", "Can we swap places?"],
+    ["fylla", "fill", "verb", "fyller, fyllde, fyllt; fylla år = have a birthday", "Kan du fylla min flaska?", "Can you fill my bottle?"],
+    ["tappa", "drop / lose", "verb", "tappar, tappade, tappat", "Jag tappade min mobil.", "I dropped my phone."],
+    ["fixa", "fix / sort out", "verb", "fixar, fixade, fixat", "Lugn, jag fixar det.", "Relax, I'll sort it out."],
+    ["bjuda", "invite / treat", "verb", "bjuder, bjöd, bjudit; jag bjuder = it's on me", "Vi ska bjuda hem några vänner.", "We're going to invite some friends over."],
+    ["gifta sig", "get married", "verb", "gifter sig, gifte sig, gift sig", "De ska gifta sig i sommar.", "They're getting married this summer."],
+    ["sakna", "miss (someone)", "verb", "saknar, saknade, saknat", "Jag saknar min familj.", "I miss my family."]
+  ],
+  sv_v24: [
+    ["fin", "nice / fine", "adj", "fin, fint, fina", "Vilken fin tröja!", "What a nice sweater!"],
+    ["ful", "ugly", "adj", "ful, fult, fula", "Det var ett fult mål, men det räknas.", "It was an ugly goal, but it counts."],
+    ["snygg", "good-looking / stylish", "adj", "snygg, snyggt, snygga", "Du ser snygg ut idag.", "You look good today."],
+    ["söt", "sweet / cute", "adj", "söt, sött, söta", "Vilken söt hund!", "What a cute dog!"],
+    ["sur", "sour; grumpy", "adj", "sur, surt, sura", "Varför är du så sur?", "Why are you so grumpy?"],
+    ["het", "hot (very)", "adj", "het, hett, heta; varm = warm", "Kaffet är hett.", "The coffee is hot."],
+    ["våt", "wet", "adj", "våt, vått, våta; blöt is more everyday", "Gräset är vått.", "The grass is wet."],
+    ["torr", "dry", "adj", "torr, torrt, torra", "Är tvätten torr?", "Is the laundry dry?"],
+    ["mjuk", "soft", "adj", "mjuk, mjukt, mjuka", "Kudden är mjuk.", "The pillow is soft."],
+    ["hård", "hard", "adj", "hård, hårt, hårda", "Isen är väldigt hård.", "The ice is very hard."],
+    ["tung", "heavy", "adj", "tung, tungt, tunga", "Väskan är tung.", "The bag is heavy."],
+    ["farlig", "dangerous", "adj", "farlig, farligt, farliga", "Det är farligt att åka på tunn is.", "It's dangerous to skate on thin ice."],
+    ["trygg", "safe / secure", "adj", "trygg, tryggt, trygga", "Här känner jag mig trygg.", "I feel safe here."],
+    ["känd", "famous / well-known", "adj", "känd, känt, kända", "Han är en känd hockeyspelare.", "He is a famous hockey player."],
+    ["modern", "modern", "adj", "modern, modernt, moderna", "Skolan har ett modernt bibliotek.", "The school has a modern library."],
+    ["perfekt", "perfect", "adj", "perfekt, perfekt, perfekta", "Vädret är perfekt idag.", "The weather is perfect today."],
+    ["fantastisk", "fantastic / amazing", "adj", "fantastisk, fantastiskt, fantastiska", "Det var en fantastisk match!", "It was a fantastic game!"],
+    ["hemsk", "awful / terrible", "adj", "hemsk, hemskt, hemska", "Jag hade en hemsk dag.", "I had an awful day."],
+    ["underbar", "wonderful", "adj", "underbar, underbart, underbara", "Vilken underbar dag!", "What a wonderful day!"],
+    ["möjlig", "possible", "adj", "möjlig, möjligt, möjliga", "Är det möjligt att ändra tiden?", "Is it possible to change the time?"],
+    ["omöjlig", "impossible", "adj", "omöjlig, omöjligt, omöjliga", "Det här provet är omöjligt!", "This test is impossible!"],
+    ["nödvändig", "necessary", "adj", "nödvändig, nödvändigt, nödvändiga", "Är det verkligen nödvändigt?", "Is that really necessary?"],
+    ["normal", "normal", "adj", "normal, normalt, normala", "Det är helt normalt att vara nervös.", "It's completely normal to be nervous."],
+    ["vänlig", "kind / friendly", "adj", "vänlig, vänligt, vänliga", "Grannen är mycket vänlig.", "The neighbour is very kind."],
+    ["ärlig", "honest", "adj", "ärlig, ärligt, ärliga", "Var ärlig mot mig.", "Be honest with me."],
+    ["duktig", "skilled / good at", "adj", "duktig, duktigt, duktiga; duktig på = good at", "Hon är duktig på matte.", "She is good at maths."],
+    ["lat", "lazy", "adj", "lat, lat, lata (the ett-form is rare)", "Jag är lat på söndagar.", "I'm lazy on Sundays."],
+    ["modig", "brave", "adj", "modig, modigt, modiga", "Det var modigt av dig.", "That was brave of you."],
+    ["blyg", "shy", "adj", "blyg, blygt, blyga", "Han är lite blyg.", "He is a bit shy."],
+    ["ensam", "alone / lonely", "adj", "ensam, ensamt, ensamma", "Jag bor ensam.", "I live alone."]
+  ],
+  sv_v25: [
+    ["sekund", "second (of time)", "n", "en sekund, sekunden, sekunder, sekunderna", "Vänta en sekund!", "Wait a second!"],
+    ["kvart", "quarter of an hour", "n", "en kvart, kvarten, kvartar, kvartarna; kvart över = quarter past", "Klockan är kvart över tre.", "It's quarter past three."],
+    ["halvtimme", "half an hour", "n", "en halvtimme, halvtimmen, halvtimmar, halvtimmarna", "Bussen går om en halvtimme.", "The bus leaves in half an hour."],
+    ["stund", "while / short time", "n", "en stund, stunden, stunder, stunderna; en stund = a while", "Kan du vänta en stund?", "Can you wait a while?"],
+    ["ögonblick", "moment / instant", "n", "ett ögonblick, ögonblicket, ögonblick, ögonblicken", "Ett ögonblick, tack.", "One moment, please."],
+    ["förmiddag", "morning (before noon)", "n", "en förmiddag, förmiddagen, förmiddagar, förmiddagarna", "Jag har lektion på förmiddagen.", "I have class in the morning."],
+    ["eftermiddag", "afternoon", "n", "en eftermiddag, eftermiddagen, eftermiddagar, eftermiddagarna", "Vi tränar på eftermiddagen.", "We practise in the afternoon."],
+    ["helg", "weekend; holiday", "n", "en helg, helgen, helger, helgerna; i helgen = this weekend", "Vad gör du i helgen?", "What are you doing this weekend?"],
+    ["semester", "vacation (from work)", "n", "en semester, semestern, semestrar, semestrarna", "Vi åker på semester i juli.", "We're going on vacation in July."],
+    ["lov", "school holiday", "n", "ett lov, lovet, lov, loven; sportlov, sommarlov", "Vi har lov nästa vecka.", "We're off school next week."],
+    ["födelsedag", "birthday", "n", "en födelsedag, födelsedagen, födelsedagar, födelsedagarna", "När är din födelsedag?", "When is your birthday?"],
+    ["fest", "party", "n", "en fest, festen, fester, festerna", "Kommer du på festen?", "Are you coming to the party?"],
+    ["present", "gift / present", "n", "en present, presenten, presenter, presenterna", "Tack för presenten!", "Thanks for the present!"],
+    ["jul", "Christmas", "n", "en jul, julen, jular, jularna; god jul = merry Christmas", "God jul och gott nytt år!", "Merry Christmas and happy new year!"],
+    ["påsk", "Easter", "n", "en påsk, påsken, påskar, påskarna; glad påsk = happy Easter", "Vad gör ni i påsk?", "What are you doing at Easter?"],
+    ["midsommar", "Midsummer", "n", "en midsommar, midsommaren, midsomrar, midsomrarna; glad midsommar", "Vi firar midsommar på landet.", "We celebrate Midsummer in the countryside."],
+    ["datum", "date (calendar)", "n", "ett datum, datumet, datum, datumen", "Vilket datum är det idag?", "What's the date today?"],
+    ["kalender", "calendar", "n", "en kalender, kalendern, kalendrar, kalendrarna", "Jag skriver det i min kalender.", "I'll write it in my calendar."],
+    ["januari", "January", "n", "i januari = in January; months are lowercase", "Det är kallt i januari.", "It's cold in January."],
+    ["februari", "February", "n", "", "Sportlovet är i februari.", "The winter sports break is in February."],
+    ["mars", "March", "n", "", "Hon fyller år i mars.", "Her birthday is in March."],
+    ["april", "April", "n", "", "Den första april skämtar alla.", "On the first of April everyone plays jokes."],
+    ["maj", "May", "n", "", "I maj blir det varmare.", "In May it gets warmer."],
+    ["juni", "June", "n", "", "Skolan slutar i juni.", "School ends in June."],
+    ["juli", "July", "n", "", "Juli är den varmaste månaden.", "July is the warmest month."],
+    ["augusti", "August", "n", "", "Terminen börjar i augusti.", "The term starts in August."],
+    ["september", "September", "n", "", "Hockeysäsongen börjar i september.", "The hockey season starts in September."],
+    ["oktober", "October", "n", "", "I oktober blir löven gula.", "In October the leaves turn yellow."],
+    ["november", "November", "n", "", "Det är mörkt i november.", "It's dark in November."],
+    ["december", "December", "n", "", "Julafton är den tjugofjärde december.", "Christmas Eve is the 24th of December."]
+  ],
+  sv_v26: [
+    ["son", "son", "n", "en son, sonen, söner, sönerna", "Deras son spelar hockey.", "Their son plays hockey."],
+    ["dotter", "daughter", "n", "en dotter, dottern, döttrar, döttrarna", "Hon har en dotter.", "She has a daughter."],
+    ["förälder", "parent", "n", "en förälder, föräldern, föräldrar, föräldrarna", "Varje förälder vill det bästa för sitt barn.", "Every parent wants the best for their child."],
+    ["mormor", "grandmother (mother's mother)", "n", "en mormor, mormodern, mormödrar, mormödrarna; farmor = father's mother", "Jag hälsar på mormor på söndag.", "I'm visiting Grandma on Sunday."],
+    ["farfar", "grandfather (father's father)", "n", "en farfar, farfadern, farfäder, farfäderna; morfar = mother's father", "Min farfar lärde mig åka skridskor.", "My grandfather taught me to skate."],
+    ["kusin", "cousin", "n", "en kusin, kusinen, kusiner, kusinerna", "Min kusin bor i Göteborg.", "My cousin lives in Gothenburg."],
+    ["barnbarn", "grandchild", "n", "ett barnbarn, barnbarnet, barnbarn, barnbarnen", "Hon har fem barnbarn.", "She has five grandchildren."],
+    ["fru", "wife", "n", "en fru, frun, fruar, fruarna", "Det här är min fru.", "This is my wife."],
+    ["make", "husband", "n", "en make, maken, makar, makarna; man is common: min man", "Hennes make är läkare.", "Her husband is a doctor."],
+    ["sambo", "live-in partner", "n", "en sambo, sambon, sambor, samborna", "Jag bor med min sambo.", "I live with my partner."],
+    ["pojkvän", "boyfriend", "n", "en pojkvän, pojkvännen, pojkvänner, pojkvännerna", "Har du en pojkvän?", "Do you have a boyfriend?"],
+    ["flickvän", "girlfriend", "n", "en flickvän, flickvännen, flickvänner, flickvännerna", "Hans flickvän heter Sara.", "His girlfriend's name is Sara."],
+    ["kille", "guy (colloquial)", "n", "en kille, killen, killar, killarna", "Han är en snäll kille.", "He's a nice guy."],
+    ["tjej", "girl (colloquial)", "n", "en tjej, tjejen, tjejer, tjejerna", "Tjejerna spelar också hockey.", "The girls play hockey too."],
+    ["baby", "baby", "n", "en baby, babyn, babyer, babyerna; bebis is more common", "De har fått en baby.", "They've had a baby."],
+    ["granne", "neighbour", "n", "en granne, grannen, grannar, grannarna", "Vår granne har en hund.", "Our neighbour has a dog."],
+    ["gäst", "guest", "n", "en gäst, gästen, gäster, gästerna", "Vi har gäster i kväll.", "We have guests tonight."],
+    ["vuxen", "adult / grown-up", "n", "en vuxen, den vuxna, vuxna, de vuxna (inflects like an adjective)", "Barn måste åka med en vuxen.", "Children must travel with an adult."],
+    ["tonåring", "teenager", "n", "en tonåring, tonåringen, tonåringar, tonåringarna", "Min bror är tonåring.", "My brother is a teenager."],
+    ["kompis", "buddy / mate", "n", "en kompis, kompisen, kompisar, kompisarna", "Jag ska träffa en kompis.", "I'm meeting a buddy."],
+    ["bekant", "acquaintance", "n", "en bekant, den bekanta, bekanta, de bekanta; also adj: familiar", "Han är en bekant till mig.", "He's an acquaintance of mine."],
+    ["främling", "stranger", "n", "en främling, främlingen, främlingar, främlingarna", "Prata inte med främlingar.", "Don't talk to strangers."],
+    ["ungdom", "young person; youth", "n", "en ungdom, ungdomen, ungdomar, ungdomarna", "Många ungdomar spelar hockey här.", "Lots of young people play hockey here."],
+    ["pensionär", "pensioner / retiree", "n", "en pensionär, pensionären, pensionärer, pensionärerna", "Min morfar är pensionär.", "My grandfather is retired."],
+    ["invandrare", "immigrant", "n", "en invandrare, invandraren, invandrare, invandrarna", "Många invandrare lär sig svenska.", "Many immigrants learn Swedish."],
+    ["svensk", "Swede; Swedish", "n", "en svensk, svensken, svenskar, svenskarna; adj: svensk, svenskt, svenska", "Hans pappa är svensk.", "His dad is Swedish."],
+    ["utlänning", "foreigner", "n", "en utlänning, utlänningen, utlänningar, utlänningarna", "Jag är utlänning, men jag pratar svenska.", "I'm a foreigner, but I speak Swedish."],
+    ["par", "couple / pair", "n", "ett par, paret, par, paren; ett par = a couple of", "De är ett gulligt par.", "They're a cute couple."],
+    ["släkt", "relatives / extended family", "n", "en släkt, släkten, släkter, släkterna; en släkting = a relative", "Hela släkten kommer på julafton.", "All the relatives are coming on Christmas Eve."],
+    ["medborgare", "citizen", "n", "en medborgare, medborgaren, medborgare, medborgarna", "Han är svensk medborgare.", "He is a Swedish citizen."]
+  ],
+  sv_v27: [
+    ["golv", "floor", "n", "ett golv, golvet, golv, golven", "Golvet är kallt.", "The floor is cold."],
+    ["vägg", "wall", "n", "en vägg, väggen, väggar, väggarna", "Tavlan hänger på väggen.", "The painting hangs on the wall."],
+    ["tak", "roof / ceiling", "n", "ett tak, taket, tak, taken", "Lampan hänger i taket.", "The lamp hangs from the ceiling."],
+    ["trappa", "stairs / staircase", "n", "en trappa, trappan, trappor, trapporna", "Han springer uppför trappan.", "He runs up the stairs."],
+    ["hiss", "lift / elevator", "n", "en hiss, hissen, hissar, hissarna", "Hissen är trasig igen.", "The elevator is broken again."],
+    ["toalett", "toilet", "n", "en toalett, toaletten, toaletter, toaletterna", "Ursäkta, var är toaletten?", "Excuse me, where is the toilet?"],
+    ["badrum", "bathroom", "n", "ett badrum, badrummet, badrum, badrummen", "Badrummet är upptaget.", "The bathroom is occupied."],
+    ["sovrum", "bedroom", "n", "ett sovrum, sovrummet, sovrum, sovrummen", "Mitt sovrum är ganska litet.", "My bedroom is quite small."],
+    ["vardagsrum", "living room", "n", "ett vardagsrum, vardagsrummet, vardagsrum, vardagsrummen", "Vi tittar på hockey i vardagsrummet.", "We watch hockey in the living room."],
+    ["trädgård", "garden / yard", "n", "en trädgård, trädgården, trädgårdar, trädgårdarna", "Barnen leker i trädgården.", "The children are playing in the garden."],
+    ["lampa", "lamp / light", "n", "en lampa, lampan, lampor, lamporna", "Kan du släcka lampan?", "Can you turn off the light?"],
+    ["soffa", "sofa / couch", "n", "en soffa, soffan, soffor, sofforna", "Han sover på soffan.", "He is sleeping on the couch."],
+    ["skåp", "cupboard / cabinet", "n", "ett skåp, skåpet, skåp, skåpen", "Glasen står i skåpet.", "The glasses are in the cupboard."],
+    ["kylskåp", "fridge / refrigerator", "n", "ett kylskåp, kylskåpet, kylskåp, kylskåpen; kyl (everyday)", "Mjölken står i kylskåpet.", "The milk is in the fridge."],
+    ["spis", "stove / cooker", "n", "en spis, spisen, spisar, spisarna", "Glöm inte att stänga av spisen!", "Don't forget to turn off the stove!"],
+    ["tallrik", "plate", "n", "en tallrik, tallriken, tallrikar, tallrikarna", "Tallriken är varm.", "The plate is hot."],
+    ["glas", "glass (for drinking)", "n", "ett glas, glaset, glas, glasen", "Vill du ha ett glas vatten?", "Would you like a glass of water?"],
+    ["kopp", "cup", "n", "en kopp, koppen, koppar, kopparna", "En kopp kaffe, tack.", "A cup of coffee, please."],
+    ["kniv", "knife", "n", "en kniv, kniven, knivar, knivarna", "Kniven är vass.", "The knife is sharp."],
+    ["gaffel", "fork", "n", "en gaffel, gaffeln, gafflar, gafflarna", "Jag behöver en gaffel.", "I need a fork."],
+    ["sked", "spoon", "n", "en sked, skeden, skedar, skedarna", "Ät soppan med en sked.", "Eat the soup with a spoon."],
+    ["flaska", "bottle", "n", "en flaska, flaskan, flaskor, flaskorna", "Min flaska ligger i hockeyväskan.", "My bottle is in the hockey bag."],
+    ["låda", "drawer / box", "n", "en låda, lådan, lådor, lådorna", "Gafflarna ligger i lådan.", "The forks are in the drawer."],
+    ["papper", "paper", "n", "ett papper, pappret, papper, pappren", "Har du ett papper och en penna?", "Do you have a piece of paper and a pen?"],
+    ["penna", "pen / pencil", "n", "en penna, pennan, pennor, pennorna", "Får jag låna en penna?", "May I borrow a pen?"],
+    ["brev", "letter (mail)", "n", "ett brev, brevet, brev, breven", "Jag fick ett brev idag.", "I got a letter today."],
+    ["mobil", "mobile phone / cell phone", "n", "en mobil, mobilen, mobiler, mobilerna", "Jag har glömt mobilen hemma.", "I've left my phone at home."],
+    ["nummer", "number", "n", "ett nummer, numret, nummer, numren", "Vad har du för nummer?", "What's your number?"],
+    ["adress", "address", "n", "en adress, adressen, adresser, adresserna", "Vad är din adress?", "What is your address?"],
+    ["handduk", "towel", "n", "en handduk, handduken, handdukar, handdukarna", "Ta med en handduk till gymmet.", "Bring a towel to the gym."]
+  ],
+  sv_v28: [
+    ["kyrka", "church", "n", "en kyrka, kyrkan, kyrkor, kyrkorna", "Kyrkan är väldigt gammal.", "The church is very old."],
+    ["museum", "museum", "n", "ett museum, museet, museer, museerna", "Vi går på museum på söndag.", "We're going to a museum on Sunday."],
+    ["bibliotek", "library", "n", "ett bibliotek, biblioteket, bibliotek, biblioteken", "Jag pluggar på biblioteket.", "I study at the library."],
+    ["park", "park", "n", "en park, parken, parker, parkerna", "Vi tar en promenad i parken.", "We take a walk in the park."],
+    ["bro", "bridge", "n", "en bro, bron, broar, broarna", "Gå över bron och sväng höger.", "Cross the bridge and turn right."],
+    ["hamn", "harbour / port", "n", "en hamn, hamnen, hamnar, hamnarna", "Båtarna ligger i hamnen.", "The boats are in the harbour."],
+    ["flygplats", "airport", "n", "en flygplats, flygplatsen, flygplatser, flygplatserna", "Hur kommer jag till flygplatsen?", "How do I get to the airport?"],
+    ["centrum", "town centre / downtown", "n", "ett centrum, centrumet (centret); i centrum = downtown", "Vi ses i centrum klockan tre.", "See you downtown at three."],
+    ["kvarter", "block / neighbourhood", "n", "ett kvarter, kvarteret, kvarter, kvarteren", "Hon bor i samma kvarter som jag.", "She lives in the same block as me."],
+    ["butik", "shop / store", "n", "en butik, butiken, butiker, butikerna", "Butiken stänger klockan sex.", "The store closes at six."],
+    ["marknad", "market", "n", "en marknad, marknaden, marknader, marknaderna", "Vi köper grönsaker på marknaden.", "We buy vegetables at the market."],
+    ["kafé", "café", "n", "ett kafé, kaféet, kaféer, kaféerna; also café", "Vi fikar på ett kafé.", "We have coffee at a café."],
+    ["bio", "cinema / the movies", "n", "en bio, bion; gå på bio = go to the movies", "Ska vi gå på bio ikväll?", "Shall we go to the movies tonight?"],
+    ["teater", "theatre", "n", "en teater, teatern, teatrar, teatrarna", "Vi går på teater på lördag.", "We're going to the theatre on Saturday."],
+    ["gym", "gym", "n", "ett gym, gymmet, gym, gymmen", "Jag tränar på gymmet varje dag.", "I work out at the gym every day."],
+    ["ishall", "ice rink / ice arena", "n", "en ishall, ishallen, ishallar, ishallarna", "Träningen är i ishallen ikväll.", "Practice is at the ice rink tonight."],
+    ["stadshus", "city hall", "n", "ett stadshus, stadshuset, stadshus, stadshusen", "Stadshuset ligger vid vattnet.", "City hall is by the water."],
+    ["trafik", "traffic", "n", "en trafik, trafiken", "Det är mycket trafik idag.", "There is a lot of traffic today."],
+    ["hörn", "corner", "n", "ett hörn, hörnet, hörn, hörnen", "Kaféet ligger på hörnet.", "The café is on the corner."],
+    ["korsning", "crossroads / intersection", "n", "en korsning, korsningen, korsningar, korsningarna", "Sväng vänster i korsningen.", "Turn left at the intersection."],
+    ["trottoar", "pavement / sidewalk", "n", "en trottoar, trottoaren, trottoarer, trottoarerna", "Cykla inte på trottoaren!", "Don't cycle on the sidewalk!"],
+    ["parkering", "car park / parking lot", "n", "en parkering, parkeringen, parkeringar, parkeringarna", "Parkeringen är full.", "The parking lot is full."],
+    ["tunnelbana", "underground / subway", "n", "en tunnelbana, tunnelbanan, tunnelbanor, tunnelbanorna; T-bana", "Jag tar tunnelbanan till skolan.", "I take the subway to school."],
+    ["spårvagn", "tram / streetcar", "n", "en spårvagn, spårvagnen, spårvagnar, spårvagnarna", "Vi åker spårvagn i Göteborg.", "We take the tram in Gothenburg."],
+    ["taxi", "taxi / cab", "n", "en taxi, taxin; plural taxibilar", "Vi tar en taxi hem.", "We'll take a taxi home."],
+    ["båt", "boat", "n", "en båt, båten, båtar, båtarna", "Vi tar båten till ön.", "We take the boat to the island."],
+    ["perrong", "platform (station)", "n", "en perrong, perrongen, perronger, perrongerna", "Vänta på perrongen.", "Wait on the platform."],
+    ["avgång", "departure", "n", "en avgång, avgången, avgångar, avgångarna", "Nästa avgång är klockan tio.", "The next departure is at ten."],
+    ["ankomst", "arrival", "n", "en ankomst, ankomsten, ankomster, ankomsterna", "Vi väntar på tågets ankomst.", "We are waiting for the train's arrival."],
+    ["försening", "delay", "n", "en försening, förseningen, förseningar, förseningarna", "Bussen har tio minuters försening.", "The bus is ten minutes late."]
+  ],
+  sv_v29: [
+    ["minnas", "remember", "verb", "minns, mindes, mints", "Jag minns inte hans namn.", "I don't remember his name."],
+    ["beskriva", "describe", "verb", "beskriver, beskrev, beskrivit", "Kan du beskriva vägen?", "Can you describe the way?"],
+    ["jämföra", "compare", "verb", "jämför, jämförde, jämfört", "Jämför inte dig själv med andra.", "Don't compare yourself with others."],
+    ["föreslå", "suggest / propose", "verb", "föreslår, föreslog, föreslagit", "Jag föreslår att vi tar bussen.", "I suggest we take the bus."],
+    ["påstå", "claim / maintain", "verb", "påstår, påstod, påstått", "Han påstår att han är sjuk.", "He claims he is sick."],
+    ["erkänna", "admit / confess", "verb", "erkänner, erkände, erkänt", "Jag erkänner att jag hade fel.", "I admit I was wrong."],
+    ["klaga", "complain", "verb", "klagar, klagade, klagat; klaga på = complain about", "Han klagar alltid på maten.", "He always complains about the food."],
+    ["skämta", "joke", "verb", "skämtar, skämtade, skämtat", "Jag skämtar bara!", "I'm only joking!"],
+    ["skrika", "scream / shout", "verb", "skriker, skrek, skrikit", "Tränaren skriker åt oss.", "The coach is shouting at us."],
+    ["viska", "whisper", "verb", "viskar, viskade, viskat", "Hon viskar något till mig.", "She whispers something to me."],
+    ["ljuga", "lie (tell a lie)", "verb", "ljuger, ljög, ljugit", "Han ljuger aldrig.", "He never lies."],
+    ["lita på", "trust / rely on", "verb", "litar, litade, litat", "Jag litar på dig.", "I trust you."],
+    ["tvivla", "doubt", "verb", "tvivlar, tvivlade, tvivlat; tvivla på = doubt something", "Jag tvivlar på det.", "I doubt it."],
+    ["gissa", "guess", "verb", "gissar, gissade, gissat", "Gissa vem jag träffade!", "Guess who I met!"],
+    ["räkna", "count / calculate", "verb", "räknar, räknade, räknat", "Räkna till tio.", "Count to ten."],
+    ["mäta", "measure", "verb", "mäter, mätte, mätt", "Vi mäter rummet.", "We measure the room."],
+    ["planera", "plan", "verb", "planerar, planerade, planerat", "Vi planerar en resa till Norge.", "We're planning a trip to Norway."],
+    ["förbereda", "prepare", "verb", "förbereder, förberedde, förberett", "Jag förbereder mig för provet.", "I'm preparing for the test."],
+    ["besluta", "decide (formally) / resolve", "verb", "beslutar, beslutade (beslöt), beslutat (beslutit); bestämma is more everyday", "Laget beslutade att byta tränare.", "The team decided to change coaches."],
+    ["tacka", "thank", "verb", "tackar, tackade, tackat", "Jag vill tacka dig för hjälpen.", "I want to thank you for the help."],
+    ["be", "ask (for) / pray", "verb", "ber, bad, bett; be om = ask for", "Jag ber om ursäkt.", "I apologize."],
+    ["hälsa", "greet / say hello", "verb", "hälsar, hälsade, hälsat; hälsa på = visit", "Hälsa till din mamma!", "Say hi to your mom!"],
+    ["presentera", "introduce / present", "verb", "presenterar, presenterade, presenterat", "Får jag presentera min kompis Erik?", "May I introduce my friend Erik?"],
+    ["uttrycka", "express", "verb", "uttrycker, uttryckte, uttryckt; uttrycka sig = express oneself", "Det är svårt att uttrycka sig på svenska.", "It's hard to express yourself in Swedish."],
+    ["upprepa", "repeat", "verb", "upprepar, upprepade, upprepat", "Kan du upprepa frågan?", "Can you repeat the question?"],
+    ["översätta", "translate", "verb", "översätter, översatte, översatt", "Kan du översätta det här?", "Can you translate this?"],
+    ["stava", "spell", "verb", "stavar, stavade, stavat", "Hur stavar man ditt namn?", "How do you spell your name?"],
+    ["uttala", "pronounce", "verb", "uttalar, uttalade, uttalat", "Hur uttalar man det här ordet?", "How do you pronounce this word?"],
+    ["nämna", "mention", "verb", "nämner, nämnde, nämnt", "Han nämner aldrig sin bror.", "He never mentions his brother."],
+    ["kontrollera", "check / verify", "verb", "kontrollerar, kontrollerade, kontrollerat", "Kontrollera svaren innan du lämnar in.", "Check your answers before you hand in."]
+  ],
+  sv_v30: [
+    ["öka", "increase", "verb", "ökar, ökade, ökat", "Priserna ökar hela tiden.", "Prices keep going up."],
+    ["minska", "decrease / reduce", "verb", "minskar, minskade, minskat", "Vi måste minska kostnaderna.", "We have to reduce costs."],
+    ["växa", "grow", "verb", "växer, växte, vuxit (växt)", "Barnen växer så snabbt.", "The children grow so fast."],
+    ["sjunka", "sink / drop", "verb", "sjunker, sjönk, sjunkit", "Temperaturen sjunker på natten.", "The temperature drops at night."],
+    ["stiga", "rise / go up", "verb", "stiger, steg, stigit; stiga på = get on", "Vattnet stiger snabbt.", "The water is rising fast."],
+    ["lyfta", "lift", "verb", "lyfter, lyfte, lyft", "Hjälp mig att lyfta soffan.", "Help me lift the sofa."],
+    ["dra", "pull / drag", "verb", "drar, drog, dragit", "Du ska dra, inte trycka.", "You should pull, not push."],
+    ["trycka", "push / press", "verb", "trycker, tryckte, tryckt", "Tryck på knappen.", "Press the button."],
+    ["kasta", "throw", "verb", "kastar, kastade, kastat", "Kasta bollen till mig!", "Throw the ball to me!"],
+    ["fånga", "catch", "verb", "fångar, fångade, fångat", "Målvakten fångar pucken.", "The goalie catches the puck."],
+    ["slå", "hit / beat", "verb", "slår, slog, slagit", "Vi slår alltid Djurgården hemma.", "We always beat Djurgården at home."],
+    ["sparka", "kick", "verb", "sparkar, sparkade, sparkat", "Han sparkar bollen hårt.", "He kicks the ball hard."],
+    ["skjuta", "shoot / push (aside)", "verb", "skjuter, sköt, skjutit", "Hon skjuter pucken i mål.", "She shoots the puck into the net."],
+    ["hoppa", "jump", "verb", "hoppar, hoppade, hoppat", "Katten hoppar upp på bordet.", "The cat jumps up onto the table."],
+    ["klättra", "climb", "verb", "klättrar, klättrade, klättrat", "Barnen klättrar i trädet.", "The children are climbing the tree."],
+    ["krama", "hug", "verb", "kramar, kramade, kramat; en kram = a hug", "Hon kramar sin mamma.", "She hugs her mom."],
+    ["kyssa", "kiss", "verb", "kysser, kysste, kysst", "Han kysser henne på kinden.", "He kisses her on the cheek."],
+    ["röra", "touch / stir", "verb", "rör, rörde, rört; röra sig = move", "Rör inte min hockeyklubba!", "Don't touch my hockey stick!"],
+    ["knacka", "knock", "verb", "knackar, knackade, knackat", "Någon knackar på dörren.", "Someone is knocking on the door."],
+    ["peka", "point", "verb", "pekar, pekade, pekat", "Hon pekar på kartan.", "She points at the map."],
+    ["vinka", "wave", "verb", "vinkar, vinkade, vinkat", "Hon vinkar till oss.", "She waves to us."],
+    ["nicka", "nod", "verb", "nickar, nickade, nickat", "Han nickar och ler.", "He nods and smiles."],
+    ["gömma", "hide", "verb", "gömmer, gömde, gömt", "Var gömmer du godiset?", "Where do you hide the candy?"],
+    ["leta", "look (for) / search", "verb", "letar, letade, letat; leta efter = look for", "Jag letar efter mina nycklar.", "I'm looking for my keys."],
+    ["samla", "collect / gather", "verb", "samlar, samlade, samlat; samla på = collect (as a hobby)", "Han samlar på hockeykort.", "He collects hockey cards."],
+    ["plocka", "pick", "verb", "plockar, plockade, plockat", "Vi plockar svamp i skogen.", "We pick mushrooms in the forest."],
+    ["blanda", "mix", "verb", "blandar, blandade, blandat", "Blanda mjöl och socker.", "Mix flour and sugar."],
+    ["skära", "cut / slice", "verb", "skär, skar, skurit", "Skär löken i små bitar.", "Cut the onion into small pieces."],
+    ["koka", "boil / cook", "verb", "kokar, kokade, kokat", "Jag kokar pasta till middag.", "I'm cooking pasta for dinner."],
+    ["steka", "fry", "verb", "steker, stekte, stekt", "Hon steker ägg till frukost.", "She fries eggs for breakfast."]
+  ],
+  sv_v31: [
+    ["ris", "rice", "n", "ett ris, riset", "Vi äter kyckling med ris.", "We're having chicken with rice."],
+    ["pasta", "pasta", "n", "en pasta, pastan", "Pastan är klar om tio minuter.", "The pasta is ready in ten minutes."],
+    ["korv", "sausage / hot dog", "n", "en korv, korven, korvar, korvarna", "Jag köper en korv i ishallen.", "I buy a hot dog at the rink."],
+    ["skinka", "ham", "n", "en skinka, skinkan, skinkor, skinkorna", "En smörgås med ost och skinka.", "A sandwich with cheese and ham."],
+    ["lax", "salmon", "n", "en lax, laxen, laxar, laxarna", "Vi äter lax på fredag.", "We're having salmon on Friday."],
+    ["räka", "prawn / shrimp", "n", "en räka, räkan, räkor, räkorna", "Hon älskar räkor.", "She loves prawns."],
+    ["sallad", "salad / lettuce", "n", "en sallad, salladen, sallader, salladerna", "Jag tar en grön sallad.", "I'll have a green salad."],
+    ["tomat", "tomato", "n", "en tomat, tomaten, tomater, tomaterna", "Skär tomaterna i bitar.", "Cut the tomatoes into pieces."],
+    ["gurka", "cucumber", "n", "en gurka, gurkan, gurkor, gurkorna", "Vill du ha gurka på mackan?", "Do you want cucumber on your sandwich?"],
+    ["lök", "onion", "n", "en lök, löken, lökar, lökarna", "Det är mycket lök i soppan.", "There's a lot of onion in the soup."],
+    ["morot", "carrot", "n", "en morot, moroten, morötter, morötterna", "Kaninen äter en morot.", "The rabbit is eating a carrot."],
+    ["banan", "banana", "n", "en banan, bananen, bananer, bananerna", "Jag äter en banan före träningen.", "I eat a banana before practice."],
+    ["apelsin", "orange (fruit)", "n", "en apelsin, apelsinen, apelsiner, apelsinerna", "En påse apelsiner, tack.", "A bag of oranges, please."],
+    ["citron", "lemon", "n", "en citron, citronen, citroner, citronerna", "Te med citron och honung.", "Tea with lemon and honey."],
+    ["jordgubbe", "strawberry", "n", "en jordgubbe, jordgubben, jordgubbar, jordgubbarna", "Hon åt en stor jordgubbe.", "She ate a big strawberry."],
+    ["bär", "berry", "n", "ett bär, bäret, bär, bären", "Vi plockar bär i skogen.", "We pick berries in the forest."],
+    ["svamp", "mushroom; sponge", "n", "en svamp, svampen, svampar, svamparna", "En pizza med skinka och svamp.", "A pizza with ham and mushrooms."],
+    ["kanelbulle", "cinnamon bun", "n", "en kanelbulle, kanelbullen, kanelbullar, kanelbullarna", "En kaffe och en kanelbulle, tack.", "A coffee and a cinnamon bun, please."],
+    ["kaka", "cookie / biscuit", "n", "en kaka, kakan, kakor, kakorna", "Får jag ta en kaka till?", "May I have another cookie?"],
+    ["tårta", "cake / layer cake", "n", "en tårta, tårtan, tårtor, tårtorna", "Vi äter tårta på hans födelsedag.", "We eat cake on his birthday."],
+    ["glass", "ice cream", "n", "en glass, glassen, glassar, glassarna", "Ska vi köpa en glass?", "Shall we buy an ice cream?"],
+    ["godis", "sweets / candy", "n", "ett godis, godiset; lördagsgodis = Saturday sweets", "Barnen äter godis på lördagar.", "The kids eat candy on Saturdays."],
+    ["choklad", "chocolate", "n", "en choklad, chokladen", "Varm choklad efter matchen!", "Hot chocolate after the game!"],
+    ["öl", "beer", "n", "en öl (a glass), ett öl (the drink); ölen/ölet, öl, ölen", "En stor öl, tack.", "A large beer, please."],
+    ["vin", "wine", "n", "ett vin, vinet, viner, vinerna", "Ett glas rött vin, tack.", "A glass of red wine, please."],
+    ["juice", "juice", "n", "en juice, juicen, juicer, juicerna", "Jag dricker juice till frukost.", "I drink juice with breakfast."],
+    ["kassa", "checkout / till", "n", "en kassa, kassan, kassor, kassorna", "Du betalar i kassan.", "You pay at the checkout."],
+    ["påse", "bag (plastic / paper)", "n", "en påse, påsen, påsar, påsarna", "Vill du ha en påse?", "Would you like a bag?"],
+    ["rea", "sale", "n", "en rea, rean, reor, reorna; på rea = on sale", "Skorna var på rea.", "The shoes were on sale."],
+    ["erbjudande", "offer / deal", "n", "ett erbjudande, erbjudandet, erbjudanden, erbjudandena", "Två för en är ett bra erbjudande.", "Two for one is a good deal."]
+  ],
+  sv_v32: [
+    ["tand", "tooth", "n", "en tand, tanden, tänder, tänderna", "Jag har ont i en tand.", "I have a toothache."],
+    ["hals", "throat / neck", "n", "en hals, halsen, halsar, halsarna", "Jag har ont i halsen.", "I have a sore throat."],
+    ["axel", "shoulder", "n", "en axel, axeln, axlar, axlarna", "Han skadade axeln på träningen.", "He hurt his shoulder at practice."],
+    ["knä", "knee", "n", "ett knä, knät, knän, knäna", "Mitt knä gör ont.", "My knee hurts."],
+    ["finger", "finger", "n", "ett finger, fingret, fingrar, fingrarna", "Hon skar sig i fingret.", "She cut her finger."],
+    ["tå", "toe", "n", "en tå, tån, tår, tårna", "Jag stötte tån mot sängen.", "I stubbed my toe on the bed."],
+    ["nacke", "back of the neck / nape", "n", "en nacke, nacken, nackar, nackarna", "Jag har ont i nacken.", "My neck hurts."],
+    ["hud", "skin", "n", "en hud, huden", "Hon har torr hud på vintern.", "She has dry skin in winter."],
+    ["blod", "blood", "n", "ett blod, blodet", "Han har blod på tröjan.", "He has blood on his jersey."],
+    ["ansikte", "face", "n", "ett ansikte, ansiktet, ansikten, ansiktena", "Tvätta ansiktet med kallt vatten.", "Wash your face with cold water."],
+    ["tunga", "tongue", "n", "en tunga, tungan, tungor, tungorna", "Räck inte ut tungan!", "Don't stick your tongue out!"],
+    ["huvudvärk", "headache", "n", "en huvudvärk, huvudvärken", "Jag har huvudvärk idag.", "I have a headache today."],
+    ["hosta", "cough", "n", "en hosta, hostan; also a verb: hostar, hostade, hostat", "Han har haft hosta i en vecka.", "He has had a cough for a week."],
+    ["vårdcentral", "health centre / clinic", "n", "en vårdcentral, vårdcentralen, vårdcentraler, vårdcentralerna", "Ring vårdcentralen och boka en tid.", "Call the health centre and book an appointment."],
+    ["recept", "prescription; recipe", "n", "ett recept, receptet, recept, recepten", "Läkaren skrev ut ett recept.", "The doctor wrote a prescription."],
+    ["tablett", "tablet / pill", "n", "en tablett, tabletten, tabletter, tabletterna", "Ta två tabletter om dagen.", "Take two tablets a day."],
+    ["plåster", "plaster / band-aid", "n", "ett plåster, plåstret, plåster, plåstren", "Har du ett plåster?", "Do you have a band-aid?"],
+    ["skjorta", "shirt", "n", "en skjorta, skjortan, skjortor, skjortorna", "Han har en vit skjorta.", "He is wearing a white shirt."],
+    ["kjol", "skirt", "n", "en kjol, kjolen, kjolar, kjolarna", "Hon har en svart kjol.", "She is wearing a black skirt."],
+    ["klänning", "dress", "n", "en klänning, klänningen, klänningar, klänningarna", "Vilken fin klänning!", "What a nice dress!"],
+    ["strumpa", "sock", "n", "en strumpa, strumpan, strumpor, strumporna", "Jag hittar inte min andra strumpa.", "I can't find my other sock."],
+    ["mössa", "knitted hat / beanie", "n", "en mössa, mössan, mössor, mössorna", "Ta på dig mössan, det är kallt.", "Put on your hat, it's cold."],
+    ["vante", "mitten / glove", "n", "en vante, vanten, vantar, vantarna", "Jag har tappat en vante.", "I've lost a mitten."],
+    ["halsduk", "scarf", "n", "en halsduk, halsduken, halsdukar, halsdukarna", "Glöm inte halsduken!", "Don't forget your scarf!"],
+    ["glasögon", "glasses / spectacles", "n", "plural: glasögon, glasögonen; ett par glasögon", "Var är mina glasögon?", "Where are my glasses?"],
+    ["paraply", "umbrella", "n", "ett paraply, paraplyet, paraplyer, paraplyerna", "Ta med ett paraply, det regnar.", "Bring an umbrella, it's raining."],
+    ["stövel", "boot", "n", "en stövel, stöveln, stövlar, stövlarna", "Det är hål i min stövel.", "There's a hole in my boot."],
+    ["sjukdom", "illness / disease", "n", "en sjukdom, sjukdomen, sjukdomar, sjukdomarna", "Det är en vanlig sjukdom.", "It's a common illness."],
+    ["smärta", "pain", "n", "en smärta, smärtan, smärtor, smärtorna", "Han kände en skarp smärta i knät.", "He felt a sharp pain in his knee."],
+    ["vikt", "weight", "n", "en vikt, vikten, vikter, vikterna", "Han håller koll på sin vikt.", "He keeps an eye on his weight."]
+  ],
+  sv_v33: [
+    ["anställd", "employee", "n", "en anställd, den anställda, anställda, de anställda; also adj 'employed'", "Företaget har femtio anställda.", "The company has fifty employees."],
+    ["arbetsgivare", "employer", "n", "en arbetsgivare, arbetsgivaren, arbetsgivare, arbetsgivarna", "Min arbetsgivare betalar kursen.", "My employer is paying for the course."],
+    ["fack", "trade union", "n", "ett fack, facket, fack, facken; also 'compartment'", "Är du med i facket?", "Are you in the union?"],
+    ["ansökan", "application", "n", "en ansökan, ansökan, ansökningar, ansökningarna", "Jag skickade min ansökan igår.", "I sent my application yesterday."],
+    ["intervju", "interview", "n", "en intervju, intervjun, intervjuer, intervjuerna", "Jag har en intervju på måndag.", "I have an interview on Monday."],
+    ["utbildning", "education / training / degree programme", "n", "en utbildning, utbildningen, utbildningar, utbildningarna", "Utbildningen tar tre år.", "The programme takes three years."],
+    ["examen", "degree / graduation", "n", "en examen, examen, examina, examina; ta examen = graduate", "Hon tar examen i juni.", "She graduates in June."],
+    ["betyg", "grade / mark", "n", "ett betyg, betyget, betyg, betygen", "Jag fick bra betyg i kursen.", "I got a good grade in the course."],
+    ["plugga", "study (informal) / cram", "verb", "pluggar, pluggade, pluggat", "Jag måste plugga ikväll.", "I have to study tonight."],
+    ["avgift", "fee / charge", "n", "en avgift, avgiften, avgifter, avgifterna", "Avgiften är hundra kronor.", "The fee is a hundred kronor."],
+    ["räkning", "bill / invoice", "n", "en räkning, räkningen, räkningar, räkningarna", "Jag har betalat räkningen.", "I have paid the bill."],
+    ["kvitto", "receipt", "n", "ett kvitto, kvittot, kvitton, kvittona", "Vill du ha kvittot?", "Do you want the receipt?"],
+    ["kontant", "in cash", "adv", "betala kontant; kontanter = cash (noun, plural)", "Kan jag betala kontant?", "Can I pay in cash?"],
+    ["konto", "account", "n", "ett konto, kontot, konton, kontona", "Jag har ett konto på banken.", "I have an account at the bank."],
+    ["lån", "loan", "n", "ett lån, lånet, lån, lånen; låna = borrow / lend", "Jag har ett lån från CSN.", "I have a loan from CSN."],
+    ["ränta", "interest (on money)", "n", "en ränta, räntan, räntor, räntorna", "Räntan har gått upp igen.", "The interest rate has gone up again."],
+    ["spara", "save (money, time)", "verb", "sparar, sparade, sparat", "Jag sparar pengar till en resa.", "I'm saving money for a trip."],
+    ["krona", "krona (Swedish currency) / crown", "n", "en krona, kronan, kronor, kronorna", "Kronan är svag just nu.", "The krona is weak right now."],
+    ["budget", "budget", "n", "en budget, budgeten, budgetar, budgetarna", "Jag har en stram budget.", "I'm on a tight budget."],
+    ["försäkring", "insurance", "n", "en försäkring, försäkringen, försäkringar, försäkringarna", "Behöver jag en försäkring?", "Do I need insurance?"],
+    ["myndighet", "government agency / authority", "n", "en myndighet, myndigheten, myndigheter, myndigheterna", "Skatteverket är en myndighet.", "The Tax Agency is a government agency."],
+    ["ansöka", "apply (for)", "verb", "ansöker, ansökte, ansökt; ansöka om", "Jag vill ansöka om studielån.", "I want to apply for a student loan."],
+    ["personnummer", "personal identity number", "n", "ett personnummer, personnumret, personnummer, personnumren", "Vad är ditt personnummer?", "What is your personal identity number?"],
+    ["legitimation", "ID / identification", "n", "en legitimation, legitimationen, legitimationer, legitimationerna; leg (informal)", "Har du legitimation?", "Do you have ID?"],
+    ["blankett", "form (to fill in)", "n", "en blankett, blanketten, blanketter, blanketterna", "Fyll i blanketten, tack.", "Fill in the form, please."],
+    ["hyra", "rent", "n", "en hyra, hyran, hyror, hyrorna; att hyra = to rent", "Hyran är för hög.", "The rent is too high."],
+    ["vård", "care / healthcare", "n", "en vård, vården", "Vården i Sverige är bra.", "Healthcare in Sweden is good."],
+    ["pension", "pension / retirement", "n", "en pension, pensionen, pensioner, pensionerna; gå i pension = retire", "Min pappa går i pension nästa år.", "My dad retires next year."],
+    ["arbetslös", "unemployed", "adj", "arbetslös, arbetslöst, arbetslösa", "Han har varit arbetslös sedan i våras.", "He has been unemployed since the spring."],
+    ["sjukskriven", "on sick leave", "adj", "sjukskriven, sjukskrivet, sjukskrivna", "Hon är sjukskriven i två veckor.", "She is on sick leave for two weeks."]
+  ],
+  sv_v34: [
+    ["demokrati", "democracy", "n", "en demokrati, demokratin, demokratier, demokratierna", "Sverige är en demokrati.", "Sweden is a democracy."],
+    ["riksdag", "parliament (Swedish)", "n", "en riksdag, riksdagen, riksdagar, riksdagarna", "Riksdagen röstar om förslaget idag.", "Parliament votes on the proposal today."],
+    ["parti", "(political) party", "n", "ett parti, partiet, partier, partierna", "Vilket parti röstar du på?", "Which party do you vote for?"],
+    ["politiker", "politician", "n", "en politiker, politikern, politiker, politikerna", "Politikern svarade inte på frågan.", "The politician didn't answer the question."],
+    ["statsminister", "prime minister", "n", "en statsminister, statsministern, statsministrar, statsministrarna", "Statsministern håller tal ikväll.", "The prime minister gives a speech tonight."],
+    ["rättighet", "right (entitlement)", "n", "en rättighet, rättigheten, rättigheter, rättigheterna", "Det är din rättighet.", "It is your right."],
+    ["frihet", "freedom", "n", "en frihet, friheten, friheter, friheterna", "Studenter har stor frihet.", "Students have a lot of freedom."],
+    ["jämställdhet", "gender equality", "n", "en jämställdhet, jämställdheten", "Jämställdhet är en viktig fråga.", "Gender equality is an important issue."],
+    ["rättvisa", "justice / fairness", "n", "en rättvisa, rättvisan; rättvis = fair", "Det handlar om rättvisa.", "It's about fairness."],
+    ["brott", "crime", "n", "ett brott, brottet, brott, brotten", "Det är ett brott att stjäla.", "Stealing is a crime."],
+    ["domstol", "court (of law)", "n", "en domstol, domstolen, domstolar, domstolarna", "Fallet hamnade i domstol.", "The case ended up in court."],
+    ["förslag", "proposal / suggestion", "n", "ett förslag, förslaget, förslag, förslagen", "Har du något förslag?", "Do you have any suggestions?"],
+    ["beslut", "decision", "n", "ett beslut, beslutet, beslut, besluten; besluta = decide", "Det var ett svårt beslut.", "It was a difficult decision."],
+    ["debatt", "debate", "n", "en debatt, debatten, debatter, debatterna", "Såg du debatten på tv igår?", "Did you see the debate on TV yesterday?"],
+    ["kritik", "criticism", "n", "en kritik, kritiken", "Regeringen fick hård kritik.", "The government got harsh criticism."],
+    ["artikel", "article", "n", "en artikel, artikeln, artiklar, artiklarna", "Jag läste en artikel om hockey.", "I read an article about hockey."],
+    ["journalist", "journalist", "n", "en journalist, journalisten, journalister, journalisterna", "Hon jobbar som journalist.", "She works as a journalist."],
+    ["program", "programme / show", "n", "ett program, programmet, program, programmen", "Programmet börjar klockan åtta.", "The show starts at eight."],
+    ["reklam", "advertising / ads", "n", "en reklam, reklamen", "Det är för mycket reklam på tv.", "There are too many ads on TV."],
+    ["undersökning", "survey / study", "n", "en undersökning, undersökningen, undersökningar, undersökningarna", "Enligt en ny undersökning sover studenter för lite.", "According to a new survey, students sleep too little."],
+    ["procent", "percent", "n", "en procent, procenten, procent", "Priset steg med tio procent.", "The price rose by ten percent."],
+    ["siffra", "figure / digit", "n", "en siffra, siffran, siffror, siffrorna", "Den siffran stämmer inte.", "That figure isn't right."],
+    ["ökning", "increase", "n", "en ökning, ökningen, ökningar, ökningarna; öka = increase", "Vi ser en kraftig ökning av priserna.", "We're seeing a sharp increase in prices."],
+    ["minskning", "decrease / reduction", "n", "en minskning, minskningen, minskningar, minskningarna; minska = decrease", "Statistiken visar en minskning av arbetslösheten.", "The statistics show a fall in unemployment."],
+    ["kris", "crisis", "n", "en kris, krisen, kriser, kriserna", "Landet är i en ekonomisk kris.", "The country is in an economic crisis."],
+    ["säkerhet", "security / safety", "n", "en säkerhet, säkerheten", "Säkerheten på arenan är hög.", "Security at the arena is tight."],
+    ["befolkning", "population", "n", "en befolkning, befolkningen, befolkningar, befolkningarna", "Sverige har en befolkning på över tio miljoner.", "Sweden has a population of over ten million."],
+    ["medlem", "member", "n", "en medlem, medlemmen, medlemmar, medlemmarna", "Jag är medlem i en hockeyklubb.", "I'm a member of a hockey club."],
+    ["organisation", "organization", "n", "en organisation, organisationen, organisationer, organisationerna", "Hon jobbar för en ideell organisation.", "She works for a non-profit organization."],
+    ["påverka", "influence / affect", "verb", "påverkar, påverkade, påverkat", "Reklam påverkar oss mer än vi tror.", "Advertising affects us more than we think."]
+  ],
+  sv_v35: [
+    ["ö", "island", "n", "en ö, ön, öar, öarna", "Gotland är en stor ö.", "Gotland is a big island."],
+    ["strand", "beach", "n", "en strand, stranden, stränder, stränderna", "Ska vi gå till stranden?", "Shall we go to the beach?"],
+    ["kust", "coast", "n", "en kust, kusten, kuster, kusterna", "De har ett sommarhus vid kusten.", "They have a summer house on the coast."],
+    ["fjäll", "mountain (Scandinavian, bare-topped)", "n", "ett fjäll, fjället, fjäll, fjällen", "Vi åker till fjällen i februari.", "We're going to the mountains in February."],
+    ["dal", "valley", "n", "en dal, dalen, dalar, dalarna", "Byn ligger i en dal.", "The village lies in a valley."],
+    ["flod", "river (large)", "n", "en flod, floden, floder, floderna; å = small river", "Floden är bred här.", "The river is wide here."],
+    ["bäck", "stream / brook", "n", "en bäck, bäcken, bäckar, bäckarna", "Vi drack vatten från bäcken.", "We drank water from the stream."],
+    ["äng", "meadow", "n", "en äng, ängen, ängar, ängarna", "Vi plockade blommor på ängen.", "We picked flowers in the meadow."],
+    ["åker", "field (farmland)", "n", "en åker, åkern, åkrar, åkrarna", "Bonden plöjer åkern.", "The farmer is ploughing the field."],
+    ["gräs", "grass", "n", "ett gräs, gräset", "Vi satt i gräset och åt.", "We sat in the grass and ate."],
+    ["sten", "stone / rock", "n", "en sten, stenen, stenar, stenarna", "Han kastade en sten i vattnet.", "He threw a stone into the water."],
+    ["sand", "sand", "n", "en sand, sanden", "Jag har sand i skorna.", "I have sand in my shoes."],
+    ["storm", "storm", "n", "en storm, stormen, stormar, stormarna", "Stormen fällde många träd.", "The storm brought down many trees."],
+    ["åska", "thunder / thunderstorm", "n", "en åska, åskan; det åskar = it's thundering", "Hunden är rädd för åskan.", "The dog is scared of the thunder."],
+    ["dimma", "fog / mist", "n", "en dimma, dimman", "Det var tät dimma i morse.", "There was thick fog this morning."],
+    ["frost", "frost", "n", "en frost, frosten", "Det blev frost i natt.", "There was frost last night."],
+    ["temperatur", "temperature", "n", "en temperatur, temperaturen, temperaturer, temperaturerna", "Temperaturen sjunker ikväll.", "The temperature is dropping tonight."],
+    ["årstid", "season", "n", "en årstid, årstiden, årstider, årstiderna", "Vilken årstid gillar du bäst?", "Which season do you like best?"],
+    ["måne", "moon", "n", "en måne, månen, månar, månarna", "Månen lyser över sjön.", "The moon is shining over the lake."],
+    ["jord", "earth / soil", "n", "en jord, jorden; Jorden = the Earth", "Jorden snurrar runt solen.", "The Earth goes round the sun."],
+    ["luft", "air", "n", "en luft, luften", "Luften är så frisk här.", "The air is so fresh here."],
+    ["eld", "fire (flames)", "n", "en eld, elden, eldar, eldarna; brand = fire (accident)", "Vi gjorde upp eld vid sjön.", "We made a fire by the lake."],
+    ["björn", "bear", "n", "en björn, björnen, björnar, björnarna", "Det finns björnar i skogen.", "There are bears in the forest."],
+    ["varg", "wolf", "n", "en varg, vargen, vargar, vargarna", "Vargen är ett skyggt djur.", "The wolf is a shy animal."],
+    ["räv", "fox", "n", "en räv, räven, rävar, rävarna", "En räv sprang över vägen.", "A fox ran across the road."],
+    ["ko", "cow", "n", "en ko, kon, kor, korna", "Kon står i hagen.", "The cow is standing in the pasture."],
+    ["gris", "pig", "n", "en gris, grisen, grisar, grisarna", "Bonden har tio grisar.", "The farmer has ten pigs."],
+    ["mygga", "mosquito", "n", "en mygga, myggan, myggor, myggorna", "En mygga bet mig i armen.", "A mosquito bit me on the arm."],
+    ["natur", "nature", "n", "en natur, naturen", "Jag älskar den svenska naturen.", "I love Swedish nature."],
+    ["landsbygd", "countryside", "n", "en landsbygd, landsbygden", "Mina föräldrar bor på landsbygden.", "My parents live in the countryside."]
+  ],
+  sv_v36: [
+    ["glädje", "joy", "n", "en glädje, glädjen", "Hon grät av glädje.", "She cried with joy."],
+    ["sorg", "grief / sorrow", "n", "en sorg, sorgen, sorger, sorgerna", "Det var en stor sorg för familjen.", "It was a great sorrow for the family."],
+    ["ilska", "anger", "n", "en ilska, ilskan; arg = angry", "Han kunde inte dölja sin ilska.", "He couldn't hide his anger."],
+    ["rädsla", "fear", "n", "en rädsla, rädslan, rädslor, rädslorna; rädd = afraid", "Hon har en rädsla för hundar.", "She has a fear of dogs."],
+    ["oro", "worry / anxiety", "n", "en oro, oron", "Det finns ingen anledning till oro.", "There's no reason to worry."],
+    ["hopp", "hope", "n", "ett hopp, hoppet; also 'jump'; hoppas = to hope", "Vi har fortfarande hopp om att vinna.", "We still have hope of winning."],
+    ["lycka", "happiness", "n", "en lycka, lyckan; lycka till = good luck", "Pengar ger inte lycka.", "Money doesn't bring happiness."],
+    ["avund", "envy", "n", "en avund, avunden", "Han kände avund mot sin bror.", "He felt envy towards his brother."],
+    ["skam", "shame", "n", "en skam, skammen", "Det är ingen skam att förlora.", "There's no shame in losing."],
+    ["tillit", "trust", "n", "en tillit, tilliten; lita på = trust", "Tillit tar tid att bygga.", "Trust takes time to build."],
+    ["respekt", "respect", "n", "en respekt, respekten", "Vi måste visa respekt för domaren.", "We have to show respect for the referee."],
+    ["vänskap", "friendship", "n", "en vänskap, vänskapen, vänskaper, vänskaperna", "Vår vänskap betyder mycket för mig.", "Our friendship means a lot to me."],
+    ["förhållande", "relationship", "n", "ett förhållande, förhållandet, förhållanden, förhållandena; also 'conditions' (plural)", "Hur går det i ditt förhållande?", "How are things in your relationship?"],
+    ["kram", "hug", "n", "en kram, kramen, kramar, kramarna; krama = to hug", "Ge mig en kram!", "Give me a hug!"],
+    ["kyss", "kiss", "n", "en kyss, kyssen, kyssar, kyssarna; kyssa = to kiss", "Han gav henne en kyss på kinden.", "He gave her a kiss on the cheek."],
+    ["dejt", "date (romantic)", "n", "en dejt, dejten, dejter, dejterna; dejta = to date", "Jag har en dejt på lördag.", "I have a date on Saturday."],
+    ["bröllop", "wedding", "n", "ett bröllop, bröllopet, bröllop, bröllopen", "Vi ska på bröllop i juli.", "We're going to a wedding in July."],
+    ["skilsmässa", "divorce", "n", "en skilsmässa, skilsmässan, skilsmässor, skilsmässorna; skilja sig = get divorced", "Skilsmässan var svår för barnen.", "The divorce was hard on the children."],
+    ["orolig", "worried", "adj", "orolig, oroligt, oroliga", "Jag är orolig för tentan.", "I'm worried about the exam."],
+    ["förvånad", "surprised", "adj", "förvånad, förvånat, förvånade", "Hon såg förvånad ut.", "She looked surprised."],
+    ["generad", "embarrassed", "adj", "generad, generat, generade", "Jag blev så generad!", "I was so embarrassed!"],
+    ["avundsjuk", "jealous", "adj", "avundsjuk, avundsjukt, avundsjuka", "Är du avundsjuk på honom?", "Are you jealous of him?"],
+    ["kär", "in love", "adj", "kär, kärt, kära; kär i = in love with; also 'dear'", "Jag är kär i dig.", "I'm in love with you."],
+    ["humör", "mood / temper", "n", "ett humör, humöret", "Han är på dåligt humör idag.", "He's in a bad mood today."],
+    ["tröst", "consolation / comfort (noun)", "n", "en tröst, trösten", "Hon sökte tröst hos sin mamma.", "She sought comfort from her mum."],
+    ["saknad", "sense of loss / longing", "n", "en saknad, saknaden; sakna = to miss", "Jag känner en stor saknad.", "I feel a great sense of loss."],
+    ["tacksam", "grateful", "adj", "tacksam, tacksamt, tacksamma", "Jag är tacksam för din hjälp.", "I'm grateful for your help."],
+    ["förlåta", "forgive", "verb", "förlåter, förlät, förlåtit; förlåt! = sorry!", "Kan du förlåta mig?", "Can you forgive me?"],
+    ["gräla", "quarrel / argue", "verb", "grälar, grälade, grälat", "De grälar om pengar hela tiden.", "They argue about money all the time."],
+    ["trösta", "console / comfort (verb)", "verb", "tröstar, tröstade, tröstat", "Hon tröstade sin ledsna vän.", "She comforted her sad friend."]
+  ],
+  sv_v37: [
+    ["anse", "consider / be of the opinion", "verb", "anser, ansåg, ansett", "Jag anser att du har rätt.", "I think you're right."],
+    ["anta", "assume / suppose", "verb", "antar, antog, antagit; also 'adopt', 'admit (to a programme)'", "Jag antar att du är trött.", "I assume you're tired."],
+    ["inse", "realize", "verb", "inser, insåg, insett", "Nu inser jag att jag hade fel.", "Now I realize I was wrong."],
+    ["upptäcka", "discover", "verb", "upptäcker, upptäckte, upptäckt", "Läkaren kunde inte upptäcka något fel.", "The doctor couldn't find anything wrong."],
+    ["undervisa", "teach (instruct)", "verb", "undervisar, undervisade, undervisat", "Hon undervisar i matematik.", "She teaches mathematics."],
+    ["lösa", "solve", "verb", "löser, löste, löst", "Kan du lösa den här ekvationen?", "Can you solve this equation?"],
+    ["orsak", "cause / reason", "n", "en orsak, orsaken, orsaker, orsakerna; ingen orsak = you're welcome", "Vad var orsaken till olyckan?", "What was the cause of the accident?"],
+    ["följd", "consequence", "n", "en följd, följden, följder, följderna", "Det fick allvarliga följder.", "It had serious consequences."],
+    ["resultat", "result", "n", "ett resultat, resultatet, resultat, resultaten", "Resultatet kommer nästa vecka.", "The result comes next week."],
+    ["syfte", "purpose", "n", "ett syfte, syftet, syften, syftena", "Vad är syftet med studien?", "What is the purpose of the study?"],
+    ["fördel", "advantage", "n", "en fördel, fördelen, fördelar, fördelarna", "En fördel är att det är billigt.", "One advantage is that it's cheap."],
+    ["nackdel", "disadvantage", "n", "en nackdel, nackdelen, nackdelar, nackdelarna", "Nackdelen är att det tar tid.", "The disadvantage is that it takes time."],
+    ["argument", "argument (point made)", "n", "ett argument, argumentet, argument, argumenten", "Det är ett bra argument.", "That's a good argument."],
+    ["slutsats", "conclusion", "n", "en slutsats, slutsatsen, slutsatser, slutsatserna; dra en slutsats = draw a conclusion", "Vilken slutsats drar du?", "What conclusion do you draw?"],
+    ["fakta", "facts", "n", "plural only; ett faktum = a fact", "Vi måste hålla oss till fakta.", "We have to stick to the facts."],
+    ["bevis", "proof / evidence", "n", "ett bevis, beviset, bevis, bevisen", "Det finns inga bevis.", "There is no evidence."],
+    ["teori", "theory", "n", "en teori, teorin, teorier, teorierna", "Det är bara en teori.", "It's just a theory."],
+    ["forskning", "research", "n", "en forskning, forskningen; forska = do research", "Hon jobbar med forskning om klimatet.", "She works on climate research."],
+    ["kunskap", "knowledge", "n", "en kunskap, kunskapen, kunskaper, kunskaperna", "Han har goda kunskaper i svenska.", "He has a good knowledge of Swedish."],
+    ["förmåga", "ability", "n", "en förmåga, förmågan, förmågor, förmågorna", "Hon har en förmåga att lyssna.", "She has a gift for listening."],
+    ["sammanhang", "context", "n", "ett sammanhang, sammanhanget, sammanhang, sammanhangen", "Ordet betyder olika saker i olika sammanhang.", "The word means different things in different contexts."],
+    ["begrepp", "concept / term", "n", "ett begrepp, begreppet, begrepp, begreppen", "Förklara begreppet demokrati.", "Explain the concept of democracy."],
+    ["kapitel", "chapter", "n", "ett kapitel, kapitlet, kapitel, kapitlen", "Läs kapitel tre till måndag.", "Read chapter three for Monday."],
+    ["uppsats", "essay / paper", "n", "en uppsats, uppsatsen, uppsatser, uppsatserna", "Jag skriver på min uppsats.", "I'm working on my essay."],
+    ["föreläsning", "lecture", "n", "en föreläsning, föreläsningen, föreläsningar, föreläsningarna", "Föreläsningen börjar kvart över tio.", "The lecture starts at quarter past ten."],
+    ["betydelse", "meaning / significance", "n", "en betydelse, betydelsen, betydelser, betydelserna; betyda = mean", "Ordet har två betydelser.", "The word has two meanings."],
+    ["uppgift", "task / assignment", "n", "en uppgift, uppgiften, uppgifter, uppgifterna; also 'information' (plural)", "Vi fick en svår uppgift i kursen.", "We got a hard assignment in the course."],
+    ["nivå", "level", "n", "en nivå, nivån, nivåer, nivåerna", "Kursen ligger på en hög nivå.", "The course is at a high level."],
+    ["mål", "goal / target", "n", "ett mål, målet, mål, målen; also 'goal' in sport", "Mitt mål är att lära mig svenska.", "My goal is to learn Swedish."],
+    ["steg", "step", "n", "ett steg, steget, steg, stegen", "Det är ett viktigt steg framåt.", "It's an important step forward."]
   ]
 };
 
@@ -5410,6 +6269,63 @@ var SV_PASSIVE = [
   ["Någon öppnade dörren.", "Dörren öppnades.", "The door was opened."], ["Man säljer biljetter här.", "Biljetter säljs här.", "Tickets are sold here."],
   ["Vi har läst boken.", "Boken har lästs.", "The book has been read."], ["De ställde in matchen.", "Matchen ställdes in.", "The game was cancelled."]
 ];
+
+/* ---- the sentence generator's lexicon ----
+   The grammar drills build fresh sentences from these parts, so a drill tests the rule, not a remembered answer.
+   subject: [Swedish, English, English person (1s 2 3s 1p 3p), object form for 'av ...', proper noun]
+   verb: { inf, pres, past, sup, en: [base, -s form, past, participle, -ing form], objs: [[Swedish, English, other accepted Swedish]],
+           pass: [present passive, past passive] and pobjs: [[definite Swedish, definite English]] when the -s passive is natural,
+           tr: false when the English is too loose to translate back one way } */
+var SV_GEN = {
+  subj: [
+    ["jag", "I", "1s", "mig"], ["du", "you", "2", "dig"], ["han", "he", "3s", "honom"], ["hon", "she", "3s", "henne"], ["vi", "we", "1p", "oss"],
+    ["ni", "you", "2", "er"], ["de", "they", "3p", "dem"], ["Anna", "Anna", "3s", "Anna", true], ["Erik", "Erik", "3s", "Erik", true],
+    ["min bror", "my brother", "3s", "min bror"], ["barnen", "the children", "3p", "barnen"], ["läraren", "the teacher", "3s", "läraren"], ["mina kompisar", "my friends", "3p", "mina kompisar"]
+  ],
+  verbs: [
+    { inf: "äta", pres: "äter", past: "åt", sup: "ätit", en: ["eat", "eats", "ate", "eaten", "eating"], objs: [["fisk", "fish"], ["frukost", "breakfast"], ["en smörgås", "a sandwich", ["en macka"]], ["lunch", "lunch"]], pass: ["äts", "åts"], pobjs: [["maten", "the food"], ["kakan", "the cake"]] },
+    { inf: "dricka", pres: "dricker", past: "drack", sup: "druckit", en: ["drink", "drinks", "drank", "drunk", "drinking"], objs: [["kaffe", "coffee"], ["te", "tea"], ["vatten", "water"], ["mjölk", "milk"]], pass: ["dricks", "dracks"], pobjs: [["kaffet", "the coffee"], ["mjölken", "the milk"]] },
+    { inf: "läsa", pres: "läser", past: "läste", sup: "läst", en: ["read", "reads", "read", "read", "reading"], objs: [["en bok", "a book"], ["tidningen", "the newspaper"], ["ett mejl", "an email", ["ett mail"]]], pass: ["läses", "lästes"], pobjs: [["boken", "the book"], ["brevet", "the letter"], ["tidningen", "the newspaper"]] },
+    { inf: "skriva", pres: "skriver", past: "skrev", sup: "skrivit", en: ["write", "writes", "wrote", "written", "writing"], objs: [["ett brev", "a letter"], ["ett mejl", "an email", ["ett mail"]], ["en uppsats", "an essay"]], pass: ["skrivs", "skrevs"], pobjs: [["brevet", "the letter"], ["uppsatsen", "the essay"]] },
+    { inf: "köpa", pres: "köper", past: "köpte", sup: "köpt", en: ["buy", "buys", "bought", "bought", "buying"], objs: [["bröd", "bread"], ["en ny jacka", "a new jacket"], ["biljetter", "tickets"], ["mjölk", "milk"]], pass: ["köps", "köptes"], pobjs: [["biljetterna", "the tickets"], ["huset", "the house"]] },
+    { inf: "spela", pres: "spelar", past: "spelade", sup: "spelat", en: ["play", "plays", "played", "played", "playing"], objs: [["hockey", "hockey"], ["fotboll", "football"], ["gitarr", "the guitar"]], pass: ["spelas", "spelades"], pobjs: [["matchen", "the game"]] },
+    { inf: "titta", pres: "tittar", past: "tittade", sup: "tittat", en: ["watch", "watches", "watched", "watched", "watching"], objs: [["på en film", "a film"], ["på tv", "TV"], ["på matchen", "the game"]], tr: false },
+    { inf: "träffa", pres: "träffar", past: "träffade", sup: "träffat", en: ["meet", "meets", "met", "met", "meeting"], objs: [["Erik", "Erik"], ["tränaren", "the coach"], ["grannarna", "the neighbours"]], tr: false },
+    { inf: "laga", pres: "lagar", past: "lagade", sup: "lagat", en: ["cook", "cooks", "cooked", "cooked", "cooking"], objs: [["middag", "dinner"], ["mat", "food"]], pass: ["lagas", "lagades"], pobjs: [["maten", "the food"], ["middagen", "the dinner"]] },
+    { inf: "städa", pres: "städar", past: "städade", sup: "städat", en: ["clean", "cleans", "cleaned", "cleaned", "cleaning"], objs: [["rummet", "the room"], ["köket", "the kitchen"], ["lägenheten", "the flat", ["lägenheten"]]], pass: ["städas", "städades"], pobjs: [["rummet", "the room"], ["köket", "the kitchen"]] },
+    { inf: "öppna", pres: "öppnar", past: "öppnade", sup: "öppnat", en: ["open", "opens", "opened", "opened", "opening"], objs: [["dörren", "the door"], ["fönstret", "the window"]], pass: ["öppnas", "öppnades"], pobjs: [["dörren", "the door"], ["fönstret", "the window"], ["affären", "the shop"]] },
+    { inf: "stänga", pres: "stänger", past: "stängde", sup: "stängt", en: ["close", "closes", "closed", "closed", "closing"], objs: [["dörren", "the door"], ["fönstret", "the window"]], pass: ["stängs", "stängdes"], pobjs: [["dörren", "the door"], ["fönstret", "the window"]] },
+    { inf: "bygga", pres: "bygger", past: "byggde", sup: "byggt", en: ["build", "builds", "built", "built", "building"], objs: [["ett hus", "a house"], ["en bro", "a bridge"]], pass: ["byggs", "byggdes"], pobjs: [["huset", "the house"], ["bron", "the bridge"]] },
+    { inf: "sälja", pres: "säljer", past: "sålde", sup: "sålt", en: ["sell", "sells", "sold", "sold", "selling"], objs: [["bilen", "the car"], ["cykeln", "the bike"]], pass: ["säljs", "såldes"], pobjs: [["bilen", "the car"], ["cykeln", "the bike"], ["biljetterna", "the tickets"]] },
+    { inf: "tvätta", pres: "tvättar", past: "tvättade", sup: "tvättat", en: ["wash", "washes", "washed", "washed", "washing"], objs: [["bilen", "the car"], ["kläderna", "the clothes"]], pass: ["tvättas", "tvättades"], pobjs: [["bilen", "the car"], ["kläderna", "the clothes"]] },
+    { inf: "måla", pres: "målar", past: "målade", sup: "målat", en: ["paint", "paints", "painted", "painted", "painting"], objs: [["huset", "the house"], ["köket", "the kitchen"]], pass: ["målas", "målades"], pobjs: [["huset", "the house"], ["köket", "the kitchen"]] },
+    { inf: "bo", pres: "bor", past: "bodde", sup: "bott", en: ["live", "lives", "lived", "lived", "living"], objs: [["i Lund", "in Lund"], ["i Stockholm", "in Stockholm"], ["hemma", "at home"]] },
+    { inf: "åka", pres: "åker", past: "åkte", sup: "åkt", en: ["go", "goes", "went", "gone", "going"], objs: [["till Göteborg", "to Gothenburg"], ["hem", "home"], ["buss", "by bus"]], tr: false },
+    { inf: "sova", pres: "sover", past: "sov", sup: "sovit", en: ["sleep", "sleeps", "slept", "slept", "sleeping"], objs: [["länge", "late"], ["hos Anna", "at Anna's"]], tr: false },
+    { inf: "träna", pres: "tränar", past: "tränade", sup: "tränat", en: ["train", "trains", "trained", "trained", "training"], objs: [["på gymmet", "at the gym"], ["med laget", "with the team"]], tr: false },
+    { inf: "lyssna", pres: "lyssnar", past: "lyssnade", sup: "lyssnat", en: ["listen", "listens", "listened", "listened", "listening"], objs: [["på musik", "to music"], ["på radio", "to the radio"]] },
+    { inf: "hjälpa", pres: "hjälper", past: "hjälpte", sup: "hjälpt", en: ["help", "helps", "helped", "helped", "helping"], objs: [["Anna", "Anna"], ["grannen", "the neighbour"]] },
+    { inf: "ringa", pres: "ringer", past: "ringde", sup: "ringt", en: ["call", "calls", "called", "called", "calling"], objs: [["Erik", "Erik"], ["mamma", "Mum"]], tr: false },
+    { inf: "göra", pres: "gör", past: "gjorde", sup: "gjort", en: ["do", "does", "did", "done", "doing"], objs: [["läxan", "the homework"]], pass: ["görs", "gjordes"], pobjs: [["läxan", "the homework"], ["jobbet", "the job"]], tr: false },
+    { inf: "skicka", pres: "skickar", past: "skickade", sup: "skickat", en: ["send", "sends", "sent", "sent", "sending"], objs: [["ett mejl", "an email", ["ett mail"]], ["ett paket", "a parcel"]], pass: ["skickas", "skickades"], pobjs: [["paketet", "the parcel"], ["mejlet", "the email"]] },
+    { inf: "förstå", pres: "förstår", past: "förstod", sup: "förstått", en: ["understand", "understands", "understood", "understood", "understanding"], objs: [["frågan", "the question"], ["svenska", "Swedish"]] },
+    { inf: "glömma", pres: "glömmer", past: "glömde", sup: "glömt", en: ["forget", "forgets", "forgot", "forgotten", "forgetting"], objs: [["nyckeln", "the key"], ["biljetten", "the ticket"]], pass: ["glöms", "glömdes"], pobjs: [["nyckeln", "the key"], ["biljetten", "the ticket"]] },
+    { inf: "betala", pres: "betalar", past: "betalade", sup: "betalat", en: ["pay", "pays", "paid", "paid", "paying"], objs: [["hyran", "the rent"], ["notan", "the bill", ["räkningen"]]], pass: ["betalas", "betalades"], pobjs: [["hyran", "the rent"], ["notan", "the bill", ["räkningen"]]] }
+  ],
+  /* modals that take a bare infinitive; the English is built in sv_course.js */
+  modals: ["kan", "vill", "ska", "måste"],
+  /* fronted adverbials: [Swedish, English, when: now | past | any] */
+  front: [
+    ["idag", "today", "now"], ["nu", "now", "now"], ["ikväll", "tonight", "now"], ["imorgon", "tomorrow", "now"], ["på lördag", "on Saturday", "now"],
+    ["varje dag", "every day", "now"], ["ibland", "sometimes", "now"], ["på fredagar", "on Fridays", "now"], ["efter skolan", "after school", "now"], ["i helgen", "this weekend", "now"],
+    ["därför", "so", "any"], ["sedan", "then", "any"], ["här", "here", "any"],
+    ["igår", "yesterday", "past"], ["förra veckan", "last week", "past"], ["i somras", "last summer", "past"], ["i förrgår", "the day before yesterday", "past"]
+  ],
+  /* sentence adverbs for the subordinate-clause drill: [Swedish, English before a verb, takes do-support] */
+  sadv: [["inte", "not", true], ["inte", "not", true], ["aldrig", "never", false], ["alltid", "always", false], ["ofta", "often", false]],
+  /* clause frames: [Swedish, English] */
+  frames: [["Jag vet att", "I know that"], ["Hon säger att", "She says that"], ["Jag tror att", "I think that"], ["Det är synd att", "It's a pity that"], ["Han frågar om", "He asks whether"], ["Vi undrar varför", "We wonder why"], ["Alla vet att", "Everyone knows that"]]
+};
 
 /* pronunciation rules: [word, rule, meaning] */
 var SV_SOUND_RULES = ["hard k", "soft k (tj-sound)", "hard g", "soft g (j-sound)", "hard sk", "sj-sound", "silent first letter"];
@@ -5691,6 +6607,58 @@ var SV_WRITING = [
   add(vocabLesson("sv_v13", "Connectors", "Eftersom, däremot, ändå", "The words that turn sentences into arguments. Each one also decides the word order after it.", "Subordinating conjunctions (eftersom, fastän, medan, innan, om, att, som) start a subordinate clause, where 'inte' goes before the verb. Conjunctive adverbs (därför, dessutom, däremot, ändå) start a main clause and trigger verb-second: Dessutom är det billigt."));
   add(vocabLesson("sv_v14", "Idioms and the words that make you sound Swedish", "Lagom, orka, hinna, trivas", "Thirty expressions a textbook never teaches and a Swede uses every day.", "Three verbs with no English equivalent: hinna (to have time to do something), orka (to have the energy to), trivas (to enjoy being somewhere). Jag hinner inte. Jag orkar inte. Jag trivs här. Use them and you stop sounding translated."));
 
+  /* ---------------- the next seven hundred: frequency first, then by theme ----------------
+     The first sets here are the small words that are in every sentence (i, på, som, att, bli, ska), so they sit early in
+     the path; the rest carry the course from about 430 words past 1,100, the range where ordinary text becomes readable. */
+  add(vocabLesson("sv_v15", "Little words: where and which way", "i, på, med, till; ute and ut", "The prepositions are among the twenty most common words in Swedish. You have been reading them in every example; now they go on the schedule.",
+    "Prepositions do not map one to one: 'i' is in, 'på' is on or at, and Swedes say på jobbet, på bio and på svenska where English says at work, at the cinema and in Swedish. Learn each one with its example, not with a translation. The place words come in pairs, one for being somewhere and one for going there.",
+    [{ t: "rule", x: "where you are:  inne · ute · uppe · nere · borta · här · där\nwhere you go:   in · ut · upp · ner · bort · hit · dit", note: "Jag är ute (I am outside), Jag går ut (I am going out). The -e form is location; the short form is movement." }]));
+  add(vocabLesson("sv_v16", "Little words: who, which, how many", "att, som, någon, ingen, alla", "The words that join clauses and count things. Each one is in the top two hundred, most in the top fifty.",
+    "Att is two words in one: the infinitive marker (att äta, to eat) and the conjunction 'that' (jag vet att...). Som is who, which and that. The quantifiers agree with the noun like adjectives do: någon bil, något hus, några bilar; ingen, inget, inga.",
+    [{ t: "rule", x: "en-word · ett-word · plural\nnågon · något · några\ningen · inget · inga\nannan · annat · andra", note: "Spoken Swedish shortens them: nån, nåt, nåra." }]));
+  add(vocabLesson("sv_v17", "Verbs that run sentences", "bli, ska, måste, finnas, låta", "Thirty verbs from the top of the frequency list, including the helpers that build futures, obligations and 'there is'.",
+    "Bli (become) is the second most useful verb after vara: det blir kallt, han blev arg. Det finns is 'there is'. Sätta, lägga and ställa all mean put, and Swedish chooses by the object's position: sitting, lying, standing. Strong verbs change their vowel in the past; the forms column gives present, past and supine."));
+  add(vocabLesson("sv_v18", "Everyday adjectives", "stor, liten, billig, dyr, öppen, stängd", "The adjectives you need first, mostly in opposite pairs, each with its three forms.",
+    "Every adjective here agrees with its noun: en stor bil, ett stort hus, stora bilar. The forms column gives en-form, ett-form and plural; a few, like liten and olika, are irregular or never change. Learn the pairs together and the second one costs half as much."));
+  add(vocabLesson("sv_v19", "Core nouns: things and ideas", "sak, sätt, gång, anledning", "The abstract nouns every conversation leans on: a thing, a way, a reason, a difference.",
+    "These are the nouns that turn up in every kind of text, from a text message to a newspaper. Most abstract nouns are en-words (en möjlighet, en skillnad); the ett-words here (ett sätt, ett ord, ett liv) have to be learned with their article."));
+  add(vocabLesson("sv_v20", "Adverbs that colour a sentence", "ju, väl, nog, ändå, igen", "Small words with no single English equivalent that make Swedish sound like Swedish.",
+    "Ju, väl and nog carry the speaker's attitude: du vet ju (as you know), du kommer väl? (you're coming, aren't you?), det blir nog bra (it'll probably be fine). Like inte, they sit after the verb in a main clause and before it in a subordinate one."));
+  add(vocabLesson("sv_v21", "Phrases for real conversations", "varsågod, grattis, eller hur, ingen aning", "Thirty set phrases you will hear every day and need to answer without thinking.",
+    "Phrases are learned whole: nobody builds 'krya på dig' from its parts. Say each one aloud with the example, in the situation it belongs to, and it will come back in that situation."));
+  add(vocabLesson("sv_v22", "Colours, ordinals and order", "röd, blå, första, sista, gång", "Colours agree like any adjective; ordinals and the order words do not change at all.",
+    "Colours follow the adjective rules (en röd bil, ett rött hus, röda bilar), except rosa, lila and other loans, which never change. Ordinals end in -de or -e and take no ending: den första dagen, det tredje målet. Dates use them: den sjätte juni."));
+  add(vocabLesson("sv_v23", "Verbs: moving, living, changing", "springa, flyga, sälja, byta, sakna", "Thirty verbs for what people do with their days, many of them strong.",
+    "Half of these are strong verbs, with the vowel change you learn by heart: springa, sprang, sprungit; flyga, flög, flugit; gråta, grät, gråtit. Say all three forms whenever you review one. Sakna is 'miss' as in long for: jag saknar dig."));
+  add(vocabLesson("sv_v24", "Adjectives: judging and describing", "snygg, farlig, duktig, blyg", "How things look, feel and seem, and what people are like.",
+    "Adjectives ending in a stressed vowel or a long vowel plus t take -tt in the ett-form (söt, sött; het, hett). Duktig is the Swedish compliment: it means skilled, hard-working and good at something, and Swedes use it constantly."));
+  add(vocabLesson("sv_v25", "Time and the calendar", "kvart, helg, lov, januari", "Parts of the day, holidays and the months, all lowercase.",
+    "Months and weekdays are not capitalised in Swedish. 'I januari' is in January; 'i helgen' is this weekend; 'på helgerna' is at weekends. Lov is a school holiday (sportlov, sommarlov); semester is a holiday from work."));
+  add(vocabLesson("sv_v26", "People around you", "son, dotter, mormor, sambo, granne", "Family, friends and the people in your building, with the Swedish words English does not have.",
+    "Swedish names grandparents by side of the family: mormor (mother's mother), farmor (father's mother), morfar, farfar. A sambo is a partner you live with, a status so common it has its own legal rules."));
+  add(vocabLesson("sv_v27", "The home in detail", "golv, vägg, kylskåp, tallrik", "Every room and the things in it, for describing where something is.",
+    "Notice where things are put: something stands (står) in the cupboard, lies (ligger) in the drawer, hangs (hänger) on the wall. Swedish uses position verbs where English says 'is'."));
+  add(vocabLesson("sv_v28", "Around town", "bibliotek, ishall, tunnelbana, avgång", "Places, transport and the words on departure boards.",
+    "Places take 'på' or 'i' by habit, not logic: på biblioteket, på bio, på gymmet, but i parken, i centrum, i hamnen. Learn the preposition with the place, as the examples show."));
+  add(vocabLesson("sv_v29", "Verbs: thinking and talking", "minnas, föreslå, erkänna, uttala", "The verbs of saying, remembering and checking, which open the B1 sentence types.",
+    "Many of these take a clause with att: jag föreslår att vi..., han påstår att..., jag erkänner att... The clause after att is subordinate, so inte goes before its verb: han påstår att han inte vet."));
+  add(vocabLesson("sv_v30", "Verbs: hands, body and kitchen", "dra, trycka, kasta, steka", "Physical actions, from the rink to the stove.",
+    "Dra and trycka are on every door in Sweden: pull and push. Slå (hit, beat), skjuta (shoot) and skära (cut) are strong verbs; their past forms slog, sköt and skar are worth saying aloud until they are automatic."));
+  add(vocabLesson("sv_v31", "Food and the shop", "lax, räkor, godis, kassa, rea", "The second round of food words, and what you need at the checkout.",
+    "Some food nouns are uncountable and have no plural in normal use (ris, pasta, choklad); fruit and vegetables count (en tomat, två tomater). Lördagsgodis, sweets on Saturday, is a Swedish institution."));
+  add(vocabLesson("sv_v32", "Body, clothes and health", "knä, hals, recept, mössa", "For the health centre after a game and for dressing for a Swedish winter.",
+    "'Ha ont i' takes the definite form: jag har ont i knät, i halsen, i axeln. Several body nouns have irregular plurals: tand, tänder; finger, fingrar; knä, knän."));
+  add(vocabLesson("sv_v33", "Work, money and paperwork", "ansökan, räkning, personnummer", "Jobs, bills and the forms of Swedish bureaucracy.",
+    "Almost everything in Sweden runs on the personnummer, from the doctor to the library. The verbs here (ansöka om, betala, spara) pair with these nouns in the forms you will fill in."));
+  add(vocabLesson("sv_v34", "Society and the media", "riksdag, beslut, undersökning, procent", "The vocabulary of the news, for reading 8 Sidor and then ordinary papers.",
+    "News Swedish leans on the -s passive and on nouns made from verbs: besluta, ett beslut; öka, en ökning; undersöka, en undersökning. Recognising the verb inside the noun doubles what you can read."));
+  add(vocabLesson("sv_v35", "Nature and the outdoors", "fjäll, strand, åska, björn", "Landscape, weather and animals, for a country that spends its weekends outside.",
+    "Fjäll are the bare mountains of the north; berg is any mountain or rock. Weather verbs take the dummy subject det: det åskar, det fryser, det blåser."));
+  add(vocabLesson("sv_v36", "Feelings and relationships", "glädje, oro, vänskap, förlåta", "The nouns behind the feelings you already know as adjectives.",
+    "Many feelings come as an adjective and a noun: arg and ilska, rädd and rädsla, orolig and oro, glad and glädje. Learning them in pairs gives you two ways into every sentence."));
+  add(vocabLesson("sv_v37", "Thinking, learning and arguing", "anse, slutsats, fördel, nackdel", "The words of seminars, essays and debates: the B2 register.",
+    "Argument Swedish has a set frame: jag anser att..., en fördel är att..., å andra sidan..., slutsatsen är att... Use these in the writing drill and the last dialogue and you are arguing like a Swedish student."));
+
   /* ---------------- stage 4: tenses and clauses ---------------- */
   add({ id: "sv_past", mode: "svtense", pass: 7, of: 10, title: "The past: preteritum and perfekt", sub: "-ade, -de, -te, -dde, and the strong verbs", gist: "Two past tenses, used almost exactly like English simple past and present perfect.",
     blocks: [
@@ -5778,10 +6746,11 @@ var SV_WRITING = [
   /* ---------------- the path ---------------- */
   var PATH = [
     { title: "Sounds", sub: "Train the ear first", blurb: "The nine vowels, long and short, and the consonant rules that make Swedish spelling honest.", ids: ["sv_alpha", "sv_pairs", "sv_cons"] },
-    { title: "First words", sub: "The hundred that cover half of speech", blurb: "Pronouns, the core verbs, numbers, time and the first nouns, each on its own schedule.", ids: ["sv_v1", "sv_verbs", "sv_num", "sv_v3", "sv_v4"] },
-    { title: "Grammar core", sub: "Gender, forms, verb second", blurb: "The machinery: en/ett, noun forms, the four verb groups, verb-second order, questions, negation, agreement, pronouns.", ids: ["sv_gender", "sv_nouns", "sv_pres", "sv_v2", "sv_qn", "sv_adj", "sv_pron"] },
-    { title: "Vocabulary by theme", sub: "Toward a thousand words", blurb: "Food, daily life, the city, work, the body, feelings, nature, society, connectors, idioms.", ids: ["sv_v5", "sv_v6", "sv_v7", "sv_v8", "sv_v9", "sv_v10", "sv_v11", "sv_v12", "sv_v13", "sv_v14"] },
+    { title: "First words", sub: "The hundred that cover half of speech", blurb: "Pronouns, the core verbs, numbers, time, the first nouns, and the prepositions and little words in every sentence, each on its own schedule.", ids: ["sv_v1", "sv_verbs", "sv_num", "sv_v3", "sv_v4", "sv_v15", "sv_v16"] },
+    { title: "Grammar core", sub: "Gender, forms, verb second", blurb: "The machinery: en/ett, noun forms, the four verb groups and the verbs that run sentences, verb-second order, questions, negation, adjectives and agreement, pronouns.", ids: ["sv_gender", "sv_nouns", "sv_pres", "sv_v17", "sv_v2", "sv_qn", "sv_v18", "sv_adj", "sv_pron"] },
+    { title: "Vocabulary by theme", sub: "Past five hundred words", blurb: "The core abstract nouns, adverbs and set phrases, then food, daily life, the city, work, the body, feelings, nature, society, connectors, idioms.", ids: ["sv_v19", "sv_v20", "sv_v21", "sv_v5", "sv_v6", "sv_v7", "sv_v8", "sv_v9", "sv_v10", "sv_v11", "sv_v12", "sv_v13", "sv_v14"] },
     { title: "Tenses and clauses", sub: "Past, future, BIFF, passive", blurb: "The two pasts, the futures and modals, subordinate word order, and the -s passive.", ids: ["sv_past", "sv_mod", "sv_biff", "sv_pass"] },
+    { title: "Toward a thousand words", sub: "From 600 to over 1,100", blurb: "Sixteen more sets: colours and order, the strong verbs, describing people and things, the calendar, home, town, health, money, the news, nature, feelings and argument.", ids: ["sv_v22", "sv_v23", "sv_v24", "sv_v25", "sv_v26", "sv_v27", "sv_v28", "sv_v29", "sv_v30", "sv_v31", "sv_v32", "sv_v33", "sv_v34", "sv_v35", "sv_v36", "sv_v37"] },
     { title: "Conversation", sub: "Output with feedback", blurb: "Scripted scenarios you must answer, and shadowing to build the voice.", ids: ["sv_conv", "sv_shadow"] },
     { title: "Reading and listening", sub: "Graded readers, dictation, writing", blurb: "Six readers from A1 to B2 with questions, dictation at speed, and translation into Swedish.", ids: SV_READINGS.map(function (r) { return r.id; }).concat(["sv_dict", "sv_write"]) },
     { title: "The pro path", sub: "B1 to native", blurb: "Hours, sources, tandem speaking, and how the level model tracks the part the drills cannot do.", ids: ["sv_pro"] }
@@ -5790,9 +6759,124 @@ var SV_WRITING = [
   /* ---------------- drills ---------------- */
   function pick(a, rnd) { return a[((rnd || Math.random)() * a.length) | 0]; }
   function tts(text, caps) { return caps && caps.tts ? { text: text, lang: "sv-SE" } : null; }
+  /* ---------------- the sentence generator ----------------
+     Every grammar drill builds a fresh sentence from SV_GEN most of the time and falls back on the hand-written rows
+     otherwise, so the pool runs to thousands of sentences and a drill cannot be passed by remembering its answers.
+     A clause is { S: subject row, V: verb, O: object row, M: modal or null }; tenses are pres, past, perf, fut, futk. */
+  var G = SV_GEN;
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+  function words(a) { return a.filter(function (x) { return x; }).join(" "); }
+  function sent(a, end) { return cap(words(a)) + (end || "."); }
+  function clause(rnd, o) {
+    o = o || {};
+    var vs = G.verbs.filter(function (v) { return (!o.tr || v.tr !== false) && (!o.pass || v.pass); });
+    var ss = G.subj.filter(function (s) { return !o.tr || s[0] !== "mina kompisar"; });
+    var V = pick(vs, rnd), S = pick(ss, rnd), O = pick(V.objs, rnd);
+    while (O[0] === S[0]) O = pick(V.objs, rnd);   /* no "Anna hjälper Anna" */
+    return { S: S, V: V, O: O, M: o.modal ? pick(G.modals, rnd) : null };
+  }
+  /* the finite verb and what follows it, by tense */
+  function vparts(c, tense) {
+    if (c.M) return [c.M, c.V.inf];
+    return { pres: [c.V.pres, ""], past: [c.V.past, ""], perf: ["har", c.V.sup], plup: ["hade", c.V.sup], fut: ["ska", c.V.inf], futk: ["kommer", "att " + c.V.inf] }[tense];
+  }
+  function isPron(c) { return /^(jag|du|han|hon|vi|ni|de)$/.test(c.S[0]); }
+  /* main clause: S V (adv) rest O · inverted: X V S (adv) rest O · subordinate: S (adv) V rest O */
+  function mainC(c, tense, adv) { var v = vparts(c, tense); return [c.S[0], v[0], adv, v[1], c.O[0]]; }
+  function invC(c, tense, front, adv, advFirst) { var v = vparts(c, tense); return advFirst ? [front, v[0], adv, c.S[0], v[1], c.O[0]] : [front, v[0], c.S[0], adv, v[1], c.O[0]]; }
+  function subC(c, tense, adv) { var v = vparts(c, tense); return [c.S[0], adv, v[0], v[1], c.O[0]]; }
+  /* with a noun subject, inte may stand before or after it once the verb is in front: Idag spelar barnen inte / Idag spelar inte barnen */
+  function invAll(c, tense, front, adv, end) {
+    var out = [sent(invC(c, tense, front, adv), end)];
+    if (adv && !isPron(c)) out.push(sent(invC(c, tense, front, adv, true), end));
+    return out;
+  }
+  /* English for the same clause; adv is "", "not", "never", "always" or "often" */
+  function enC(c, tense, adv, prog) {
+    var p = c.S[2], s3 = p === "3s", be = p === "1s" ? "am" : s3 ? "is" : "are", E = c.V.en, rest = " " + c.O[1], neg = adv === "not";
+    var pre = adv && !neg ? adv + " " : "", vp;
+    if (c.M === "kan") vp = (neg ? "can't " : "can " + pre) + E[0];
+    else if (c.M === "vill") vp = neg ? (s3 ? "doesn't" : "don't") + " want to " + E[0] : pre + (s3 ? "wants" : "want") + " to " + E[0];
+    else if (c.M === "ska") vp = be + (neg ? " not" : "") + " going to " + E[0];
+    else if (c.M === "måste") vp = neg ? (s3 ? "doesn't" : "don't") + " have to " + E[0] : pre + (s3 ? "has" : "have") + " to " + E[0];
+    else if (tense === "pres") vp = neg ? (s3 ? "doesn't " : "don't ") + E[0] : prog ? be + " " + pre + E[4] : pre + (s3 ? E[1] : E[0]);
+    else if (tense === "past") vp = neg ? "didn't " + E[0] : pre + E[2];
+    else if (tense === "perf") vp = (s3 ? "has" : "have") + (neg ? "n't " : " " + pre) + E[3];
+    else if (tense === "plup") vp = "had" + (neg ? "n't " : " " + pre) + E[3];
+    else vp = "will " + (neg ? "not " : pre) + E[0];
+    return c.S[1] + " " + vp + rest;
+  }
+  function adverbs(when, rnd) { return pick(G.front.filter(function (f) { return f[2] === when || f[2] === "any"; }), rnd); }
+  /* verb second: a fronted time, place or linking word, then the verb, then the subject; picked or typed */
+  function v2Gen(ctx) {
+    var rnd = ctx.rnd, when = rnd() < 0.7 ? "now" : "past", F = adverbs(when, rnd);
+    var c = clause(rnd, { modal: F[2] !== "past" && rnd() < 0.3 }), tense = F[2] === "past" ? "past" : "pres";
+    var neg = rnd() < 0.25 ? "inte" : "", plain = sent(mainC(c, tense, neg)), right = invAll(c, tense, F[0], neg), v = vparts(c, tense);
+    var gloss = cap(F[1]) + ", " + enC(c, tense, neg ? "not" : "", F[0] === "nu") + ".";
+    var why = "Verb second: '" + F[0] + "' takes the first slot, so the verb '" + v[0] + "' comes next and the subject '" + c.S[0] + "' follows it" + (neg ? ", with inte after the subject." : ".");
+    if (rnd() < 0.5) {
+      var wrong1 = sent([F[0], c.S[0], v[0], neg, v[1], c.O[0]]), wrong2 = sent([c.S[0], F[0], v[0], neg, v[1], c.O[0]]);
+      return { kind: "choice", question: "Which order is correct? <small>(" + gloss + ")</small>", options: lgShuffle([right[0], wrong1, wrong2], rnd), answer: right[0], target: 8,
+        explain: ["<b>" + right[0] + "</b>", why, "Starting with the subject is also fine: " + plain], speakAfter: tts(right[0], ctx.caps) };
+    }
+    return { kind: "text", question: "Start the sentence with <b>" + cap(F[0]) + "</b>: <span class='tw'>" + plain + "</span> <small>(" + gloss + ")</small>", answer: right[0], accept: right, target: 14,
+      explain: ["<b>" + right[0] + "</b>" + (right[1] ? " (or: " + right[1] + ")" : ""), why], speakAfter: tts(right[0], ctx.caps) };
+  }
+  /* questions and negation from a fresh statement: yes/no question, negation, or a negative question */
+  function qnGen(ctx) {
+    var rnd = ctx.rnd, c = clause(rnd, { modal: rnd() < 0.3 }), tense = !c.M && rnd() < 0.25 ? "past" : "pres", k = rnd();
+    var st = sent(mainC(c, tense, "")), gloss = cap(enC(c, tense, "")) + ".", ask, ans, acc, why;
+    if (k < 0.4) { ask = "Make it a yes/no question: "; ans = sent(invC(c, tense, "", ""), "?"); acc = [ans]; why = "Question: the finite verb moves to the front, the subject follows."; }
+    else if (k < 0.8) { ask = "Make it negative: "; ans = sent(mainC(c, tense, "inte")); acc = [ans]; why = "Negation: inte goes straight after the finite verb in a main clause" + (c.M ? " (the modal is the finite verb)." : "."); }
+    else { ask = "Make it a negative question: "; acc = invAll(c, tense, "", "inte", "?"); ans = acc[0]; why = "Verb first, then the subject, then inte" + (isPron(c) ? "." : "; with a noun subject inte may also come before it."); }
+    return { kind: "text", question: ask + "<b class='tw'>" + st + "</b> <small>(" + gloss + ")</small>", answer: ans, accept: acc, target: 10, explain: ["<b>" + ans + "</b>", why], speakAfter: tts(ans, ctx.caps) };
+  }
+  /* BIFF: a main clause with a sentence adverb, embedded after att, om or varför */
+  function biffGen(ctx) {
+    var rnd = ctx.rnd, c = clause(rnd, { modal: rnd() < 0.2 }), A = c.M ? G.sadv[0] : pick(G.sadv, rnd), F = pick(G.frames, rnd);
+    var tense = c.M ? "pres" : pick(["pres", "pres", "past", "perf"], rnd), v = vparts(c, tense);
+    var main = sent(mainC(c, tense, A[0])), right = F[0] + " " + words(subC(c, tense, A[0])) + ".", wrong = F[0] + " " + words(mainC(c, tense, A[0])) + ".";
+    var gloss = F[1] + " " + enC(c, tense, A[1]) + ".";
+    var expl = ["<b>" + right + "</b>", "BIFF: in a subordinate clause " + A[0] + " comes before the finite verb '" + v[0] + "'. In the main clause it comes after: " + main];
+    if (rnd() < 0.5) return { kind: "choice", question: "Which is correct? <small>(" + gloss + ")</small>", options: lgShuffle([right, wrong], rnd), answer: right, target: 8, explain: expl, speakAfter: tts(right, ctx.caps) };
+    return { kind: "text", question: "Join them: <b class='tw'>" + F[0] + " …</b> + <b class='tw'>" + main + "</b> <small>(" + gloss + ")</small>", answer: right, accept: [right], target: 16, explain: expl, speakAfter: tts(right, ctx.caps) };
+  }
+  /* the -s passive: the object of a fresh active sentence becomes the subject, in the same tense */
+  function passGen(ctx) {
+    var rnd = ctx.rnd, c = clause(rnd, { pass: true }), P = pick(c.V.pobjs, rnd), tense = pick(["pres", "past", "past", "perf"], rnd);
+    c.O = P;
+    var act = sent(mainC(c, tense, "")), pv = tense === "pres" ? c.V.pass[0] : tense === "past" ? c.V.pass[1] : "har " + c.V.sup + "s";
+    var ans = sent([P[0], pv]), withAgent = sent([P[0], pv, "av", c.S[3]]);
+    var pl = /rna$/.test(P[0]), be = tense === "pres" ? (pl ? "are" : "is") : tense === "past" ? (pl ? "were" : "was") : (pl ? "have been" : "has been");
+    return { kind: "text", question: "Rewrite in the -s passive, leaving out who did it: <b class='tw'>" + act + "</b> <small>(" + cap(enC(c, tense, "")) + ".)</small>", answer: ans, accept: [ans, withAgent], target: 12,
+      explain: ["<b>" + ans + "</b> (" + cap(P[1]) + " " + be + " " + c.V.en[3] + ".)", "The object '" + P[0] + "' becomes the subject and the verb takes -s in the same tense: " + (tense === "perf" ? "har " + c.V.sup + " → har " + c.V.sup + "s" : (tense === "pres" ? c.V.pres : c.V.past) + " → " + pv) + ". With the agent: " + withAgent], speakAfter: tts(ans, ctx.caps) };
+  }
+  /* translation: a fresh English sentence, with every correct Swedish order accepted (time word first or last, du or ni for you, ska or kommer att) */
+  function writeGen(ctx) {
+    var rnd = ctx.rnd, c = clause(rnd, { tr: true, modal: rnd() < 0.2 }), k = rnd();
+    var tense = c.M ? "pres" : k < 0.45 ? "pres" : k < 0.7 ? "past" : k < 0.85 ? "perf" : "fut";
+    var F = tense === "pres" && rnd() < 0.5 ? pick(G.front.filter(function (f) { return f[2] === "now"; }), rnd) : tense === "past" && rnd() < 0.6 ? pick(G.front.filter(function (f) { return f[2] === "past"; }), rnd) : null;
+    var neg = rnd() < 0.3 ? "inte" : "", en = enC(c, tense, neg ? "not" : "", F && F[0] === "nu");
+    en = F ? cap(F[1]) + " " + en + "." : cap(en) + ".";
+    var subs = c.S[0] === "du" ? ["du", "ni"] : c.S[0] === "ni" ? ["ni", "du"] : [c.S[0]], objs = [c.O[0]].concat(c.O[2] || []), tenses = tense === "fut" ? ["fut", "futk"] : [tense], acc = [];
+    subs.forEach(function (s) { objs.forEach(function (o) { tenses.forEach(function (t) {
+      var cc = { S: [s].concat(c.S.slice(1)), V: c.V, O: [o, c.O[1]], M: c.M };
+      if (F) { acc.push(sent(invC(cc, t, F[0], neg))); if (neg && !isPron(cc)) acc.push(sent(invC(cc, t, F[0], neg, true))); acc.push(sent(mainC(cc, t, neg).concat([F[0]]))); }
+      else acc.push(sent(mainC(cc, t, neg)));
+    }); }); });
+    return [en, lgDistinct(acc, function (x) { return x; }), tense === "pres" && !F && !neg ? "A1" : "A2"];
+  }
   /* k: 1 past, 2 perfect, 3 future */
   function tenseQ(ctx, k) {
-    var r = pick(SV_TENSE, ctx.rnd), names = ["", "past (preteritum)", "perfect (perfekt)", "future"];
+    var names = ["", "past (preteritum)", "perfect (perfekt)", "future"];
+    if (ctx.rnd() < 0.75) {
+      var c = clause(ctx.rnd), forms = [sent(mainC(c, "pres")), sent(mainC(c, "past")), sent(mainC(c, "perf")), sent(mainC(c, "fut"))], ans = forms[k];
+      var acc2 = [ans]; if (k === 3) acc2.push(sent(mainC(c, "futk")));
+      return { kind: "text", question: "Put it in the <b>" + names[k] + "</b>: <b class='tw'>" + forms[0] + "</b> <small>(" + cap(enC(c, "pres", "")) + ".)</small>", answer: ans, accept: acc2, target: 12,
+        explain: ["<b>" + ans + "</b>" + (k === 3 ? " (or: " + acc2[1] + ")" : ""), "Present: " + forms[0] + " · Past: " + forms[1] + " · Perfect: " + forms[2] + " · Future: " + forms[3],
+          c.V.inf + ": " + c.V.pres + ", " + c.V.past + ", " + c.V.sup + ". The past and the supine come from the verb's group; strong verbs change the vowel and are learned by heart."], speakAfter: tts(ans, ctx.caps) };
+    }
+    var r = pick(SV_TENSE, ctx.rnd);
     var acc = [r[k]]; if (k === 3) acc.push(r[3].replace(" ska ", " kommer att "));
     return { kind: "text", question: "Put it in the <b>" + names[k] + "</b>: <b class='tw'>" + r[0] + "</b> <small>(" + r[4] + ")</small>", answer: r[k], accept: acc, target: 12,
       explain: ["<b>" + r[k] + "</b>", "Present: " + r[0] + " · Past: " + r[1] + " · Perfect: " + r[2] + " · Future: " + r[3]], speakAfter: tts(r[k], ctx.caps) };
@@ -5823,6 +6907,7 @@ var SV_WRITING = [
     svadj: { name: "Adjective agreement", target: 7, gen: function (ctx) { return lgFormQ(SV_ADJ, "sv", ctx.rnd, ctx.caps); } },
     svpron: { name: "Pronouns", target: 6, gen: function (ctx) { return lgFormQ(SV_PRON, "sv", ctx.rnd, ctx.caps); } },
     svv2: { name: "Verb second", target: 8, gen: function (ctx) {
+      if (ctx.rnd() < 0.75) return v2Gen(ctx);
       var r = pick(SV_V2, ctx.rnd), S = r[0], Vb = r[1], O = r[2], A = r[3];
       var cap = function (s) { return s.charAt(0).toUpperCase() + s.slice(1); };
       var right = cap(A + " " + Vb + " " + S + (O ? " " + O : "")) + ".";
@@ -5833,6 +6918,7 @@ var SV_WRITING = [
         explain: ["<b>" + right + "</b>", "Verb second: '" + A + "' takes the first slot, so the verb '" + Vb + "' comes next and the subject '" + S + "' follows it.", "Starting with the subject is also fine: " + alt], speakAfter: tts(right, ctx.caps) };
     } },
     svqn: { name: "Questions and negation", target: 10, gen: function (ctx) {
+      if (ctx.rnd() < 0.75) return qnGen(ctx);
       var r = pick(SV_QN, ctx.rnd), ask = ctx.rnd() < 0.5 ? 1 : 2;
       return { kind: "text", question: (ask === 1 ? "Make it a yes/no question: " : "Make it negative: ") + "<b class='tw'>" + r[0] + "</b> <small>(" + r[3] + ")</small>", answer: r[ask], accept: [r[ask]], target: 10,
         explain: ["<b>" + r[ask] + "</b>", ask === 1 ? "Question: the verb moves to the front, the subject follows." : "Negation: inte goes straight after the verb in a main clause."], speakAfter: tts(r[ask], ctx.caps) };
@@ -5840,25 +6926,29 @@ var SV_WRITING = [
     svtense: { name: "Tenses", target: 12, gen: function (ctx) { return tenseQ(ctx, 1 + ((ctx.rnd() * 3) | 0)); } },
     svfut: { name: "Future", target: 12, gen: function (ctx) { return tenseQ(ctx, 3); } },
     svbiff: { name: "Clauses", target: 8, gen: function (ctx) {
+      if (ctx.rnd() < 0.7) return biffGen(ctx);
       var r = pick(SV_BIFF, ctx.rnd), right = r[1];
       /* build the wrong version by swapping inte and the verb */
-      var parts = right.split(" "), i = parts.indexOf("inte"), w2 = parts.slice();
+      var parts = right.replace(/\.$/, "").split(" "), i = parts.indexOf("inte"), w2 = parts.slice();
       if (i > 0 && i + 1 < parts.length) { var t = w2[i]; w2[i] = w2[i + 1]; w2[i + 1] = t; }
-      var wrong = w2.join(" ");
+      var wrong = w2.join(" ") + ".";
       return { kind: "choice", question: "Which is correct? <small>(" + r[2] + ")</small>", options: lgShuffle([right, wrong], ctx.rnd), answer: right, target: 8,
         explain: ["<b>" + right + "</b>", "BIFF: in a subordinate clause, inte comes before the verb. In the main clause it would be: " + r[0]], speakAfter: tts(right, ctx.caps) };
     } },
     svpass: { name: "Passive", target: 12, gen: function (ctx) {
+      if (ctx.rnd() < 0.75) return passGen(ctx);
       var r = pick(SV_PASSIVE, ctx.rnd);
       return { kind: "text", question: "Rewrite in the -s passive: <b class='tw'>" + r[0] + "</b> <small>(" + r[2] + ")</small>", answer: r[1], accept: [r[1]], target: 12, explain: ["<b>" + r[1] + "</b>", "The object becomes the subject and the verb takes -s in the same tense."], speakAfter: tts(r[1], ctx.caps) };
     } },
     svdict: { name: "Dictation", target: 20, gen: function (ctx) {
       var r = pick(SV_DICTATION, ctx.rnd);
-      return { kind: "text", question: "Type what you " + (ctx.caps && ctx.caps.tts ? "hear" : "read, after it hides") + ". <small>(" + r[1] + ")</small>", answer: r[0], accept: [r[0]], target: 20, explain: ["<b>" + r[0] + "</b>"], speak: tts(r[0], ctx.caps), flash: !(ctx.caps && ctx.caps.tts) ? r[0] : null, hideText: true };
+      /* a third of the time, a sentence nobody has heard before */
+      if (ctx.rnd() < 0.35) { var c = clause(ctx.rnd), f = ctx.rnd() < 0.5 ? adverbs("now", ctx.rnd) : null; r = [f ? sent(invC(c, "pres", f[0], ctx.rnd() < 0.3 ? "inte" : "")) : sent(mainC(c, ctx.rnd() < 0.5 ? "past" : "pres", ctx.rnd() < 0.3 ? "inte" : "")), "A2"]; }
+      return { kind: "text", question: "Type what you " + (ctx.caps && ctx.caps.tts ? "hear" : "read, after it hides") + ". <small>(" + r[1] + ")</small>", answer: r[0], accept: [r[0]], target: 20, lenient: true, explain: ["<b>" + r[0] + "</b>"], speak: tts(r[0], ctx.caps), flash: !(ctx.caps && ctx.caps.tts) ? r[0] : null, hideText: true };
     } },
     svwrite: { name: "Writing", target: 20, gen: function (ctx) {
-      var r = pick(SV_WRITING, ctx.rnd);
-      return { kind: "text", question: "Translate into Swedish: <b>" + r[0] + "</b> <small>(" + r[2] + ")</small>", answer: r[1][0], accept: r[1], target: 20, explain: ["<b>" + r[1][0] + "</b>" + (r[1].length > 1 ? " (also: " + r[1].slice(1).join(" / ") + ")" : "")], speakAfter: tts(r[1][0], ctx.caps) };
+      var r = ctx.rnd() < 0.4 ? writeGen(ctx) : pick(SV_WRITING, ctx.rnd);
+      return { kind: "text", question: "Translate into Swedish: <b>" + r[0] + "</b> <small>(" + r[2] + ")</small>", answer: r[1][0], accept: r[1], target: 20, lenient: true, explain: ["<b>" + r[1][0] + "</b>" + (r[1].length > 1 ? " (also: " + r[1].slice(1).join(" / ") + ")" : "")], speakAfter: tts(r[1][0], ctx.caps) };
     } }
   };
 
@@ -18699,7 +19789,7 @@ function submit(raw, selfGraded) {
   if (q.kind === "recall") g = { ok: raw === "had", said: raw };
   else if (selfGraded) g = { ok: raw === q.answer, said: raw || "(missed)" };
   else { g = gradeAnswer(q, raw, q.lang); if (!g) return; }
-  answered = true; cancelAnimationFrame(raf);
+  answered = true; cancelAnimationFrame(raf); q.graded = g;
   var ok = g.ok, cid = q.course, skId = q.skill, sk = skillOf(skId), wasDue = Date.now() >= sk.due;
   if (sess) { if (!(skId in sess.from)) sess.from[skId] = sk.box; sess.n++; if (ok) sess.ok++; }
   q.res = srsRecord(sk, ok, secs, q.target, Date.now());
@@ -18748,6 +19838,10 @@ function drawReveal(ok, said, secs, near) {
   r.appendChild(v);
   if (q.conf === "s" && !ok) r.appendChild(el("div", "srsline miss", "<b>Sure, and wrong.</b> These are the errors that cost most, because nothing makes you stop and check. Read the working slowly."));
   else if (q.conf === "g" && ok) r.appendChild(el("div", "srsline", "<b>A guess that landed.</b> It counts, but it is not knowledge yet: read why it is right."));
+  var G = q.graded || {};
+  if (G.slip) r.appendChild(el("div", "srsline", "<b>One typo forgiven:</b> you wrote <i>" + esc(G.slip.said) + "</i> for <b>" + esc(G.slip.right) + "</b>. In a sentence one slip passes; in a single word, spelling counts."));
+  if (!ok && G.diff && G.diff.words.length) r.appendChild(el("div", "srsline miss", "Your words: " + G.diff.words.map(function (x) { return x.ok ? esc(x.w) : "<s>" + esc(x.w) + "</s>"; }).join(" ") + (G.diff.missing.length ? " &nbsp;·&nbsp; missing: <b>" + esc(G.diff.missing.join(" ")) + "</b>" : "")));
+  if (!ok && G.why) r.appendChild(el("div", "srsline miss", "<b>Word order.</b> " + esc(G.why.msg) + (G.why.fix ? " &nbsp;→&nbsp; <b>" + esc(G.why.fix) + "</b>" : "")));
   if (q.res) r.appendChild(srsLine());
   var ex = el("div", "expl" + (q.rtl ? " rtl" : "")); (q.explain || []).forEach(function (line) { ex.appendChild(el("p", null, line)); }); r.appendChild(ex);
   if (q.speakAfter) { var sb = btn("🔊 Hear it", "ghost sm", function () { speak(q.speakAfter.text, q.speakAfter.lang); }); sb.style.marginTop = "10px"; r.appendChild(sb); if (ok) setTimeout(function () { speak(q.speakAfter.text, q.speakAfter.lang); }, 120); }
@@ -20015,7 +21109,7 @@ function drawConv(box, c) {
     var t = d.turns[i], bb = el("div", "bub bot" + (c.lang === "he" ? " rtl" : "")); bb.innerHTML = esc(t.bot) + '<small>' + esc(t.botg) + '</small>';
     (function (tt) { var sb = btn("🔊", "ghost sm", function () { speak(tt.bot, code, 0.85); }); sb.setAttribute("aria-label", "Listen"); sb.style.cssText = "min-height:26px;padding:2px 8px;margin-top:6px"; bb.appendChild(sb); })(t);
     thread.appendChild(bb);
-    if (i < conv.i || conv.replies[i] != null) { var rep = conv.replies[i], okr = lgTurnOk(t, rep || "", c.lang); var mb = el("div", "bub me" + (okr ? "" : " bad") + (c.lang === "he" ? " rtl" : "")); mb.innerHTML = esc(rep || "(no answer)") + '<small>' + (okr ? "✓ that does the job" : "✗ not quite") + '</small><div class="model">' + esc(t.model) + '<small>' + esc(t.modelg) + '</small></div>'; thread.appendChild(mb); }
+    if (i < conv.i || conv.replies[i] != null) { var rep = conv.replies[i], chk = lgTurnCheck(t, rep || "", c.lang), okr = chk.ok; var mb = el("div", "bub me" + (okr ? "" : " bad") + (c.lang === "he" ? " rtl" : "")); mb.innerHTML = esc(rep || "(no answer)") + '<small>' + (okr ? "✓ that does the job" : chk.why ? "✗ word order: " + esc(chk.why) + (chk.fix ? " → " + esc(chk.fix) : "") : "✗ not quite") + '</small><div class="model">' + esc(t.model) + '<small>' + esc(t.modelg) + '</small></div>'; thread.appendChild(mb); }
   }
   p.appendChild(thread);
   if (conv.i < d.turns.length) {

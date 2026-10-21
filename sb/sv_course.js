@@ -154,6 +154,58 @@
   add(vocabLesson("sv_v13", "Connectors", "Eftersom, däremot, ändå", "The words that turn sentences into arguments. Each one also decides the word order after it.", "Subordinating conjunctions (eftersom, fastän, medan, innan, om, att, som) start a subordinate clause, where 'inte' goes before the verb. Conjunctive adverbs (därför, dessutom, däremot, ändå) start a main clause and trigger verb-second: Dessutom är det billigt."));
   add(vocabLesson("sv_v14", "Idioms and the words that make you sound Swedish", "Lagom, orka, hinna, trivas", "Thirty expressions a textbook never teaches and a Swede uses every day.", "Three verbs with no English equivalent: hinna (to have time to do something), orka (to have the energy to), trivas (to enjoy being somewhere). Jag hinner inte. Jag orkar inte. Jag trivs här. Use them and you stop sounding translated."));
 
+  /* ---------------- the next seven hundred: frequency first, then by theme ----------------
+     The first sets here are the small words that are in every sentence (i, på, som, att, bli, ska), so they sit early in
+     the path; the rest carry the course from about 430 words past 1,100, the range where ordinary text becomes readable. */
+  add(vocabLesson("sv_v15", "Little words: where and which way", "i, på, med, till; ute and ut", "The prepositions are among the twenty most common words in Swedish. You have been reading them in every example; now they go on the schedule.",
+    "Prepositions do not map one to one: 'i' is in, 'på' is on or at, and Swedes say på jobbet, på bio and på svenska where English says at work, at the cinema and in Swedish. Learn each one with its example, not with a translation. The place words come in pairs, one for being somewhere and one for going there.",
+    [{ t: "rule", x: "where you are:  inne · ute · uppe · nere · borta · här · där\nwhere you go:   in · ut · upp · ner · bort · hit · dit", note: "Jag är ute (I am outside), Jag går ut (I am going out). The -e form is location; the short form is movement." }]));
+  add(vocabLesson("sv_v16", "Little words: who, which, how many", "att, som, någon, ingen, alla", "The words that join clauses and count things. Each one is in the top two hundred, most in the top fifty.",
+    "Att is two words in one: the infinitive marker (att äta, to eat) and the conjunction 'that' (jag vet att...). Som is who, which and that. The quantifiers agree with the noun like adjectives do: någon bil, något hus, några bilar; ingen, inget, inga.",
+    [{ t: "rule", x: "en-word · ett-word · plural\nnågon · något · några\ningen · inget · inga\nannan · annat · andra", note: "Spoken Swedish shortens them: nån, nåt, nåra." }]));
+  add(vocabLesson("sv_v17", "Verbs that run sentences", "bli, ska, måste, finnas, låta", "Thirty verbs from the top of the frequency list, including the helpers that build futures, obligations and 'there is'.",
+    "Bli (become) is the second most useful verb after vara: det blir kallt, han blev arg. Det finns is 'there is'. Sätta, lägga and ställa all mean put, and Swedish chooses by the object's position: sitting, lying, standing. Strong verbs change their vowel in the past; the forms column gives present, past and supine."));
+  add(vocabLesson("sv_v18", "Everyday adjectives", "stor, liten, billig, dyr, öppen, stängd", "The adjectives you need first, mostly in opposite pairs, each with its three forms.",
+    "Every adjective here agrees with its noun: en stor bil, ett stort hus, stora bilar. The forms column gives en-form, ett-form and plural; a few, like liten and olika, are irregular or never change. Learn the pairs together and the second one costs half as much."));
+  add(vocabLesson("sv_v19", "Core nouns: things and ideas", "sak, sätt, gång, anledning", "The abstract nouns every conversation leans on: a thing, a way, a reason, a difference.",
+    "These are the nouns that turn up in every kind of text, from a text message to a newspaper. Most abstract nouns are en-words (en möjlighet, en skillnad); the ett-words here (ett sätt, ett ord, ett liv) have to be learned with their article."));
+  add(vocabLesson("sv_v20", "Adverbs that colour a sentence", "ju, väl, nog, ändå, igen", "Small words with no single English equivalent that make Swedish sound like Swedish.",
+    "Ju, väl and nog carry the speaker's attitude: du vet ju (as you know), du kommer väl? (you're coming, aren't you?), det blir nog bra (it'll probably be fine). Like inte, they sit after the verb in a main clause and before it in a subordinate one."));
+  add(vocabLesson("sv_v21", "Phrases for real conversations", "varsågod, grattis, eller hur, ingen aning", "Thirty set phrases you will hear every day and need to answer without thinking.",
+    "Phrases are learned whole: nobody builds 'krya på dig' from its parts. Say each one aloud with the example, in the situation it belongs to, and it will come back in that situation."));
+  add(vocabLesson("sv_v22", "Colours, ordinals and order", "röd, blå, första, sista, gång", "Colours agree like any adjective; ordinals and the order words do not change at all.",
+    "Colours follow the adjective rules (en röd bil, ett rött hus, röda bilar), except rosa, lila and other loans, which never change. Ordinals end in -de or -e and take no ending: den första dagen, det tredje målet. Dates use them: den sjätte juni."));
+  add(vocabLesson("sv_v23", "Verbs: moving, living, changing", "springa, flyga, sälja, byta, sakna", "Thirty verbs for what people do with their days, many of them strong.",
+    "Half of these are strong verbs, with the vowel change you learn by heart: springa, sprang, sprungit; flyga, flög, flugit; gråta, grät, gråtit. Say all three forms whenever you review one. Sakna is 'miss' as in long for: jag saknar dig."));
+  add(vocabLesson("sv_v24", "Adjectives: judging and describing", "snygg, farlig, duktig, blyg", "How things look, feel and seem, and what people are like.",
+    "Adjectives ending in a stressed vowel or a long vowel plus t take -tt in the ett-form (söt, sött; het, hett). Duktig is the Swedish compliment: it means skilled, hard-working and good at something, and Swedes use it constantly."));
+  add(vocabLesson("sv_v25", "Time and the calendar", "kvart, helg, lov, januari", "Parts of the day, holidays and the months, all lowercase.",
+    "Months and weekdays are not capitalised in Swedish. 'I januari' is in January; 'i helgen' is this weekend; 'på helgerna' is at weekends. Lov is a school holiday (sportlov, sommarlov); semester is a holiday from work."));
+  add(vocabLesson("sv_v26", "People around you", "son, dotter, mormor, sambo, granne", "Family, friends and the people in your building, with the Swedish words English does not have.",
+    "Swedish names grandparents by side of the family: mormor (mother's mother), farmor (father's mother), morfar, farfar. A sambo is a partner you live with, a status so common it has its own legal rules."));
+  add(vocabLesson("sv_v27", "The home in detail", "golv, vägg, kylskåp, tallrik", "Every room and the things in it, for describing where something is.",
+    "Notice where things are put: something stands (står) in the cupboard, lies (ligger) in the drawer, hangs (hänger) on the wall. Swedish uses position verbs where English says 'is'."));
+  add(vocabLesson("sv_v28", "Around town", "bibliotek, ishall, tunnelbana, avgång", "Places, transport and the words on departure boards.",
+    "Places take 'på' or 'i' by habit, not logic: på biblioteket, på bio, på gymmet, but i parken, i centrum, i hamnen. Learn the preposition with the place, as the examples show."));
+  add(vocabLesson("sv_v29", "Verbs: thinking and talking", "minnas, föreslå, erkänna, uttala", "The verbs of saying, remembering and checking, which open the B1 sentence types.",
+    "Many of these take a clause with att: jag föreslår att vi..., han påstår att..., jag erkänner att... The clause after att is subordinate, so inte goes before its verb: han påstår att han inte vet."));
+  add(vocabLesson("sv_v30", "Verbs: hands, body and kitchen", "dra, trycka, kasta, steka", "Physical actions, from the rink to the stove.",
+    "Dra and trycka are on every door in Sweden: pull and push. Slå (hit, beat), skjuta (shoot) and skära (cut) are strong verbs; their past forms slog, sköt and skar are worth saying aloud until they are automatic."));
+  add(vocabLesson("sv_v31", "Food and the shop", "lax, räkor, godis, kassa, rea", "The second round of food words, and what you need at the checkout.",
+    "Some food nouns are uncountable and have no plural in normal use (ris, pasta, choklad); fruit and vegetables count (en tomat, två tomater). Lördagsgodis, sweets on Saturday, is a Swedish institution."));
+  add(vocabLesson("sv_v32", "Body, clothes and health", "knä, hals, recept, mössa", "For the health centre after a game and for dressing for a Swedish winter.",
+    "'Ha ont i' takes the definite form: jag har ont i knät, i halsen, i axeln. Several body nouns have irregular plurals: tand, tänder; finger, fingrar; knä, knän."));
+  add(vocabLesson("sv_v33", "Work, money and paperwork", "ansökan, räkning, personnummer", "Jobs, bills and the forms of Swedish bureaucracy.",
+    "Almost everything in Sweden runs on the personnummer, from the doctor to the library. The verbs here (ansöka om, betala, spara) pair with these nouns in the forms you will fill in."));
+  add(vocabLesson("sv_v34", "Society and the media", "riksdag, beslut, undersökning, procent", "The vocabulary of the news, for reading 8 Sidor and then ordinary papers.",
+    "News Swedish leans on the -s passive and on nouns made from verbs: besluta, ett beslut; öka, en ökning; undersöka, en undersökning. Recognising the verb inside the noun doubles what you can read."));
+  add(vocabLesson("sv_v35", "Nature and the outdoors", "fjäll, strand, åska, björn", "Landscape, weather and animals, for a country that spends its weekends outside.",
+    "Fjäll are the bare mountains of the north; berg is any mountain or rock. Weather verbs take the dummy subject det: det åskar, det fryser, det blåser."));
+  add(vocabLesson("sv_v36", "Feelings and relationships", "glädje, oro, vänskap, förlåta", "The nouns behind the feelings you already know as adjectives.",
+    "Many feelings come as an adjective and a noun: arg and ilska, rädd and rädsla, orolig and oro, glad and glädje. Learning them in pairs gives you two ways into every sentence."));
+  add(vocabLesson("sv_v37", "Thinking, learning and arguing", "anse, slutsats, fördel, nackdel", "The words of seminars, essays and debates: the B2 register.",
+    "Argument Swedish has a set frame: jag anser att..., en fördel är att..., å andra sidan..., slutsatsen är att... Use these in the writing drill and the last dialogue and you are arguing like a Swedish student."));
+
   /* ---------------- stage 4: tenses and clauses ---------------- */
   add({ id: "sv_past", mode: "svtense", pass: 7, of: 10, title: "The past: preteritum and perfekt", sub: "-ade, -de, -te, -dde, and the strong verbs", gist: "Two past tenses, used almost exactly like English simple past and present perfect.",
     blocks: [
@@ -241,10 +293,11 @@
   /* ---------------- the path ---------------- */
   var PATH = [
     { title: "Sounds", sub: "Train the ear first", blurb: "The nine vowels, long and short, and the consonant rules that make Swedish spelling honest.", ids: ["sv_alpha", "sv_pairs", "sv_cons"] },
-    { title: "First words", sub: "The hundred that cover half of speech", blurb: "Pronouns, the core verbs, numbers, time and the first nouns, each on its own schedule.", ids: ["sv_v1", "sv_verbs", "sv_num", "sv_v3", "sv_v4"] },
-    { title: "Grammar core", sub: "Gender, forms, verb second", blurb: "The machinery: en/ett, noun forms, the four verb groups, verb-second order, questions, negation, agreement, pronouns.", ids: ["sv_gender", "sv_nouns", "sv_pres", "sv_v2", "sv_qn", "sv_adj", "sv_pron"] },
-    { title: "Vocabulary by theme", sub: "Toward a thousand words", blurb: "Food, daily life, the city, work, the body, feelings, nature, society, connectors, idioms.", ids: ["sv_v5", "sv_v6", "sv_v7", "sv_v8", "sv_v9", "sv_v10", "sv_v11", "sv_v12", "sv_v13", "sv_v14"] },
+    { title: "First words", sub: "The hundred that cover half of speech", blurb: "Pronouns, the core verbs, numbers, time, the first nouns, and the prepositions and little words in every sentence, each on its own schedule.", ids: ["sv_v1", "sv_verbs", "sv_num", "sv_v3", "sv_v4", "sv_v15", "sv_v16"] },
+    { title: "Grammar core", sub: "Gender, forms, verb second", blurb: "The machinery: en/ett, noun forms, the four verb groups and the verbs that run sentences, verb-second order, questions, negation, adjectives and agreement, pronouns.", ids: ["sv_gender", "sv_nouns", "sv_pres", "sv_v17", "sv_v2", "sv_qn", "sv_v18", "sv_adj", "sv_pron"] },
+    { title: "Vocabulary by theme", sub: "Past five hundred words", blurb: "The core abstract nouns, adverbs and set phrases, then food, daily life, the city, work, the body, feelings, nature, society, connectors, idioms.", ids: ["sv_v19", "sv_v20", "sv_v21", "sv_v5", "sv_v6", "sv_v7", "sv_v8", "sv_v9", "sv_v10", "sv_v11", "sv_v12", "sv_v13", "sv_v14"] },
     { title: "Tenses and clauses", sub: "Past, future, BIFF, passive", blurb: "The two pasts, the futures and modals, subordinate word order, and the -s passive.", ids: ["sv_past", "sv_mod", "sv_biff", "sv_pass"] },
+    { title: "Toward a thousand words", sub: "From 600 to over 1,100", blurb: "Sixteen more sets: colours and order, the strong verbs, describing people and things, the calendar, home, town, health, money, the news, nature, feelings and argument.", ids: ["sv_v22", "sv_v23", "sv_v24", "sv_v25", "sv_v26", "sv_v27", "sv_v28", "sv_v29", "sv_v30", "sv_v31", "sv_v32", "sv_v33", "sv_v34", "sv_v35", "sv_v36", "sv_v37"] },
     { title: "Conversation", sub: "Output with feedback", blurb: "Scripted scenarios you must answer, and shadowing to build the voice.", ids: ["sv_conv", "sv_shadow"] },
     { title: "Reading and listening", sub: "Graded readers, dictation, writing", blurb: "Six readers from A1 to B2 with questions, dictation at speed, and translation into Swedish.", ids: SV_READINGS.map(function (r) { return r.id; }).concat(["sv_dict", "sv_write"]) },
     { title: "The pro path", sub: "B1 to native", blurb: "Hours, sources, tandem speaking, and how the level model tracks the part the drills cannot do.", ids: ["sv_pro"] }
@@ -253,9 +306,124 @@
   /* ---------------- drills ---------------- */
   function pick(a, rnd) { return a[((rnd || Math.random)() * a.length) | 0]; }
   function tts(text, caps) { return caps && caps.tts ? { text: text, lang: "sv-SE" } : null; }
+  /* ---------------- the sentence generator ----------------
+     Every grammar drill builds a fresh sentence from SV_GEN most of the time and falls back on the hand-written rows
+     otherwise, so the pool runs to thousands of sentences and a drill cannot be passed by remembering its answers.
+     A clause is { S: subject row, V: verb, O: object row, M: modal or null }; tenses are pres, past, perf, fut, futk. */
+  var G = SV_GEN;
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+  function words(a) { return a.filter(function (x) { return x; }).join(" "); }
+  function sent(a, end) { return cap(words(a)) + (end || "."); }
+  function clause(rnd, o) {
+    o = o || {};
+    var vs = G.verbs.filter(function (v) { return (!o.tr || v.tr !== false) && (!o.pass || v.pass); });
+    var ss = G.subj.filter(function (s) { return !o.tr || s[0] !== "mina kompisar"; });
+    var V = pick(vs, rnd), S = pick(ss, rnd), O = pick(V.objs, rnd);
+    while (O[0] === S[0]) O = pick(V.objs, rnd);   /* no "Anna hjälper Anna" */
+    return { S: S, V: V, O: O, M: o.modal ? pick(G.modals, rnd) : null };
+  }
+  /* the finite verb and what follows it, by tense */
+  function vparts(c, tense) {
+    if (c.M) return [c.M, c.V.inf];
+    return { pres: [c.V.pres, ""], past: [c.V.past, ""], perf: ["har", c.V.sup], plup: ["hade", c.V.sup], fut: ["ska", c.V.inf], futk: ["kommer", "att " + c.V.inf] }[tense];
+  }
+  function isPron(c) { return /^(jag|du|han|hon|vi|ni|de)$/.test(c.S[0]); }
+  /* main clause: S V (adv) rest O · inverted: X V S (adv) rest O · subordinate: S (adv) V rest O */
+  function mainC(c, tense, adv) { var v = vparts(c, tense); return [c.S[0], v[0], adv, v[1], c.O[0]]; }
+  function invC(c, tense, front, adv, advFirst) { var v = vparts(c, tense); return advFirst ? [front, v[0], adv, c.S[0], v[1], c.O[0]] : [front, v[0], c.S[0], adv, v[1], c.O[0]]; }
+  function subC(c, tense, adv) { var v = vparts(c, tense); return [c.S[0], adv, v[0], v[1], c.O[0]]; }
+  /* with a noun subject, inte may stand before or after it once the verb is in front: Idag spelar barnen inte / Idag spelar inte barnen */
+  function invAll(c, tense, front, adv, end) {
+    var out = [sent(invC(c, tense, front, adv), end)];
+    if (adv && !isPron(c)) out.push(sent(invC(c, tense, front, adv, true), end));
+    return out;
+  }
+  /* English for the same clause; adv is "", "not", "never", "always" or "often" */
+  function enC(c, tense, adv, prog) {
+    var p = c.S[2], s3 = p === "3s", be = p === "1s" ? "am" : s3 ? "is" : "are", E = c.V.en, rest = " " + c.O[1], neg = adv === "not";
+    var pre = adv && !neg ? adv + " " : "", vp;
+    if (c.M === "kan") vp = (neg ? "can't " : "can " + pre) + E[0];
+    else if (c.M === "vill") vp = neg ? (s3 ? "doesn't" : "don't") + " want to " + E[0] : pre + (s3 ? "wants" : "want") + " to " + E[0];
+    else if (c.M === "ska") vp = be + (neg ? " not" : "") + " going to " + E[0];
+    else if (c.M === "måste") vp = neg ? (s3 ? "doesn't" : "don't") + " have to " + E[0] : pre + (s3 ? "has" : "have") + " to " + E[0];
+    else if (tense === "pres") vp = neg ? (s3 ? "doesn't " : "don't ") + E[0] : prog ? be + " " + pre + E[4] : pre + (s3 ? E[1] : E[0]);
+    else if (tense === "past") vp = neg ? "didn't " + E[0] : pre + E[2];
+    else if (tense === "perf") vp = (s3 ? "has" : "have") + (neg ? "n't " : " " + pre) + E[3];
+    else if (tense === "plup") vp = "had" + (neg ? "n't " : " " + pre) + E[3];
+    else vp = "will " + (neg ? "not " : pre) + E[0];
+    return c.S[1] + " " + vp + rest;
+  }
+  function adverbs(when, rnd) { return pick(G.front.filter(function (f) { return f[2] === when || f[2] === "any"; }), rnd); }
+  /* verb second: a fronted time, place or linking word, then the verb, then the subject; picked or typed */
+  function v2Gen(ctx) {
+    var rnd = ctx.rnd, when = rnd() < 0.7 ? "now" : "past", F = adverbs(when, rnd);
+    var c = clause(rnd, { modal: F[2] !== "past" && rnd() < 0.3 }), tense = F[2] === "past" ? "past" : "pres";
+    var neg = rnd() < 0.25 ? "inte" : "", plain = sent(mainC(c, tense, neg)), right = invAll(c, tense, F[0], neg), v = vparts(c, tense);
+    var gloss = cap(F[1]) + ", " + enC(c, tense, neg ? "not" : "", F[0] === "nu") + ".";
+    var why = "Verb second: '" + F[0] + "' takes the first slot, so the verb '" + v[0] + "' comes next and the subject '" + c.S[0] + "' follows it" + (neg ? ", with inte after the subject." : ".");
+    if (rnd() < 0.5) {
+      var wrong1 = sent([F[0], c.S[0], v[0], neg, v[1], c.O[0]]), wrong2 = sent([c.S[0], F[0], v[0], neg, v[1], c.O[0]]);
+      return { kind: "choice", question: "Which order is correct? <small>(" + gloss + ")</small>", options: lgShuffle([right[0], wrong1, wrong2], rnd), answer: right[0], target: 8,
+        explain: ["<b>" + right[0] + "</b>", why, "Starting with the subject is also fine: " + plain], speakAfter: tts(right[0], ctx.caps) };
+    }
+    return { kind: "text", question: "Start the sentence with <b>" + cap(F[0]) + "</b>: <span class='tw'>" + plain + "</span> <small>(" + gloss + ")</small>", answer: right[0], accept: right, target: 14,
+      explain: ["<b>" + right[0] + "</b>" + (right[1] ? " (or: " + right[1] + ")" : ""), why], speakAfter: tts(right[0], ctx.caps) };
+  }
+  /* questions and negation from a fresh statement: yes/no question, negation, or a negative question */
+  function qnGen(ctx) {
+    var rnd = ctx.rnd, c = clause(rnd, { modal: rnd() < 0.3 }), tense = !c.M && rnd() < 0.25 ? "past" : "pres", k = rnd();
+    var st = sent(mainC(c, tense, "")), gloss = cap(enC(c, tense, "")) + ".", ask, ans, acc, why;
+    if (k < 0.4) { ask = "Make it a yes/no question: "; ans = sent(invC(c, tense, "", ""), "?"); acc = [ans]; why = "Question: the finite verb moves to the front, the subject follows."; }
+    else if (k < 0.8) { ask = "Make it negative: "; ans = sent(mainC(c, tense, "inte")); acc = [ans]; why = "Negation: inte goes straight after the finite verb in a main clause" + (c.M ? " (the modal is the finite verb)." : "."); }
+    else { ask = "Make it a negative question: "; acc = invAll(c, tense, "", "inte", "?"); ans = acc[0]; why = "Verb first, then the subject, then inte" + (isPron(c) ? "." : "; with a noun subject inte may also come before it."); }
+    return { kind: "text", question: ask + "<b class='tw'>" + st + "</b> <small>(" + gloss + ")</small>", answer: ans, accept: acc, target: 10, explain: ["<b>" + ans + "</b>", why], speakAfter: tts(ans, ctx.caps) };
+  }
+  /* BIFF: a main clause with a sentence adverb, embedded after att, om or varför */
+  function biffGen(ctx) {
+    var rnd = ctx.rnd, c = clause(rnd, { modal: rnd() < 0.2 }), A = c.M ? G.sadv[0] : pick(G.sadv, rnd), F = pick(G.frames, rnd);
+    var tense = c.M ? "pres" : pick(["pres", "pres", "past", "perf"], rnd), v = vparts(c, tense);
+    var main = sent(mainC(c, tense, A[0])), right = F[0] + " " + words(subC(c, tense, A[0])) + ".", wrong = F[0] + " " + words(mainC(c, tense, A[0])) + ".";
+    var gloss = F[1] + " " + enC(c, tense, A[1]) + ".";
+    var expl = ["<b>" + right + "</b>", "BIFF: in a subordinate clause " + A[0] + " comes before the finite verb '" + v[0] + "'. In the main clause it comes after: " + main];
+    if (rnd() < 0.5) return { kind: "choice", question: "Which is correct? <small>(" + gloss + ")</small>", options: lgShuffle([right, wrong], rnd), answer: right, target: 8, explain: expl, speakAfter: tts(right, ctx.caps) };
+    return { kind: "text", question: "Join them: <b class='tw'>" + F[0] + " …</b> + <b class='tw'>" + main + "</b> <small>(" + gloss + ")</small>", answer: right, accept: [right], target: 16, explain: expl, speakAfter: tts(right, ctx.caps) };
+  }
+  /* the -s passive: the object of a fresh active sentence becomes the subject, in the same tense */
+  function passGen(ctx) {
+    var rnd = ctx.rnd, c = clause(rnd, { pass: true }), P = pick(c.V.pobjs, rnd), tense = pick(["pres", "past", "past", "perf"], rnd);
+    c.O = P;
+    var act = sent(mainC(c, tense, "")), pv = tense === "pres" ? c.V.pass[0] : tense === "past" ? c.V.pass[1] : "har " + c.V.sup + "s";
+    var ans = sent([P[0], pv]), withAgent = sent([P[0], pv, "av", c.S[3]]);
+    var pl = /rna$/.test(P[0]), be = tense === "pres" ? (pl ? "are" : "is") : tense === "past" ? (pl ? "were" : "was") : (pl ? "have been" : "has been");
+    return { kind: "text", question: "Rewrite in the -s passive, leaving out who did it: <b class='tw'>" + act + "</b> <small>(" + cap(enC(c, tense, "")) + ".)</small>", answer: ans, accept: [ans, withAgent], target: 12,
+      explain: ["<b>" + ans + "</b> (" + cap(P[1]) + " " + be + " " + c.V.en[3] + ".)", "The object '" + P[0] + "' becomes the subject and the verb takes -s in the same tense: " + (tense === "perf" ? "har " + c.V.sup + " → har " + c.V.sup + "s" : (tense === "pres" ? c.V.pres : c.V.past) + " → " + pv) + ". With the agent: " + withAgent], speakAfter: tts(ans, ctx.caps) };
+  }
+  /* translation: a fresh English sentence, with every correct Swedish order accepted (time word first or last, du or ni for you, ska or kommer att) */
+  function writeGen(ctx) {
+    var rnd = ctx.rnd, c = clause(rnd, { tr: true, modal: rnd() < 0.2 }), k = rnd();
+    var tense = c.M ? "pres" : k < 0.45 ? "pres" : k < 0.7 ? "past" : k < 0.85 ? "perf" : "fut";
+    var F = tense === "pres" && rnd() < 0.5 ? pick(G.front.filter(function (f) { return f[2] === "now"; }), rnd) : tense === "past" && rnd() < 0.6 ? pick(G.front.filter(function (f) { return f[2] === "past"; }), rnd) : null;
+    var neg = rnd() < 0.3 ? "inte" : "", en = enC(c, tense, neg ? "not" : "", F && F[0] === "nu");
+    en = F ? cap(F[1]) + " " + en + "." : cap(en) + ".";
+    var subs = c.S[0] === "du" ? ["du", "ni"] : c.S[0] === "ni" ? ["ni", "du"] : [c.S[0]], objs = [c.O[0]].concat(c.O[2] || []), tenses = tense === "fut" ? ["fut", "futk"] : [tense], acc = [];
+    subs.forEach(function (s) { objs.forEach(function (o) { tenses.forEach(function (t) {
+      var cc = { S: [s].concat(c.S.slice(1)), V: c.V, O: [o, c.O[1]], M: c.M };
+      if (F) { acc.push(sent(invC(cc, t, F[0], neg))); if (neg && !isPron(cc)) acc.push(sent(invC(cc, t, F[0], neg, true))); acc.push(sent(mainC(cc, t, neg).concat([F[0]]))); }
+      else acc.push(sent(mainC(cc, t, neg)));
+    }); }); });
+    return [en, lgDistinct(acc, function (x) { return x; }), tense === "pres" && !F && !neg ? "A1" : "A2"];
+  }
   /* k: 1 past, 2 perfect, 3 future */
   function tenseQ(ctx, k) {
-    var r = pick(SV_TENSE, ctx.rnd), names = ["", "past (preteritum)", "perfect (perfekt)", "future"];
+    var names = ["", "past (preteritum)", "perfect (perfekt)", "future"];
+    if (ctx.rnd() < 0.75) {
+      var c = clause(ctx.rnd), forms = [sent(mainC(c, "pres")), sent(mainC(c, "past")), sent(mainC(c, "perf")), sent(mainC(c, "fut"))], ans = forms[k];
+      var acc2 = [ans]; if (k === 3) acc2.push(sent(mainC(c, "futk")));
+      return { kind: "text", question: "Put it in the <b>" + names[k] + "</b>: <b class='tw'>" + forms[0] + "</b> <small>(" + cap(enC(c, "pres", "")) + ".)</small>", answer: ans, accept: acc2, target: 12,
+        explain: ["<b>" + ans + "</b>" + (k === 3 ? " (or: " + acc2[1] + ")" : ""), "Present: " + forms[0] + " · Past: " + forms[1] + " · Perfect: " + forms[2] + " · Future: " + forms[3],
+          c.V.inf + ": " + c.V.pres + ", " + c.V.past + ", " + c.V.sup + ". The past and the supine come from the verb's group; strong verbs change the vowel and are learned by heart."], speakAfter: tts(ans, ctx.caps) };
+    }
+    var r = pick(SV_TENSE, ctx.rnd);
     var acc = [r[k]]; if (k === 3) acc.push(r[3].replace(" ska ", " kommer att "));
     return { kind: "text", question: "Put it in the <b>" + names[k] + "</b>: <b class='tw'>" + r[0] + "</b> <small>(" + r[4] + ")</small>", answer: r[k], accept: acc, target: 12,
       explain: ["<b>" + r[k] + "</b>", "Present: " + r[0] + " · Past: " + r[1] + " · Perfect: " + r[2] + " · Future: " + r[3]], speakAfter: tts(r[k], ctx.caps) };
@@ -286,6 +454,7 @@
     svadj: { name: "Adjective agreement", target: 7, gen: function (ctx) { return lgFormQ(SV_ADJ, "sv", ctx.rnd, ctx.caps); } },
     svpron: { name: "Pronouns", target: 6, gen: function (ctx) { return lgFormQ(SV_PRON, "sv", ctx.rnd, ctx.caps); } },
     svv2: { name: "Verb second", target: 8, gen: function (ctx) {
+      if (ctx.rnd() < 0.75) return v2Gen(ctx);
       var r = pick(SV_V2, ctx.rnd), S = r[0], Vb = r[1], O = r[2], A = r[3];
       var cap = function (s) { return s.charAt(0).toUpperCase() + s.slice(1); };
       var right = cap(A + " " + Vb + " " + S + (O ? " " + O : "")) + ".";
@@ -296,6 +465,7 @@
         explain: ["<b>" + right + "</b>", "Verb second: '" + A + "' takes the first slot, so the verb '" + Vb + "' comes next and the subject '" + S + "' follows it.", "Starting with the subject is also fine: " + alt], speakAfter: tts(right, ctx.caps) };
     } },
     svqn: { name: "Questions and negation", target: 10, gen: function (ctx) {
+      if (ctx.rnd() < 0.75) return qnGen(ctx);
       var r = pick(SV_QN, ctx.rnd), ask = ctx.rnd() < 0.5 ? 1 : 2;
       return { kind: "text", question: (ask === 1 ? "Make it a yes/no question: " : "Make it negative: ") + "<b class='tw'>" + r[0] + "</b> <small>(" + r[3] + ")</small>", answer: r[ask], accept: [r[ask]], target: 10,
         explain: ["<b>" + r[ask] + "</b>", ask === 1 ? "Question: the verb moves to the front, the subject follows." : "Negation: inte goes straight after the verb in a main clause."], speakAfter: tts(r[ask], ctx.caps) };
@@ -303,25 +473,29 @@
     svtense: { name: "Tenses", target: 12, gen: function (ctx) { return tenseQ(ctx, 1 + ((ctx.rnd() * 3) | 0)); } },
     svfut: { name: "Future", target: 12, gen: function (ctx) { return tenseQ(ctx, 3); } },
     svbiff: { name: "Clauses", target: 8, gen: function (ctx) {
+      if (ctx.rnd() < 0.7) return biffGen(ctx);
       var r = pick(SV_BIFF, ctx.rnd), right = r[1];
       /* build the wrong version by swapping inte and the verb */
-      var parts = right.split(" "), i = parts.indexOf("inte"), w2 = parts.slice();
+      var parts = right.replace(/\.$/, "").split(" "), i = parts.indexOf("inte"), w2 = parts.slice();
       if (i > 0 && i + 1 < parts.length) { var t = w2[i]; w2[i] = w2[i + 1]; w2[i + 1] = t; }
-      var wrong = w2.join(" ");
+      var wrong = w2.join(" ") + ".";
       return { kind: "choice", question: "Which is correct? <small>(" + r[2] + ")</small>", options: lgShuffle([right, wrong], ctx.rnd), answer: right, target: 8,
         explain: ["<b>" + right + "</b>", "BIFF: in a subordinate clause, inte comes before the verb. In the main clause it would be: " + r[0]], speakAfter: tts(right, ctx.caps) };
     } },
     svpass: { name: "Passive", target: 12, gen: function (ctx) {
+      if (ctx.rnd() < 0.75) return passGen(ctx);
       var r = pick(SV_PASSIVE, ctx.rnd);
       return { kind: "text", question: "Rewrite in the -s passive: <b class='tw'>" + r[0] + "</b> <small>(" + r[2] + ")</small>", answer: r[1], accept: [r[1]], target: 12, explain: ["<b>" + r[1] + "</b>", "The object becomes the subject and the verb takes -s in the same tense."], speakAfter: tts(r[1], ctx.caps) };
     } },
     svdict: { name: "Dictation", target: 20, gen: function (ctx) {
       var r = pick(SV_DICTATION, ctx.rnd);
-      return { kind: "text", question: "Type what you " + (ctx.caps && ctx.caps.tts ? "hear" : "read, after it hides") + ". <small>(" + r[1] + ")</small>", answer: r[0], accept: [r[0]], target: 20, explain: ["<b>" + r[0] + "</b>"], speak: tts(r[0], ctx.caps), flash: !(ctx.caps && ctx.caps.tts) ? r[0] : null, hideText: true };
+      /* a third of the time, a sentence nobody has heard before */
+      if (ctx.rnd() < 0.35) { var c = clause(ctx.rnd), f = ctx.rnd() < 0.5 ? adverbs("now", ctx.rnd) : null; r = [f ? sent(invC(c, "pres", f[0], ctx.rnd() < 0.3 ? "inte" : "")) : sent(mainC(c, ctx.rnd() < 0.5 ? "past" : "pres", ctx.rnd() < 0.3 ? "inte" : "")), "A2"]; }
+      return { kind: "text", question: "Type what you " + (ctx.caps && ctx.caps.tts ? "hear" : "read, after it hides") + ". <small>(" + r[1] + ")</small>", answer: r[0], accept: [r[0]], target: 20, lenient: true, explain: ["<b>" + r[0] + "</b>"], speak: tts(r[0], ctx.caps), flash: !(ctx.caps && ctx.caps.tts) ? r[0] : null, hideText: true };
     } },
     svwrite: { name: "Writing", target: 20, gen: function (ctx) {
-      var r = pick(SV_WRITING, ctx.rnd);
-      return { kind: "text", question: "Translate into Swedish: <b>" + r[0] + "</b> <small>(" + r[2] + ")</small>", answer: r[1][0], accept: r[1], target: 20, explain: ["<b>" + r[1][0] + "</b>" + (r[1].length > 1 ? " (also: " + r[1].slice(1).join(" / ") + ")" : "")], speakAfter: tts(r[1][0], ctx.caps) };
+      var r = ctx.rnd() < 0.4 ? writeGen(ctx) : pick(SV_WRITING, ctx.rnd);
+      return { kind: "text", question: "Translate into Swedish: <b>" + r[0] + "</b> <small>(" + r[2] + ")</small>", answer: r[1][0], accept: r[1], target: 20, lenient: true, explain: ["<b>" + r[1][0] + "</b>" + (r[1].length > 1 ? " (also: " + r[1].slice(1).join(" / ") + ")" : "")], speakAfter: tts(r[1][0], ctx.caps) };
     } }
   };
 

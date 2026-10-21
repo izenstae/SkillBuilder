@@ -142,5 +142,68 @@ ok(ctx.lgNorm("Vi vann – 3–2 — ja", "sv") === "vi vann 3 2 ja", "en and em
 ok(ctx.lgNorm("café", "es") === ctx.lgNorm("café", "es") && ctx.lgMatch("café", "café", "es"), "NFC: a decomposed accent equals the precomposed letter");
 ok(ctx.lgNumberWords("sv", 1000) === "ettusen" && ctx.lgNumberWords("sv", 2000) === "tvåtusen" && ctx.lgNumberWords("sv", 1500) === "ettusen femhundra", "1000 is ettusen");
 ok(ctx.lgMatch("sade", "sade / sa", "sv") && ctx.lgMatch("sa", "sade / sa", "sv") && ctx.lgMatch("lade", "lade / la", "sv"), "säga and lägga accept the standard and the colloquial past");
+
+/* ---- Swedish: generated grammar drills, the word-order checker, forgiven typos ---- */
+(function () {
+  var c = ctx.COURSES.sv, words = 0;
+  Object.keys(c.words).forEach(function (k) { words += c.words[k].length; });
+  ok(words >= 1000, "sv has a thousand words or more, got " + words);
+  /* every word set is in the path, so no vocabulary is orphaned */
+  Object.keys(c.vocab).forEach(function (lid) { ok(c.lessonById[lid] && c.lessonById[lid].mode === "words:" + lid, "sv vocabulary set " + lid + " has its lesson in the path"); });
+  /* the grammar drills generate: hundreds of distinct answers, every one of them clean by the order checker */
+  ["svv2", "svqn", "svtense", "svfut", "svbiff", "svpass", "svwrite", "svdict"].forEach(function (m) {
+    var seen = {}, flagged = [];
+    for (var k = 0; k < 400; k++) {
+      var q = ctx.skQuestion("sv:" + m, { caps: { tts: k % 2 === 0 }, rnd: rnd });
+      seen[q.answer] = 1;
+      (q.accept || [q.answer]).forEach(function (a) { var e = ctx.lgSvOrder(a); if (e) flagged.push(a + " (" + e.msg + ")"); });
+      ok(ctx.gradeAnswer(q, q.answer, "sv").ok, "sv " + m + " right answer grades right");
+    }
+    /* the passive answer has no subject in it, so it varies less: about 50 objects in three tenses */
+    var distinct = Object.keys(seen).length;
+    ok(distinct >= (m === "svdict" || m === "svwrite" ? 60 : m === "svpass" ? 80 : 150), "sv " + m + " gives " + distinct + " distinct answers in 400 questions");
+    ok(flagged.length === 0, "sv " + m + " correct answers pass the order checker: " + flagged.slice(0, 3).join("; "));
+  });
+  /* the wrong option in a generated clause question is exactly the mistake the checker names */
+  for (var k = 0; k < 200; k++) {
+    var q = ctx.skQuestion("sv:svbiff", { caps: {}, rnd: rnd });
+    if (q.kind !== "choice" || !/^(Jag|Hon|Han|Vi|Det|Alla) \S+ (att|om|varför) (jag|du|han|hon|vi|ni|de) /.test(q.answer)) continue;
+    q.options.forEach(function (o) { if (o !== q.answer) ok(ctx.lgSvOrder(o) && ctx.lgSvOrder(o).rule === "biff", "BIFF distractor is flagged: " + o); });
+  }
+  /* the checker on free text: the mistakes, and the sentences that only look like them */
+  var bad = [["Idag jag spelar hockey.", "Idag spelar jag hockey."], ["Igår jag inte tränade.", "Igår tränade jag inte."], ["På lördag vi spelar match.", "På lördag spelar vi match."],
+    ["Vad du gör?", "Vad gör du?"], ["Jag inte vill äta.", "Jag vill inte äta."], ["Om det regnar, vi stannar hemma.", "Om det regnar stannar vi hemma."],
+    ["Jag vet att han kommer inte.", "Jag vet att han inte kommer."], ["Hon säger att hon kan aldrig komma.", "Hon säger att hon aldrig kan komma."], ["Jag vill att äta.", "Jag vill äta."], ["I dag jag tränar.", "I dag tränar jag."]];
+  bad.forEach(function (b) { var e = ctx.lgSvOrder(b[0]); ok(e && e.fix === b[1], "order checker flags '" + b[0] + "' and fixes it to '" + b[1] + "', got " + JSON.stringify(e)); });
+  ["Idag spelar jag hockey.", "Jag vill att du kommer.", "Jag vill att Anna kommer.", "Efter att jag åt gick jag hem.", "När jag kom hem åt jag middag.", "Eftersom jag var trött, gick jag hem.",
+    "Var du där?", "Hur mår du?", "Jag också.", "Nej tack, det är bra.", "Igår, på hockeyträningen.", "Jag kan inte komma eftersom jag är sjuk.", "Om du vill kan jag hjälpa dig."].forEach(function (g) {
+    ok(!ctx.lgSvOrder(g), "order checker leaves '" + g + "' alone");
+  });
+  /* nothing written in the course trips it: dialogues, readers, examples, dictation, writing */
+  var texts = [];
+  c.dialogues.forEach(function (d) { d.turns.forEach(function (t) { texts.push(t.bot, t.model); }); });
+  c.readings.forEach(function (r) { texts = texts.concat(r.text); });
+  Object.keys(c.vocab).forEach(function (k) { c.vocab[k].forEach(function (r) { texts.push(r[4]); }); });
+  var hits = texts.filter(function (t) { return ctx.lgSvOrder(t); });
+  ok(hits.length === 0, "no course text is flagged by the order checker: " + hits.slice(0, 3).join(" | "));
+  /* conversation: a reply that does the job in the wrong order fails, with the reason and the fix */
+  var d5 = c.dialogues.filter(function (d) { return d.id === "sv_d5"; })[0], when = d5.turns[3];
+  ok(ctx.lgTurnOk(when, "På lördag spelar vi mot Frölunda.", "sv"), "a right-order reply passes");
+  var chk = ctx.lgTurnCheck(when, "På lördag vi spelar mot Frölunda.", "sv");
+  ok(!chk.ok && /Verb second/.test(chk.why) && chk.fix === "På lördag spelar vi mot Frölunda.", "a wrong-order reply fails with the reason and the fix: " + JSON.stringify(chk));
+  ok(c.dialogues.every(function (d) { return d.turns.every(function (t) { return ctx.lgTurnOk(t, t.model, "sv"); }); }), "every model answer passes its own turn");
+  /* i dag and idag are the same word */
+  ok(ctx.lgMatch("I dag spelar jag hockey.", "Idag spelar jag hockey.", "sv") && ctx.lgMatch("Jag tränar i kväll", "Jag tränar ikväll.", "sv"), "i dag = idag, i kväll = ikväll");
+  /* one typo in a sentence is forgiven where the drill allows it, never when the slip is a real word */
+  var dq = { kind: "text", answer: "Jag har bott i Sverige i två år.", accept: ["Jag har bott i Sverige i två år."], lenient: true, course: "sv" };
+  var g1 = ctx.gradeAnswer(dq, "Jag har bott i Sverige i två ar.", "sv");
+  ok(g1.ok && g1.slip && g1.slip.right === "år", "a one-letter slip in a dictation sentence passes and is named: " + JSON.stringify(g1.slip));
+  var g2 = ctx.gradeAnswer(dq, "Jag här bott i Sverige i två år.", "sv");
+  ok(!g2.ok && g2.diff && g2.diff.words.some(function (w) { return w.w === "här" && !w.ok; }), "här for har is a wrong word, not a typo, and the diff marks it");
+  ok(!ctx.gradeAnswer({ kind: "text", answer: dq.answer, accept: dq.accept, course: "sv" }, "Jag har bott i Sverige i två ar.", "sv").ok, "no forgiveness where the question is not lenient");
+  ok(!ctx.gradeAnswer(dq, "Jag har bodd i Sverige i tva år.", "sv").ok, "two slips fail");
+  var g3 = ctx.gradeAnswer({ kind: "text", answer: "Idag spelar jag hockey.", accept: ["Idag spelar jag hockey."], course: "sv" }, "Idag jag spelar hockey", "sv");
+  ok(!g3.ok && g3.why && g3.why.rule === "v2", "a typed wrong-order sentence comes back with the rule it broke");
+})();
 console.log("lang: " + (n - fails) + "/" + n + " passed");
 if (fails) process.exit(1);
