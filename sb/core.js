@@ -120,14 +120,34 @@ function cpQuestion(c, L, ctx, asked) {
   return skQuestion(c.id + ":" + L.mode, ctx);
 }
 
+/* every word form a course knows, normalised: a typed slip that lands on one of these is a wrong word, not a typo */
+var LEX_CACHE = {};
+function lexiconOf(cid) {
+  if (LEX_CACHE[cid]) return LEX_CACHE[cid];
+  var c = COURSES[cid], lex = {};
+  if (!c || !c.vocab) return lex;
+  Object.keys(c.vocab).forEach(function (lid) { c.vocab[lid].forEach(function (row) {
+    /* the Swedish cells only: word, forms and example (Hebrew rows carry a transliteration, so they sit one further on) */
+    (c.lang === "he" ? [row[0], row[4], row[5]] : [row[0], row[3], row[4]]).forEach(function (cell) { lgNorm(cell, c.lang).split(/[ ,\/]+/).forEach(function (w) { if (w) lex[w] = 1; }); });
+  }); });
+  return (LEX_CACHE[cid] = lex);
+}
 /* grade an answer against a question */
 function gradeAnswer(q, raw, lang) {
   if (q.kind === "choice" || q.kind === "recall") return { ok: raw === q.answer, said: raw };
   if (q.kind === "num") { var v = parseFloat(String(raw).replace(/[−–]/g, "-").replace(/[^0-9.\-]/g, "")); if (!isFinite(v)) return null; return { ok: Math.abs(v - q.answer) <= (q.tol || 0), said: v }; }
   if (q.kind === "text" || q.kind === "speak") {
-    var ok = lgMatch(raw, q.accept || [q.answer], lang);
+    var acc = q.accept || [q.answer], ok = lgMatch(raw, acc, lang);
     var near = !ok && lgDistance(lgNorm(raw, lang), lgNorm(q.answer, lang)) === 1;
-    return { ok: ok, said: raw, near: near };
+    var g = { ok: ok, said: raw, near: near };
+    if (ok || lgNorm(q.answer, lang).split(" ").length < 3) return g;
+    /* a sentence: forgive one typo where the question allows it, else show which words went wrong and why */
+    var slip = q.lenient ? lgSlip(raw, acc, lang, lexiconOf(q.course)) : null;
+    if (slip) { g.ok = true; g.near = false; g.slip = slip; return g; }
+    g.diff = lgWordDiff(raw, acc, lang);
+    var order = lang === "sv" ? lgSvOrder(raw) : null;
+    if (order) g.why = order;
+    return g;
   }
   if (q.kind === "square" || q.kind === "move") return { ok: raw === q.answer || (q.accept || []).indexOf(raw) >= 0, said: raw };
   return { ok: false, said: raw };
@@ -200,5 +220,5 @@ function sbTrophies(s) {
 if (typeof module !== "undefined") module.exports = {
   COURSES: COURSES, COURSE_ORDER: COURSE_ORDER, registerCourse: registerCourse, courseOf: courseOf, lessonOf: lessonOf, passable: passable, lessonMinutes: lessonMinutes,
   ruleOf: ruleOf, lessonSkillIds: lessonSkillIds, skInfo: skInfo, isSkillId: isSkillId, skillName: skillName, skillTarget: skillTarget, skQuestion: skQuestion, cpQuestion: cpQuestion,
-  gradeAnswer: gradeAnswer, SB_RANKS: SB_RANKS, rankIn: rankIn, xpOf: xpOf, minutesOf: minutesOf, langLevel: langLevel, sbTrophies: sbTrophies
+  gradeAnswer: gradeAnswer, lexiconOf: lexiconOf, SB_RANKS: SB_RANKS, rankIn: rankIn, xpOf: xpOf, minutesOf: minutesOf, langLevel: langLevel, sbTrophies: sbTrophies
 };

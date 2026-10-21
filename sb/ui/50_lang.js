@@ -37,7 +37,7 @@ function drawConv(box, c) {
     var t = d.turns[i], bb = el("div", "bub bot" + (c.lang === "he" ? " rtl" : "")); bb.innerHTML = esc(t.bot) + '<small>' + esc(t.botg) + '</small>';
     (function (tt) { var sb = btn("🔊", "ghost sm", function () { speak(tt.bot, code, 0.85); }); sb.setAttribute("aria-label", "Listen"); sb.style.cssText = "min-height:26px;padding:2px 8px;margin-top:6px"; bb.appendChild(sb); })(t);
     thread.appendChild(bb);
-    if (i < conv.i || conv.replies[i] != null) { var rep = conv.replies[i], okr = lgTurnOk(t, rep || "", c.lang); var mb = el("div", "bub me" + (okr ? "" : " bad") + (c.lang === "he" ? " rtl" : "")); mb.innerHTML = esc(rep || "(no answer)") + '<small>' + (okr ? "✓ that does the job" : "✗ not quite") + '</small><div class="model">' + esc(t.model) + '<small>' + esc(t.modelg) + '</small></div>'; thread.appendChild(mb); }
+    if (i < conv.i || conv.replies[i] != null) { var rep = conv.replies[i], chk = lgTurnCheck(t, rep || "", c.lang), okr = chk.ok; var mb = el("div", "bub me" + (okr ? "" : " bad") + (c.lang === "he" ? " rtl" : "")); mb.innerHTML = esc(rep || "(no answer)") + '<small>' + (okr ? "✓ that does the job" : chk.why ? "✗ word order: " + esc(chk.why) + (chk.fix ? " → " + esc(chk.fix) : "") : "✗ not quite") + '</small><div class="model">' + esc(t.model) + '<small>' + esc(t.modelg) + '</small></div>'; thread.appendChild(mb); }
   }
   p.appendChild(thread);
   if (conv.i < d.turns.length) {
